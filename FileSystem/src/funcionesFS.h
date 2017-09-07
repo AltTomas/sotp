@@ -13,7 +13,7 @@
 #include <stdbool.h>
 #include <pthread.h>
 
-#define configuracionfs "../configFileSystem.config"
+#define configuracionFS "../configFileSystem.config"
 #define MAX_LEN_PUERTO 6
 #define PUNTO_MONTAJE "PUNTO_MONTAJE"
 
@@ -28,7 +28,7 @@ t_config_fs* config;
 
 
 void crearConfig(int, char**);
-t_config_fs* levantarConfiguracionfs(char*);
+t_config_fs* levantarConfiguracionFS(char*);
 bool verificarConfig(t_config_fs*);
 bool verificarExistenciaDeArchivo(char*);
 void destruirConfig(t_config_fs*);
