@@ -8,10 +8,13 @@
  ============================================================================
  */
 
-#include <stdio.h>
-#include <stdlib.h>
+#include "funcionesMaster.h"
 
-int main(void) {
+int main(int argc, char** argv){
+
+	logger = log_create("../logKernel","kernel", 0, LOG_LEVEL_TRACE);
+	crearConfig(argc,argv);
+	destruirConfig(config);
 	puts("!!!Hello World!!!"); /* prints !!!Hello World!!! */
 	return EXIT_SUCCESS;
 }
