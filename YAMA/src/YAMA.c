@@ -8,10 +8,13 @@
  ============================================================================
  */
 
-#include <stdio.h>
-#include <stdlib.h>
+#include "funcionesYAMA.h"
 
 int main(void) {
+
+	logger = log_create("../logYAMA","YAMA", 0, LOG_LEVEL_TRACE);
+	crearConfig();
+	destruirConfig(config);
 	puts("!!!Hello World!!!"); /* prints !!!Hello World!!! */
 	return EXIT_SUCCESS;
-}
+	}

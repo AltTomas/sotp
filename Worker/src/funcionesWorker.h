@@ -1,12 +1,12 @@
 /*
- * funcionesMaster.h
+ * funcionesWorker.h
  *
- *  Created on: 6/9/2017
+ *  Created on: 10/9/2017
  *      Author: utnso
  */
 
-#ifndef FUNCIONESMASTER_H_
-#define FUNCIONESMASTER_H_
+#ifndef FUNCIONESWORKER_H_
+#define FUNCIONESWORKER_H_
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,24 +20,29 @@
 #include <stdbool.h>
 #include <pthread.h>
 
-#define configuracionMaster "../../Configs/configMaster.config"
+#define configuracionWorker "../../Configs/configNodo.config"
 #define MAX_LEN_PUERTO 6
+#define MAX_LEN_NOMBRE 7
+#define MAX_RUTA 150
 #define MAX_LEN_IP 20
 
 typedef struct {
-	char* YAMA_puerto;
-	char* YAMA_ip;
-}t_config_master;
-
+	char* FS_ip;
+	char* FS_Puerto;
+	char* Nombre_Nodo;
+	char* Worker_Puerto;
+	char* Ruta_Databin;
+}t_config_Worker;
 
 t_log* logger;
-t_config_master* config;
+t_config_Worker* config;
 
 
 void crearConfig();
-t_config_master* levantarConfiguracionMaster(char*);
+t_config_Worker* levantarConfiguracionWorker(char*);
 bool verificarConfig(t_config*);
 bool verificarExistenciaDeArchivo(char*);
-void destruirConfig(t_config_master*);
+void destruirConfig(t_config_Worker*);
 
-#endif /* FUNCIONESMASTER_H_ */
+
+#endif /* FUNCIONESWORKER_H_ */

@@ -1,18 +1,8 @@
 #include "funcionesFS.h"
 
-void crearConfig(int32_t argc, char* argv[]){
+void crearConfig(){
 
-	if(argc>1){
-			if(verificarExistenciaDeArchivo(argv[1])){
-				config=levantarConfiguracionFS(argv[1]);
-				log_info(logger, "Configuracion levantada correctamente");
-
-			}else{
-				log_error(logger,"Ruta incorrecta");
-				exit(EXIT_FAILURE);
-			}
-	}
-	else if(verificarExistenciaDeArchivo(configuracionFS)){
+	if(verificarExistenciaDeArchivo(configuracionFS)){
 		config=levantarConfiguracionFS(configuracionFS);
 		log_info(logger,"Configuracion levantada correctamente");
 
@@ -44,19 +34,19 @@ t_config_fs* levantarConfiguracionFS(char* archivo_conf) {
         	log_error(logger,"CONFIG NO VALIDA");
 
         conf->punto_montaje = malloc(PUNTO_MONTAJE);
-        strcpy(conf->punto_montaje, config_get_string_value(configFs, "punto_montaje"));
+        strcpy(conf->punto_montaje, config_get_string_value(configFs, "PUNTO_MONTAJE"));
 
         conf->fs_puerto = malloc(MAX_LEN_PUERTO);
-        strcpy(conf->fs_puerto, config_get_string_value(configFs, "fs_puerto"));
+        strcpy(conf->fs_puerto, config_get_string_value(configFs, "FS_PUERTO"));
 
         config_destroy(configFs);
         printf("Configuracion levantada correctamente.\n");
         return conf;
 }
 
-bool verificarConfig(t_config_fs* config){
-	return config_has_property(config,"punto_montaje") &&
-			config_has_property(config,"fs_puerto");
+bool verificarConfig(t_config* config){
+	return config_has_property(config,"PUNTO_MONTAJE") &&
+			config_has_property(config,"FS_PUERTO");
 }
 
 bool verificarExistenciaDeArchivo(char* path) {

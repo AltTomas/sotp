@@ -1,20 +1,8 @@
 #include "funcionesMaster.h"
 
-void crearConfig(int32_t argc, char* argv[]){
+void crearConfig(){
 
-	const int path_size = 120;
-
-	if(argc>1){
-			if(verificarExistenciaDeArchivo(argv[1])){
-				config=levantarConfiguracionMaster(argv[1]);
-				log_info(logger, "Configuracion levantada correctamente");
-
-			}else{
-				log_error(logger,"Ruta incorrecta");
-				exit(EXIT_FAILURE);
-			}
-	}
-	else if(verificarExistenciaDeArchivo(configuracionMaster)){
+	if(verificarExistenciaDeArchivo(configuracionMaster)){
 		config=levantarConfiguracionMaster(configuracionMaster);
 		log_info(logger,"Configuracion levantada correctamente");
 
@@ -56,7 +44,7 @@ t_config_master* levantarConfiguracionMaster(char* archivo_conf) {
         return conf;
 }
 
-bool verificarConfig(t_config_master* config){
+bool verificarConfig(t_config* config){
 	return config_has_property(config,"YAMA_IP") &&
 			config_has_property(config,"YAMA_PUERTO");
 }

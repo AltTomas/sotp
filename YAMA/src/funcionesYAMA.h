@@ -1,12 +1,12 @@
 /*
- * funcionesMaster.h
+ * funcionesYAMA.h
  *
- *  Created on: 6/9/2017
+ *  Created on: 10/9/2017
  *      Author: utnso
  */
 
-#ifndef FUNCIONESMASTER_H_
-#define FUNCIONESMASTER_H_
+#ifndef FUNCIONESYAMA_H_
+#define FUNCIONESYAMA_H_
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,24 +20,28 @@
 #include <stdbool.h>
 #include <pthread.h>
 
-#define configuracionMaster "../../Configs/configMaster.config"
+#define configuracionYAMA "../../Configs/configYAMA.config"
 #define MAX_LEN_PUERTO 6
+#define MAX_ALGORITMO 3
 #define MAX_LEN_IP 20
 
 typedef struct {
-	char* YAMA_puerto;
-	char* YAMA_ip;
-}t_config_master;
+	char* FS_ip;
+	char* FS_Puerto;
+	int Retardo_Planificacion;
+	char* Algoritmo_Balanceo;
+}t_config_YAMA;
 
 
 t_log* logger;
-t_config_master* config;
+t_config_YAMA* config;
 
 
 void crearConfig();
-t_config_master* levantarConfiguracionMaster(char*);
+t_config_YAMA* levantarConfiguracionMaster(char*);
 bool verificarConfig(t_config*);
 bool verificarExistenciaDeArchivo(char*);
-void destruirConfig(t_config_master*);
+void destruirConfig(t_config_YAMA*);
 
-#endif /* FUNCIONESMASTER_H_ */
+
+#endif /* FUNCIONESYAMA_H_ */
