@@ -19,10 +19,12 @@
 #include <commons/string.h>
 #include <stdbool.h>
 #include <pthread.h>
+#include "sockets.h"
 
 #define configuracionMaster "../../Configs/configMaster.config"
 #define MAX_LEN_PUERTO 6
 #define MAX_LEN_IP 20
+#define MAX_LEN_RUTA 100
 
 typedef struct {
 	char* YAMA_puerto;
@@ -30,8 +32,9 @@ typedef struct {
 }t_config_master;
 
 
-t_log* logger;
+extern t_log* logger;
 t_config_master* config;
+int socketConexionYAMA;
 
 
 void crearConfig();
@@ -39,5 +42,7 @@ t_config_master* levantarConfiguracionMaster(char*);
 bool verificarConfig(t_config*);
 bool verificarExistenciaDeArchivo(char*);
 void destruirConfig(t_config_master*);
+void conectarConYAMA(void);
+void ejecutarJob(char**);
 
 #endif /* FUNCIONESMASTER_H_ */

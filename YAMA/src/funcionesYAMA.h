@@ -19,6 +19,7 @@
 #include <commons/string.h>
 #include <stdbool.h>
 #include <pthread.h>
+#include "sockets.h"
 
 #define configuracionYAMA "../../Configs/configYAMA.config"
 #define MAX_LEN_PUERTO 6
@@ -28,13 +29,19 @@
 typedef struct {
 	char* FS_ip;
 	char* FS_Puerto;
+	char* YAMA_Puerto;
 	int Retardo_Planificacion;
 	char* Algoritmo_Balanceo;
 }t_config_YAMA;
 
 
-t_log* logger;
+extern t_log* logger;
 t_config_YAMA* config;
+int socketConexionFS;
+fd_set maestro;
+fd_set setMasters;
+int socketEscuchaMasters;
+int max_fd;
 
 
 void crearConfig();
@@ -42,6 +49,10 @@ t_config_YAMA* levantarConfiguracionMaster(char*);
 bool verificarConfig(t_config*);
 bool verificarExistenciaDeArchivo(char*);
 void destruirConfig(t_config_YAMA*);
+void conectarConFS(void);
+void escucharConexiones(void);
+void aceptarNuevaConexion(int, fd_set* );
+void trabajarSolicitudMaster(int);
 
 
 #endif /* FUNCIONESYAMA_H_ */

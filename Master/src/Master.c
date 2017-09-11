@@ -27,6 +27,15 @@ int main(int argc, char** argv){
 	}
 
 	crearConfig();
+
+	conectarConYAMA();
+
+	ejecutarJob(argv);
+
+	while(1){
+
+	}
+
 	destruirConfig(config);
 	puts("!!!Hello World!!!"); /* prints !!!Hello World!!! */
 	return EXIT_SUCCESS;
