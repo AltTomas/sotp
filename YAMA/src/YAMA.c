@@ -9,7 +9,6 @@
  */
 
 #include "funcionesYAMA.h"
-#include <commons/temporal.h>
 
 int main(void) {
 

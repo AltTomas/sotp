@@ -20,6 +20,7 @@
 #include <stdbool.h>
 #include <pthread.h>
 #include <commons/sockets.h>
+#include <commons/temporal.h>
 
 #define configuracionYAMA "../../Configs/configYAMA.config"
 #define MAX_LEN_PUERTO 6
