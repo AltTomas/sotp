@@ -19,7 +19,7 @@
 #include <commons/string.h>
 #include <stdbool.h>
 #include <pthread.h>
-#include "sockets.h"
+#include <commons/sockets.h>
 
 #define configuracionYAMA "../../Configs/configYAMA.config"
 #define MAX_LEN_PUERTO 6

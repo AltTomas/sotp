@@ -9,13 +9,13 @@
  */
 
 #include "funcionesYAMA.h"
+#include <commons/temporal.h>
 
 int main(void) {
 
 	logger = log_create("../logYAMA","YAMA", 0, LOG_LEVEL_TRACE);
 	crearConfig();
-
-	//conectarConFS();
+	conectarConFS();
 	escucharConexiones();
 
 	destruirConfig(config);
