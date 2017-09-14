@@ -13,6 +13,7 @@
 #include <commons/string.h>
 #include <stdbool.h>
 #include <pthread.h>
+#include <readline/readline.h>
 
 #define configuracionFS "../../Configs/configFileSystem.config"
 #define MAX_LEN_PUERTO 6
@@ -33,5 +34,6 @@ t_config_fs* levantarConfiguracionFS(char*);
 bool verificarConfig(t_config*);
 bool verificarExistenciaDeArchivo(char*);
 void destruirConfig(t_config_fs*);
+void commandHandler();
 
 #endif /* FUNCIONESFS_H_ */

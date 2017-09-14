@@ -15,5 +15,6 @@ int main(int argc, char** argv){
 	crearConfig();
 	destruirConfig(config);
 
+	commandHandler();
 	return EXIT_SUCCESS;
 }

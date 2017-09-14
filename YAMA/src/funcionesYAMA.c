@@ -86,7 +86,7 @@ void destruirConfig(t_config_YAMA* config){
 }
 
 ///////////////////////////////////////////////////// CONEXIONES //////////////////////////////////////////////////////////////////////////
-void conectarConFS(void){
+int conectarConFS(void){
 
 	log_info(logger,"Conectandose a FS");
 
@@ -94,21 +94,13 @@ void conectarConFS(void){
 
 	if(socketConexionFS == -1){
 		log_error(logger,"No se pudo establecer la conexion con FS, cerrando YAMA...");
-		exit(1);
+		return 0;
 	}
 
-	socket_enviar(socketConexionFS, D_STRUCT_NUMERO, (void*)ES_YAMA);
+	log_info(logger, "Conexión exitosa a FS");
+	return 1;
 
-	int respuesta;
-	socket_recibir(socketConexionFS, (t_tipoEstructura*)D_STRUCT_NUMERO, (void**)respuesta);
 
-	if((int)respuesta == ES_FILESYSTEM){
-		log_info(logger,"Se realizo el handshake con FS");
-	}
-	else{
-		log_error(logger, "Se recibio: %s", (char*)respuesta);
-		exit(1);
-	}
 }
 
 void escucharConexiones(void){
