@@ -15,6 +15,16 @@
 
 typedef uint8_t t_tipoEstructura;
 
+typedef struct controller{
+	u_int32_t job;
+	u_int32_t master;
+	char* nodo;
+	u_int32_t bloque;
+	char* etapa;
+	char* fileTemporal;
+	char* status;
+} t_controller;
+
 typedef struct Stream {
 	int length;
 	char* data;
