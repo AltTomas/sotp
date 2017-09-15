@@ -248,39 +248,39 @@ void aceptarNuevaConexion(int socketEscucha, fd_set* set){
 		int recepcion = socket_recibir(socketNuevo, &tipoEstructura,&estructuraRecibida);
 
 		if(recepcion == -1 || tipoEstructura != D_STRUCT_NUMERO){
-			log_info(logger,"No se recibio correctamente a que atendio YAMA");
+			log_info(logger,"No se recibio correctamente a que atendio FS");
 		}
-		else if(((t_struct_numero*)estructuraRecibida)->numero == ES_MASTER){
+		else if(((t_struct_numero*)estructuraRecibida)->numero == ES_DATANODE){
 			FD_SET(socketNuevo, &datanode);
 			FD_SET(socketNuevo, set);
 			if(socketNuevo > max_fd) max_fd = socketNuevo;
-				printf("Se acaba de conectar un proceso Master en el socket %d\n", socketNuevo);
-				log_info(logger,"Se acaba de conectar un proceso Master en el socket %d", socketNuevo);
+				printf("Se acaba de conectar un proceso  en el socket %d\n", socketNuevo);
+				log_info(logger,"Se acaba de conectar un proceso  en el socket %d", socketNuevo);
 		}
 	}
 }
 
-void trabajarSolicitudDataNode(int socketMaster){
+void trabajarSolicitudDataNode(int socketDataNode){
 
 	void* estructuraRecibida;
 	t_tipoEstructura tipoEstructura;
 
-	int recepcion = socket_recibir(socketMaster, &tipoEstructura,&estructuraRecibida);
+	int recepcion = socket_recibir(socketDataNode, &tipoEstructura,&estructuraRecibida);
 
 	if(recepcion == -1){
-		printf("Se desconecto el Master en el socket %d\n", socketMaster);
-		log_info(logger,"Se desconecto el Master en el socket %d", socketMaster);
-		close(socketMaster);
-		FD_CLR(socketMaster, &datanode);
-		FD_CLR(socketMaster, &setDataNodes);
+		printf("Se desconecto el Nodo en el socket %d\n", socketDataNode);
+		log_info(logger,"Se desconecto el Nodo en el socket %d", socketDataNode);
+		close(socketDataNode);
+		FD_CLR(socketDataNode, &datanode);
+		FD_CLR(socketDataNode, &setDataNodes);
 	}
 	else if(tipoEstructura != D_STRUCT_JOB){
 		puts("Error en la serializacion");
 		log_info(logger,"Error en la serializacion");
 	}
 	else{
-		printf("Llego solicitud de tarea del Master en el socket %d\n", socketMaster);
-		log_info(logger,"Llego solicitud de tarea del Master en el socket %d", socketMaster);
+		printf("Llego solicitud de tarea del Nodo en el socket %d\n", socketDataNode);
+		log_info(logger,"Llego solicitud de tarea del Nodo en el socket %d", socketDataNode);
 
 		printf("Script Transformacion: %s\n",((t_struct_job*)estructuraRecibida)->scriptTransformacion);
 		log_info(logger,"Script Transformacion: %s",((t_struct_job*)estructuraRecibida)->scriptTransformacion);
@@ -290,6 +290,6 @@ void trabajarSolicitudDataNode(int socketMaster){
 		log_info(logger,"Archivo Objetivo: %s",((t_struct_job*)estructuraRecibida)->archivoObjetivo);
 		printf("Archivo Resultado: %s\n",((t_struct_job*)estructuraRecibida)->archivoResultado);
 		log_info(logger,"Archivo Resultado: %s",((t_struct_job*)estructuraRecibida)->archivoResultado);
-		FD_SET(socketMaster,&setDataNodes);
+		FD_SET(socketDataNode,&setDataNodes);
 	}
 }
