@@ -192,3 +192,104 @@ int commandParser(char* linea){
 	}
 
 }
+
+
+////////////////////Conexiones/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void escucharConexiones(void){
+
+	FD_ZERO(&datanode);
+	FD_ZERO(&setDataNodes);
+
+	socketEscuchaDataNodes = crearServidor(atoi(config->fs_puerto));
+
+	max_fd = socketEscuchaDataNodes;
+
+	FD_SET(socketEscuchaDataNodes, &datanode);
+	fd_set read_fd;
+	int iterador_sockets, resultadoHilo;
+
+	while(1){
+		read_fd = datanode;
+
+		if(select(max_fd + 1, &read_fd, NULL, NULL, NULL) == -1){
+			perror("Error en SELECT");
+			exit(1);
+		}
+
+		if(FD_ISSET(socketEscuchaDataNodes, &read_fd)){
+			aceptarNuevaConexion(socketEscuchaDataNodes, &setDataNodes);
+		}
+
+		for(iterador_sockets = 0; iterador_sockets <= max_fd; iterador_sockets++) {
+
+			if(FD_ISSET(iterador_sockets, &setDataNodes) && FD_ISSET(iterador_sockets,&read_fd)){
+				FD_CLR(iterador_sockets, &setDataNodes);
+				pthread_t hilo;
+				resultadoHilo = pthread_create(hilo, NULL, (void*)trabajarSolicitudDataNode, iterador_sockets);
+				if(resultadoHilo) exit(1);
+			}
+		}
+	}
+}
+
+void aceptarNuevaConexion(int socketEscucha, fd_set* set){
+
+	int socketNuevo = aceptarCliente(socketEscucha);
+
+	if(socketNuevo == -1) {
+			perror("Error al aceptar conexion entrante");
+	}
+	else{
+		void* estructuraRecibida;
+		t_tipoEstructura tipoEstructura;
+
+		int recepcion = socket_recibir(socketNuevo, &tipoEstructura,&estructuraRecibida);
+
+		if(recepcion == -1 || tipoEstructura != D_STRUCT_NUMERO){
+			log_info(logger,"No se recibio correctamente a que atendio YAMA");
+		}
+		else if(((t_struct_numero*)estructuraRecibida)->numero == ES_MASTER){
+			FD_SET(socketNuevo, &datanode);
+			FD_SET(socketNuevo, set);
+			if(socketNuevo > max_fd) max_fd = socketNuevo;
+				printf("Se acaba de conectar un proceso Master en el socket %d\n", socketNuevo);
+				log_info(logger,"Se acaba de conectar un proceso Master en el socket %d", socketNuevo);
+		}
+	}
+}
+
+void trabajarSolicitudDataNode(int socketMaster){
+
+	void* estructuraRecibida;
+	t_tipoEstructura tipoEstructura;
+
+	int recepcion = socket_recibir(socketMaster, &tipoEstructura,&estructuraRecibida);
+
+	if(recepcion == -1){
+		printf("Se desconecto el Master en el socket %d\n", socketMaster);
+		log_info(logger,"Se desconecto el Master en el socket %d", socketMaster);
+		close(socketMaster);
+		FD_CLR(socketMaster, &datanode);
+		FD_CLR(socketMaster, &setDataNodes);
+	}
+	else if(tipoEstructura != D_STRUCT_JOB){
+		puts("Error en la serializacion");
+		log_info(logger,"Error en la serializacion");
+	}
+	else{
+		printf("Llego solicitud de tarea del Master en el socket %d\n", socketMaster);
+		log_info(logger,"Llego solicitud de tarea del Master en el socket %d", socketMaster);
+
+		printf("Script Transformacion: %s\n",((t_struct_job*)estructuraRecibida)->scriptTransformacion);
+		log_info(logger,"Script Transformacion: %s",((t_struct_job*)estructuraRecibida)->scriptTransformacion);
+		printf("Script Reduccion: %s\n",((t_struct_job*)estructuraRecibida)->scriptReduccion);
+		log_info(logger,"Script Reduccion: %s",((t_struct_job*)estructuraRecibida)->scriptReduccion);
+		printf("Archivo Objetivo: %s\n",((t_struct_job*)estructuraRecibida)->archivoObjetivo);
+		log_info(logger,"Archivo Objetivo: %s",((t_struct_job*)estructuraRecibida)->archivoObjetivo);
+		printf("Archivo Resultado: %s\n",((t_struct_job*)estructuraRecibida)->archivoResultado);
+		log_info(logger,"Archivo Resultado: %s",((t_struct_job*)estructuraRecibida)->archivoResultado);
+		FD_SET(socketMaster,&setDataNodes);
+	}
+}

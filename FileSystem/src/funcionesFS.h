@@ -11,6 +11,7 @@
 #include <commons/config.h>
 #include <commons/collections/list.h>
 #include <commons/string.h>
+#include <commons/estructuras.h>
 #include <stdbool.h>
 #include <pthread.h>
 #include <readline/readline.h>
@@ -28,6 +29,10 @@ typedef struct {
 t_log* logger;
 t_config_fs* config;
 
+fd_set datanode;
+fd_set setDataNodes;
+int socketEscuchaDataNodes;
+int max_fd;
 
 void crearConfig();
 t_config_fs* levantarConfiguracionFS(char*);
@@ -35,5 +40,8 @@ bool verificarConfig(t_config*);
 bool verificarExistenciaDeArchivo(char*);
 void destruirConfig(t_config_fs*);
 void commandHandler();
+void escucharConexiones(void);
+void aceptarNuevaConexion(int, fd_set* );
+void trabajarSolicitudDataNode(int);
 
 #endif /* FUNCIONESFS_H_ */
