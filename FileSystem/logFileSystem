@@ -1,2 +1,4 @@
 [DEBUG] 13:04:15:21 filesystem/(3615:3615): Path config: ../../Configs/configFileSystem.config
 [INFO] 13:04:15:21 filesystem/(3615:3615): Configuracion levantada correctamente
+[DEBUG] 23:05:52:228 filesystem/(3993:3993): Path config: ../../Configs/configFileSystem.config
+[INFO] 23:05:52:231 filesystem/(3993:3993): Configuracion levantada correctamente

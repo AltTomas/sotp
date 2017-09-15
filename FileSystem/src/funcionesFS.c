@@ -73,23 +73,23 @@ void commandHandler(){
 
 	while(1){
 		linea = readline("Ingrese un comando: ");
-		string_to_upper(linea);
 
 		if(linea){
 			add_history(linea);
 		} else if(!linea){
 			linea = readline("Ingrese un comando: ");
-		} else if(strcmp(linea, "HELP") == 0){
-			puts("format - Formatear el Filesystem");
-			puts("rm [path_archivo] - rm -d [path_directorio] -rm [path_archivo] ");
 		}
 
 		switch(commandParser(linea)){
+
+		default:
+			puts("El comando que ingreso no es valido.");
+			break;
 		case 1:
 			puts("formatear FS");
 			break;
 		case 2:
-			puts("Ingresar path del archivo, -d path del directorio o -b path archivo, nro bloque y nro copia");
+			puts("Ingresar path del archivo.");
 			break;
 		case 3:
 			puts("Ingresar path original y nombre final.");
@@ -121,15 +121,37 @@ void commandHandler(){
 		case 12:
 			puts("Ingrese el path de un archivo");
 			break;
-		default:
-			puts("El comando que ingreso no es valido.");
+		case 13:
+			puts("format - Formatear el Filesystem.");
+			puts("rm [path_archivo] - Eliminar un Archivo.");
+			puts("rm -d [path_directorio] - Eliminar un directorio.");
+			puts("rm -b [path_archivo] [nro_bloque] [nro_copia] - Eliminar un bloque");
+			puts("rename [path_original] [nombre_final] - Renombra un Archivo o Directorio");
+			puts("mv [path_original] [path_final] - Mueve un Archivo o Directorio");
+			puts("cat [path_archivo] - Muestra el contenido del archivo como texto plano.");
+			puts("mkdir [path_dir] - Crea un directorio. Si el directorio ya existe, el comando deberá informarlo.");
+			puts("cpfrom [path_archivo_origen] [directorio_yamafs] - Copiar un archivo local al yamafs");
+			puts("cpto [path_archivo_yamafs] [directorio_filesystem] - Copiar un de yamafs al fs local");
+			puts("cpblock [path_archivo] [nro_bloque] [id_nodo] - Crea una copia de un bloque de un archivo en el nodo dado.");
+			puts("md5 [path_archivo_yamafs] - Solicitar el MD5 de un archivo en yamafs");
+			puts("ls [path_directorio] - Lista los archivos de un directorio");
+			puts("info [path_archivo] - Muestra toda la información del archivo, incluyendo tamaño, bloques, ubicación de los bloques, etc.");
 			break;
-		}
-		free(linea);
 
+		case 14:
+			puts("ingrese el path del directorio");
+			break;
+		case 15:
+			puts("ingrese path del archivo, nro bloque y nro copia");
+			break;
+
+
+		}
+
+
+	free(linea);
 	}
 }
-
 
 int commandParser(char* linea){
 
@@ -159,9 +181,14 @@ int commandParser(char* linea){
 		return 11;
 	} else if(strcmp(linea, "INFO") == 0){
 		return 12;
-	}
-	else{
+	} else if(strcmp(linea, "HELP") == 0){
+		return 13;
+	} else if(strcmp(linea, "RM -D") == 0){
+		return 14;
+	} else if(strcmp(linea, "RM -B") == 0){
 		return 15;
+	} else{
+		return 17;
 	}
 
 }
