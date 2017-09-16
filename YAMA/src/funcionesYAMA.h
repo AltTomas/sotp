@@ -50,7 +50,7 @@ t_config_YAMA* levantarConfiguracionMaster(char*);
 bool verificarConfig(t_config*);
 bool verificarExistenciaDeArchivo(char*);
 void destruirConfig(t_config_YAMA*);
-void conectarConFS(void);
+int conectarConFS(void);
 void escucharConexiones(void);
 void aceptarNuevaConexion(int, fd_set* );
 void trabajarSolicitudMaster(int);
