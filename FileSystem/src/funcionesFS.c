@@ -227,7 +227,7 @@ void escucharConexiones(void){
 			if(FD_ISSET(iterador_sockets, &setDataNodes) && FD_ISSET(iterador_sockets,&read_fd)){
 				FD_CLR(iterador_sockets, &setDataNodes);
 				pthread_t hilo;
-				resultadoHilo = pthread_create(hilo, NULL, (void*)trabajarSolicitudDataNode, iterador_sockets);
+				resultadoHilo = pthread_create(hilo, NULL, trabajarSolicitudDataNode, iterador_sockets);
 				if(resultadoHilo) exit(1);
 			}
 		}
