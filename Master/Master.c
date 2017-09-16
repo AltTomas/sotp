@@ -19,12 +19,12 @@ int main(int argc, char** argv){
  *  Resultado				argv[4]
 */
 	logger = log_create("../logMaster","Master", 0, LOG_LEVEL_TRACE);
-
-	if(argc != 5){
-		log_error(logger,"ERROR: Se intento iniciar el programa con un numero incorrecto de parametros");
-		puts("ERROR: Se intento iniciar el programa con un numero incorrecto de parametros");
-		exit(1);
-	}
+//
+//	if(argc != 5){
+//		log_error(logger,"ERROR: Se intento iniciar el programa con un numero incorrecto de parametros");
+//		puts("ERROR: Se intento iniciar el programa con un numero incorrecto de parametros");
+//		exit(1);
+//	}
 
 	crearConfig();
 

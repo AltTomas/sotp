@@ -5,13 +5,14 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "estructuras.h"
-#include "serializacion.h"
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <unistd.h>
+
+#include "estructuras.h"
+#include "serializacion.h"
 
 int crearServidor(int puertoEscucha);
 

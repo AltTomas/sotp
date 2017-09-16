@@ -8,6 +8,7 @@
 #ifndef FUNCIONESYAMA_H_
 #define FUNCIONESYAMA_H_
 
+#include <sockets.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,7 +20,6 @@
 #include <commons/string.h>
 #include <stdbool.h>
 #include <pthread.h>
-#include <commons/sockets.h>
 #include <commons/temporal.h>
 
 #define configuracionYAMA "../../Configs/configYAMA.config"

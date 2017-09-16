@@ -13,6 +13,16 @@
 #include <commons/collections/queue.h>
 #include <commons/string.h>
 
+//Estructura definida para Archivo de Configuracion del DataNode.
+typedef struct{
+  char*   IP_FILESYSTEM;
+	int   PUERTO_FILESYSTEM;
+  char*   NOMBRE_NODO;
+	int   PUERTO_WORKER;
+	int   PUERTO_DATANODE;
+  char*   RUTA_DATABIN;
+} t_DataNode;
+
 typedef uint8_t t_tipoEstructura;
 
 typedef struct Stream {
@@ -24,6 +34,7 @@ typedef struct Cabecera {
 	uint32_t id;		/* ID de operacion */
 	uint32_t longitud; /* Longitud del mensaje, en bytes */
 } cabecera_t;
+
 
 enum{
 
@@ -71,5 +82,6 @@ typedef struct job{
 	char* archivoObjetivo;
 	char* archivoResultado;
 }__attribute__((__packed__)) t_struct_job;
+
 
 #endif /* ESTRUCTURAS_H_ */

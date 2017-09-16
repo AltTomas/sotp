@@ -3,7 +3,7 @@
 	<name>FileSystem</name>
 	<comment></comment>
 	<projects>
-		<project>commons</project>
+		<project>cdc-commons</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

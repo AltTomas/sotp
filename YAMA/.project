@@ -3,6 +3,7 @@
 	<name>YAMA</name>
 	<comment></comment>
 	<projects>
+		<project>cdc-commons</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

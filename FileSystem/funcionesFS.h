@@ -2,6 +2,7 @@
 #ifndef FUNCIONESFS_H_
 #define FUNCIONESFS_H_
 
+#include <estructuras.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,10 +12,10 @@
 #include <commons/config.h>
 #include <commons/collections/list.h>
 #include <commons/string.h>
-#include <commons/estructuras.h>
 #include <stdbool.h>
 #include <pthread.h>
 #include <readline/readline.h>
+#include <sockets.h>
 
 #define configuracionFS "../../Configs/configFileSystem.config"
 #define MAX_LEN_PUERTO 6
