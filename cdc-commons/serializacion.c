@@ -96,8 +96,11 @@ t_stream * serializeStruct_job(t_struct_job * estructuraOrigen, int headerOperac
 	t_stream * paquete = malloc(sizeof(t_stream));
 
 	paquete->length = sizeof(t_header) 	+ strlen(estructuraOrigen->scriptTransformacion)
+										+1
 										+ strlen(estructuraOrigen->scriptReduccion)
+										+1
 										+ strlen(estructuraOrigen->archivoObjetivo)
+										+1
 										+ strlen(estructuraOrigen->archivoResultado)
 										+ 1;
 
