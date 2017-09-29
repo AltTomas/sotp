@@ -53,3 +53,32 @@
 [INFO] 22:01:11:80 Master/(4578:4578): Me conecte a YAMA
 [INFO] 22:01:11:80 Master/(4578:4578): Handshake enviado a YAMA
 [INFO] 22:01:11:82 Master/(4578:4578): Solicitando ejecucion de tarea
+[DEBUG] 22:20:37:976 Master/(5064:5064): Path config: ../../Configs/configMaster.config
+[INFO] 22:20:37:976 Master/(5064:5064): Configuracion levantada correctamente
+[INFO] 22:20:37:976 Master/(5064:5064): Conectandose a YAMA
+[ERROR] 22:20:37:976 Master/(5064:5064): Error al conectar con servidor
+[INFO] 22:20:37:976 Master/(5064:5064): Me conecte a YAMA
+[ERROR] 22:20:37:976 Master/(5064:5064): Server no encontrado
+
+[INFO] 22:20:37:976 Master/(5064:5064): Handshake enviado a YAMA
+[ERROR] 22:20:37:976 Master/(5064:5064): Server no encontrado
+
+[INFO] 22:20:37:976 Master/(5064:5064): Solicitando ejecucion de tarea
+[DEBUG] 22:20:49:533 Master/(5068:5068): Path config: ../../Configs/configMaster.config
+[INFO] 22:20:49:533 Master/(5068:5068): Configuracion levantada correctamente
+[INFO] 22:20:49:533 Master/(5068:5068): Conectandose a YAMA
+[INFO] 22:20:49:533 Master/(5068:5068): Cliente conectado correctamente al servidor IP:127.0.01 Puerto: 7700
+[INFO] 22:20:49:533 Master/(5068:5068): Me conecte a YAMA
+[INFO] 22:20:49:533 Master/(5068:5068): Handshake enviado a YAMA
+[INFO] 22:20:49:538 Master/(5068:5068): Solicitando ejecucion de tarea
+[DEBUG] 22:25:25:929 Master/(5077:5077): Path config: ../../Configs/configMaster.config
+[INFO] 22:25:25:929 Master/(5077:5077): Configuracion levantada correctamente
+[INFO] 22:25:25:929 Master/(5077:5077): Conectandose a YAMA
+[ERROR] 22:25:25:929 Master/(5077:5077): Error al conectar con servidor
+[INFO] 22:25:25:929 Master/(5077:5077): Me conecte a YAMA
+[ERROR] 22:25:25:929 Master/(5077:5077): Server no encontrado
+
+[INFO] 22:25:25:929 Master/(5077:5077): Handshake enviado a YAMA
+[ERROR] 22:25:25:929 Master/(5077:5077): Server no encontrado
+
+[INFO] 22:25:25:929 Master/(5077:5077): Solicitando ejecucion de tarea

@@ -47,3 +47,16 @@
 [INFO] 22:01:11:83 YAMA/(4577:4579): Archivo Objetivo: objetivo
 [INFO] 22:01:11:83 YAMA/(4577:4579): Archivo Resultado: resultado
 [INFO] 22:01:18:184 YAMA/(4577:4580): Se desconecto el Master en el socket 6
+[DEBUG] 22:20:41:877 YAMA/(5065:5065): Path config: ../../Configs/configYAMA.config
+[INFO] 22:20:41:877 YAMA/(5065:5065): Configuracion levantada correctamente
+[INFO] 22:20:41:877 YAMA/(5065:5065): Conectandose a FS
+[ERROR] 22:20:41:877 YAMA/(5065:5065): Error al conectar con servidor
+[INFO] 22:20:41:877 YAMA/(5065:5065): Conexión exitosa a FS
+[INFO] 22:20:41:877 YAMA/(5065:5065): Servidor escuchando en el puerto 7700
+[INFO] 22:20:41:877 YAMA/(5065:5065): Esperando por conexiones entrantes...
+[INFO] 22:20:49:533 YAMA/(5065:5065): Se acaba de conectar un proceso Master en el socket 6
+[INFO] 22:20:49:543 YAMA/(5065:5069): Llego solicitud de tarea del Master en el socket 6
+[INFO] 22:20:49:543 YAMA/(5065:5069): Script Transformacion: script
+[INFO] 22:20:49:543 YAMA/(5065:5069): Script Reduccion: script
+[INFO] 22:20:49:543 YAMA/(5065:5069): Archivo Objetivo: objetivo
+[INFO] 22:20:49:544 YAMA/(5065:5069): Archivo Resultado: resultado
