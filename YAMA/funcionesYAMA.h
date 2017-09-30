@@ -55,5 +55,9 @@ void escucharConexiones(void);
 void aceptarNuevaConexion(int, fd_set* );
 void trabajarSolicitudMaster(int);
 
+/* Variables Globales */
+int socketConexionFS;
+
+t_list * listaProcesos;
 
 #endif /* FUNCIONESYAMA_H_ */

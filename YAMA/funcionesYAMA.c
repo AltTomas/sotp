@@ -200,3 +200,7 @@ void trabajarSolicitudMaster(int socketMaster){
 		FD_SET(socketMaster,&setMasters);
 	}
 }
+
+void init(){
+	listaProcesos = list_create();
+}
