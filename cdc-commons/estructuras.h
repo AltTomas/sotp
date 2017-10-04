@@ -55,6 +55,9 @@ enum{
 
 	D_STRUCT_JOB=50,
 
+	/* OPERACIONES MASTER-YAMA */
+	MASTER_YAMA_SOLICITAR_INFO_NODO=10,
+
 	//Handshake
 	ES_YAMA=100,
 	ES_MASTER=101,
@@ -93,5 +96,9 @@ typedef struct job{
 	char* archivoResultado;
 }__attribute__((__packed__)) t_struct_job;
 
+typedef struct infoNodo{
+	char* nombreNodo;
+	int   bloquesDisponibles;
+}__attribute__((__packed__)) t_infoNodo;
 
 #endif /* ESTRUCTURAS_H_ */

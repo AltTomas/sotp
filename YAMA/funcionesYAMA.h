@@ -19,6 +19,9 @@
 #define MAX_LEN_PUERTO 6
 #define MAX_ALGORITMO 3
 #define MAX_LEN_IP 20
+#define ESTADO_EN_PROCESO "En proceso"
+#define ESTADO_ERROR "Error"
+#define ESTADO_FINALIZADO_OK "Finalizado Ok"
 
 typedef struct {
 	char* FS_ip;
@@ -26,6 +29,7 @@ typedef struct {
 	char* YAMA_Puerto;
 	int Retardo_Planificacion;
 	char* Algoritmo_Balanceo;
+	u_int32_t Disp_Base;
 }t_config_YAMA;
 
 
@@ -51,6 +55,6 @@ void trabajarSolicitudMaster(int);
 /* Variables Globales */
 int socketConexionFS;
 
-t_list * listaProcesos;
+t_list * tablaEstados;
 
 #endif /* FUNCIONESYAMA_H_ */

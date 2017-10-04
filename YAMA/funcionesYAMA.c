@@ -181,26 +181,45 @@ void trabajarSolicitudMaster(int socketMaster){
 		FD_CLR(socketMaster, &maestro);
 		FD_CLR(socketMaster, &setMasters);
 	}
-	else if(tipoEstructura != D_STRUCT_JOB){
-		puts("Error en la serializacion");
-		log_info(logger,"Error en la serializacion");
-	}
 	else{
-		printf("Llego solicitud de tarea del Master en el socket %d\n", socketMaster);
-		log_info(logger,"Llego solicitud de tarea del Master en el socket %d", socketMaster);
+		switch(tipoEstructura){
+			case D_STRUCT_JOB :
+				printf("Llego solicitud de tarea del Master en el socket %d\n", socketMaster);
+				log_info(logger,"Llego solicitud de tarea del Master en el socket %d", socketMaster);
 
-		printf("Script Transformacion: %s\n",((t_struct_job*)estructuraRecibida)->scriptTransformacion); // Tira SEGFAULT aca
-		log_info(logger,"Script Transformacion: %s",((t_struct_job*)estructuraRecibida)->scriptTransformacion);
-		printf("Script Reduccion: %s\n",((t_struct_job*)estructuraRecibida)->scriptReduccion);
-		log_info(logger,"Script Reduccion: %s",((t_struct_job*)estructuraRecibida)->scriptReduccion);
-		printf("Archivo Objetivo: %s\n",((t_struct_job*)estructuraRecibida)->archivoObjetivo);
-		log_info(logger,"Archivo Objetivo: %s",((t_struct_job*)estructuraRecibida)->archivoObjetivo);
-		printf("Archivo Resultado: %s\n",((t_struct_job*)estructuraRecibida)->archivoResultado);
-		log_info(logger,"Archivo Resultado: %s",((t_struct_job*)estructuraRecibida)->archivoResultado);
-		FD_SET(socketMaster,&setMasters);
+				printf("Script Transformacion: %s\n",((t_struct_job*)estructuraRecibida)->scriptTransformacion);
+				log_info(logger,"Script Transformacion: %s",((t_struct_job*)estructuraRecibida)->scriptTransformacion);
+				printf("Script Reduccion: %s\n",((t_struct_job*)estructuraRecibida)->scriptReduccion);
+				log_info(logger,"Script Reduccion: %s",((t_struct_job*)estructuraRecibida)->scriptReduccion);
+				printf("Archivo Objetivo: %s\n",((t_struct_job*)estructuraRecibida)->archivoObjetivo);
+				log_info(logger,"Archivo Objetivo: %s",((t_struct_job*)estructuraRecibida)->archivoObjetivo);
+				printf("Archivo Resultado: %s\n",((t_struct_job*)estructuraRecibida)->archivoResultado);
+				log_info(logger,"Archivo Resultado: %s",((t_struct_job*)estructuraRecibida)->archivoResultado);
+				FD_SET(socketMaster,&setMasters);
+				break;
+			case MASTER_YAMA_SOLICITAR_INFO_NODO:
+				getNodoByFile(((t_struct_string*)estructuraRecibida)->string);
+				break;
+		}
 	}
 }
 
+void getNodoByFile(char* nombreFile){
+	t_struct_string stringFile = malloc(sizeof(t_struct_string));
+	stringFile.string = nombreFile;
+	//se le envia el archivo al FS
+}
+
 void init(){
-	listaProcesos = list_create();
+	tablaEstados = list_create();
+}
+
+int getAvailability(){
+	int pwl;
+	if(config->Algoritmo_Balanceo == "Clock"){
+		pwl = 0;
+	}else{
+		//pwl =
+	}
+	return config->Disp_Base + pwl;
 }

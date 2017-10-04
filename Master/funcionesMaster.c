@@ -84,7 +84,7 @@ void conectarConYAMA(void){
 	enviado->numero = ES_MASTER;
 
 	socket_enviar(socketConexionYAMA, D_STRUCT_NUMERO,enviado);
-
+	free(enviado);
 	log_info(logger,"Handshake enviado a YAMA");
 
 }
