@@ -15,8 +15,23 @@
 #define PATH_DIV "/"
 
 typedef struct {
+	int numNodo;
+	int bloqueNodo; //bloque del nodo que compone el archivo
+} copia;
+
+
+typedef struct {
+	int numBloque; //bloque individual del archivo (0,1,2,...)
+	copia* copia0;
+	copia* copia1;
+	int finBloque; //byte que indica el ultimo byte del bloque
+} bloque;
+
+
+typedef struct {
 	int tamanio;
 	char* tipo; //lectura o texto
-} sadica_file;
+	t_list* bloques; //sruct bloque
+} file;
 
 #endif /* TABLAARCHIVOS_H_ */
