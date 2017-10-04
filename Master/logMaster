@@ -10,3 +10,11 @@
 [ERROR] 10:38:51:377 Master/(4865:4865): Server no encontrado
 
 [INFO] 10:38:51:377 Master/(4865:4865): Handshake enviado a YAMA
+[DEBUG] 10:41:49:258 Master/(4999:4999): Path config: ../../Configs/configMaster.config
+[INFO] 10:41:49:259 Master/(4999:4999): Configuracion levantada correctamente
+[INFO] 10:41:49:259 Master/(4999:4999): Conectandose a YAMA
+[ERROR] 10:41:49:259 Master/(4999:4999): Error al conectar con servidor
+[INFO] 10:41:49:260 Master/(4999:4999): Me conecte a YAMA
+[ERROR] 10:41:49:260 Master/(4999:4999): Server no encontrado
+
+[INFO] 10:41:49:260 Master/(4999:4999): Handshake enviado a YAMA

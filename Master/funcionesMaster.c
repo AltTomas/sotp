@@ -89,32 +89,32 @@ void conectarConYAMA(void){
 
 }
 
-void ejecutarJob(char** argumentos){
-
-	t_struct_job* enviado = malloc(sizeof(t_struct_job));
-
-	enviado->scriptTransformacion = malloc(sizeof(MAX_LEN_RUTA));
-	strcpy(enviado->scriptTransformacion, argumentos[1]);
-
-	printf("script transformacion: %s\n", enviado->scriptTransformacion);
-
-	enviado->scriptReduccion = malloc(sizeof(MAX_LEN_RUTA));
-	strcpy(enviado->scriptReduccion, argumentos[2]);
-
-	printf("script reduccion: %s\n", enviado->scriptReduccion);
-
-	enviado->archivoObjetivo = malloc(sizeof(MAX_LEN_RUTA));
-	strcpy(enviado->archivoObjetivo, argumentos[3]);
-
-	printf("archivo objetivo: %s\n", enviado->archivoObjetivo);
-
-	enviado->archivoResultado = malloc(sizeof(MAX_LEN_RUTA));
-	strcpy(enviado->archivoResultado, argumentos[4]);
-
-	printf("archivo resultado: %s\n", enviado->archivoResultado);
-
-	socket_enviar(socketConexionYAMA, D_STRUCT_JOB,enviado);
-
-	puts("Solicitando ejecucion de tarea");
-	log_info(logger,"Solicitando ejecucion de tarea");
-}
+//void ejecutarJob(char** argumentos){
+//
+//	t_struct_job* enviado = malloc(sizeof(t_struct_job));
+//
+//	enviado->scriptTransformacion = malloc(sizeof(MAX_LEN_RUTA));
+//	strcpy(enviado->scriptTransformacion, argumentos[1]);
+//
+//	printf("script transformacion: %s\n", enviado->scriptTransformacion);
+//
+//	enviado->scriptReduccion = malloc(sizeof(MAX_LEN_RUTA));
+//	strcpy(enviado->scriptReduccion, argumentos[2]);
+//
+//	printf("script reduccion: %s\n", enviado->scriptReduccion);
+//
+//	enviado->archivoObjetivo = malloc(sizeof(MAX_LEN_RUTA));
+//	strcpy(enviado->archivoObjetivo, argumentos[3]);
+//
+//	printf("archivo objetivo: %s\n", enviado->archivoObjetivo);
+//
+//	enviado->archivoResultado = malloc(sizeof(MAX_LEN_RUTA));
+//	strcpy(enviado->archivoResultado, argumentos[4]);
+//
+//	printf("archivo resultado: %s\n", enviado->archivoResultado);
+//
+//	socket_enviar(socketConexionYAMA, D_STRUCT_JOB,enviado);
+//
+//	puts("Solicitando ejecucion de tarea");
+//	log_info(logger,"Solicitando ejecucion de tarea");
+//}
