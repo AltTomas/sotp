@@ -12,11 +12,14 @@
 
 #define METADATA_NODOS_PATH "metadata/nodos.bin"
 
+typedef struct {
+	int numNodo;
+	int tamTotal;
+	int tamLibre;
+} nodo;
 
 typedef struct {
-	int tamanio;
-	int libre;
-	uint32_t nodos;
+	t_list* nodos; //struct nodo
 } t_Nodos;
 
 

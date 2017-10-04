@@ -19,6 +19,9 @@
 #include <commons/string.h>
 #include <stdbool.h>
 #include <pthread.h>
+#include <sockets.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 #define configuracionWorker "../../Configs/configNodo.config"
 #define MAX_LEN_PUERTO 6
@@ -36,13 +39,21 @@ typedef struct {
 
 t_log* logger;
 t_config_Worker* config;
-
+int socketEscucha;
+int max_fd;
+fd_set maestro;
+fd_set setMasters;
 
 void crearConfig();
 t_config_Worker* levantarConfiguracionWorker(char*);
 bool verificarConfig(t_config*);
 bool verificarExistenciaDeArchivo(char*);
 void destruirConfig(t_config_Worker*);
+void aceptarNuevaConexion(int socketEscucha, fd_set* set);
+void atenderMaster();
+void doJob_transformacion(t_struct_jobT* job);
+void doJob_reduccion(t_struct_jobR* job);
+void atenderMaster(int socketMaster);
 
 
 #endif /* FUNCIONESWORKER_H_ */

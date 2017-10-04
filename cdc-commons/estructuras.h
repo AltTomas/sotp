@@ -53,7 +53,9 @@ enum{
 	D_STRUCT_CHAR=2,
 	D_STRUCT_STRING=3,
 
-	D_STRUCT_JOB=50,
+	D_STRUCT_JOBT=4,
+	D_STRUCT_JOBR=5,
+
 
 	/* OPERACIONES MASTER-YAMA */
 	MASTER_YAMA_SOLICITAR_INFO_NODO=10,
@@ -63,7 +65,12 @@ enum{
 	ES_MASTER=101,
 	ES_WORKER=102,
 	ES_FILESYSTEM=103,
-	ES_DATANODE=104
+	ES_DATANODE=104,
+
+	//Errores
+	D_STRUCT_ERR=40,
+	ERR_RCV=41
+
 
 
 } t_operaciones;
@@ -89,12 +96,21 @@ typedef struct struct_string {
 	char * string;
 } __attribute__ ((__packed__)) t_struct_string;
 
-typedef struct job{
+typedef struct jobT{
 	char* scriptTransformacion;
+	char* pathOrigen;
+	char* pathTemporal;
+}__attribute__((__packed__)) t_struct_jobT;
+
+typedef struct jobR{
 	char* scriptReduccion;
-	char* archivoObjetivo;
-	char* archivoResultado;
-}__attribute__((__packed__)) t_struct_job;
+	char* pathTemp;
+	char* pathTempFinal;
+}__attribute__((__packed__)) t_struct_jobR;
+
+typedef struct error{
+	int errorid;
+}__attribute__ ((__packed__)) t_struct_error;
 
 typedef struct infoNodo{
 	char* nombreNodo;
