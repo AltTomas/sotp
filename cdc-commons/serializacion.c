@@ -36,8 +36,11 @@ t_stream * serialize(int tipoEstructura, void * estructuraOrigen){
 			case D_STRUCT_STRING:
 				paquete = serializeStruct_string((t_struct_string *) estructuraOrigen, D_STRUCT_STRING);
 				break;
-			case D_STRUCT_JOB:
-				paquete = serializeStruct_job((t_struct_job *) estructuraOrigen,D_STRUCT_JOB);
+			case D_STRUCT_JOBT:
+				paquete = serializeStruct_job((t_struct_jobT *) estructuraOrigen,D_STRUCT_JOBT);
+				break;
+			case D_STRUCT_JOBR:
+				paquete = serializeStruct_job((t_struct_jobR *) estructuraOrigen,D_STRUCT_JOBR);
 				break;
 		}
 
@@ -91,17 +94,13 @@ t_stream * serializeStruct_string(t_struct_string * estructuraOrigen, int header
 	return paquete;
 }
 
-t_stream * serializeStruct_job(t_struct_job * estructuraOrigen, int headerOperacion){
+t_stream * serializeStruct_jobT(t_struct_jobT * estructuraOrigen, int headerOperacion){
 
 	t_stream * paquete = malloc(sizeof(t_stream));
 
 	paquete->length = sizeof(t_header) 	+ strlen(estructuraOrigen->scriptTransformacion)
-										+1
-										+ strlen(estructuraOrigen->scriptReduccion)
-										+1
-										+ strlen(estructuraOrigen->archivoObjetivo)
-										+1
-										+ strlen(estructuraOrigen->archivoResultado)
+										+ strlen(estructuraOrigen->pathOrigen)
+										+ strlen(estructuraOrigen->pathTemporal)
 										+ 1;
 
 	char * data = crearDataConHeader(headerOperacion, paquete->length);
@@ -112,15 +111,42 @@ t_stream * serializeStruct_job(t_struct_job * estructuraOrigen, int headerOperac
 
 	tamanoTotal+=tamanoDato;
 
+	memcpy(data + tamanoTotal, estructuraOrigen->pathOrigen , tamanoDato = strlen(estructuraOrigen->pathOrigen)+1);
+
+	tamanoTotal+=tamanoDato;
+
+	memcpy(data + tamanoTotal, estructuraOrigen->pathTemporal , tamanoDato = strlen(estructuraOrigen->pathTemporal)+1);
+
+	tamanoTotal+=tamanoDato;
+
+	paquete->data = data;
+
+	return paquete;
+}
+
+t_stream * serializeStruct_jobR(t_struct_jobR * estructuraOrigen, int headerOperacion){
+
+	t_stream * paquete = malloc(sizeof(t_stream));
+
+	paquete->length = sizeof(t_header) 	+ strlen(estructuraOrigen->scriptReduccion)
+										+ strlen(estructuraOrigen->pathTemp)
+										+ strlen(estructuraOrigen->pathTempFinal)
+										+ 1;
+
+	char * data = crearDataConHeader(headerOperacion, paquete->length);
+
+	int tamanoTotal = sizeof(t_header), tamanoDato = 0;
+
+
 	memcpy(data + tamanoTotal, estructuraOrigen->scriptReduccion , tamanoDato = strlen(estructuraOrigen->scriptReduccion)+1);
 
 	tamanoTotal+=tamanoDato;
 
-	memcpy(data + tamanoTotal, estructuraOrigen->archivoObjetivo , tamanoDato = strlen(estructuraOrigen->archivoObjetivo)+1);
+	memcpy(data + tamanoTotal, estructuraOrigen->pathTemp , tamanoDato = strlen(estructuraOrigen->pathTemp)+1);
 
 	tamanoTotal+=tamanoDato;
 
-	memcpy(data + tamanoTotal, estructuraOrigen->archivoResultado , tamanoDato = strlen(estructuraOrigen->archivoResultado)+1);
+	memcpy(data + tamanoTotal, estructuraOrigen->pathTempFinal , tamanoDato = strlen(estructuraOrigen->pathTempFinal)+1);
 
 	tamanoTotal+=tamanoDato;
 
@@ -154,8 +180,12 @@ void * deserialize(uint8_t tipoEstructura, char * dataPaquete, uint16_t length){
 			case D_STRUCT_STRING:
 				estructuraDestino = deserializeStruct_string(dataPaquete, length);
 				break;
-			case D_STRUCT_JOB:
-				estructuraDestino = deserializeStruct_job(dataPaquete, length);
+			case D_STRUCT_JOBT:
+				estructuraDestino = deserializeStruct_jobT(dataPaquete, length);
+				break;
+			case D_STRUCT_JOBR:
+				estructuraDestino = deserializeStruct_jobR(dataPaquete, length);
+				break;
 	}
 
 	return estructuraDestino;
@@ -192,9 +222,9 @@ t_struct_string * deserializeStruct_string(char * dataPaquete, uint16_t length){
 	return estructuraDestino;
 }
 
-t_struct_job * deserializeStruct_job(char * dataPaquete, uint16_t length){
+t_struct_jobT * deserializeStruct_jobT(char * dataPaquete, uint16_t length){
 
-	t_struct_job * estructuraDestino = malloc(sizeof(t_struct_job));
+	t_struct_jobT * estructuraDestino = malloc(sizeof(t_struct_jobT));
 
 		int tamanoTotal = 0, tamanoDato = 0;
 
@@ -207,21 +237,41 @@ t_struct_job * deserializeStruct_job(char * dataPaquete, uint16_t length){
 		tamanoTotal+= tamanoDato;
 
 		for(tamanoDato = 1; (dataPaquete + tamanoTotal)[tamanoDato -1] != '\0';tamanoDato++);
+		estructuraDestino->pathOrigen = malloc(tamanoDato);
+		memcpy(estructuraDestino->pathOrigen, dataPaquete + tamanoTotal, tamanoDato);
+
+		tamanoTotal+= tamanoDato;
+
+		for(tamanoDato = 1; (dataPaquete + tamanoTotal)[tamanoDato -1] != '\0';tamanoDato++);
+		estructuraDestino->pathTemporal = malloc(tamanoDato);
+		memcpy(estructuraDestino->pathTemporal, dataPaquete + tamanoTotal, tamanoDato);
+
+		return estructuraDestino;
+}
+
+t_struct_jobR * deserializeStruct_jobR(char * dataPaquete, uint16_t length){
+
+	t_struct_jobR * estructuraDestino = malloc(sizeof(t_struct_jobR));
+
+		int tamanoTotal = 0, tamanoDato = 0;
+
+		tamanoTotal+= tamanoDato;
+
+		for(tamanoDato = 1; (dataPaquete + tamanoTotal)[tamanoDato -1] != '\0';tamanoDato++);
 		estructuraDestino->scriptReduccion = malloc(tamanoDato);
 		memcpy(estructuraDestino->scriptReduccion, dataPaquete + tamanoTotal, tamanoDato);
 
 		tamanoTotal+= tamanoDato;
 
 		for(tamanoDato = 1; (dataPaquete + tamanoTotal)[tamanoDato -1] != '\0';tamanoDato++);
-		estructuraDestino->archivoObjetivo = malloc(tamanoDato);
-		memcpy(estructuraDestino->archivoObjetivo, dataPaquete + tamanoTotal, tamanoDato);
+		estructuraDestino->pathTemp = malloc(tamanoDato);
+		memcpy(estructuraDestino->pathTemp, dataPaquete + tamanoTotal, tamanoDato);
 
 		tamanoTotal+= tamanoDato;
 
 		for(tamanoDato = 1; (dataPaquete + tamanoTotal)[tamanoDato -1] != '\0';tamanoDato++);
-		estructuraDestino->archivoResultado = malloc(tamanoDato);
-		memcpy(estructuraDestino->archivoResultado, dataPaquete + tamanoTotal, tamanoDato);
+		estructuraDestino->pathTempFinal = malloc(tamanoDato);
+		memcpy(estructuraDestino->pathTempFinal, dataPaquete + tamanoTotal, tamanoDato);
 
 		return estructuraDestino;
 }
-
