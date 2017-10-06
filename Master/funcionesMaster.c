@@ -91,29 +91,29 @@ void conectarConYAMA(void){
 
 void ejecutarJob(char** argumentos){
 
-	t_struct_job* enviado = malloc(sizeof(t_struct_job));
+	t_argumentos* enviado = malloc(sizeof(t_argumentos));
 
-	enviado->scriptTransformacion = malloc(sizeof(MAX_LEN_RUTA));
-	strcpy(enviado->scriptTransformacion, argumentos[1]);
+	enviado->script_transformacion = malloc(sizeof(MAX_LEN_RUTA));
+	strcpy(enviado->script_transformacion, argumentos[1]);
 
-	printf("script transformacion: %s\n", enviado->scriptTransformacion);
+	printf("script transformacion: %s\n", enviado->script_transformacion);
 
-	enviado->scriptReduccion = malloc(sizeof(MAX_LEN_RUTA));
-	strcpy(enviado->scriptReduccion, argumentos[2]);
+	enviado->script_reduccion = malloc(sizeof(MAX_LEN_RUTA));
+	strcpy(enviado->script_reduccion, argumentos[2]);
 
-	printf("script reduccion: %s\n", enviado->scriptReduccion);
+	printf("script reduccion: %s\n", enviado->script_reduccion);
 
-	enviado->archivoObjetivo = malloc(sizeof(MAX_LEN_RUTA));
-	strcpy(enviado->archivoObjetivo, argumentos[3]);
+	enviado->archivo = malloc(sizeof(MAX_LEN_RUTA));
+	strcpy(enviado->archivo, argumentos[3]);
 
-	printf("archivo objetivo: %s\n", enviado->archivoObjetivo);
+	printf("archivo objetivo: %s\n", enviado->archivo);
 
-	enviado->archivoResultado = malloc(sizeof(MAX_LEN_RUTA));
-	strcpy(enviado->archivoResultado, argumentos[4]);
+	enviado->archivo_resultado = malloc(sizeof(MAX_LEN_RUTA));
+	strcpy(enviado->archivo_resultado, argumentos[4]);
 
-	printf("archivo resultado: %s\n", enviado->archivoResultado);
+	printf("archivo resultado: %s\n", enviado->archivo_resultado);
 
-	socket_enviar(socketConexionYAMA, D_STRUCT_JOB,enviado);
+	socket_enviar(socketConexionYAMA, MASTER_YAMA_SOLICITAR_INFO_NODO,enviado->archivo);
 
 	puts("Solicitando ejecucion de tarea");
 	log_info(logger,"Solicitando ejecucion de tarea");

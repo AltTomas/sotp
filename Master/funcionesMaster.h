@@ -31,6 +31,12 @@ typedef struct {
 	char* YAMA_ip;
 }t_config_master;
 
+typedef struct {
+	char* script_transformacion;
+	char* script_reduccion;
+	char* archivo;
+	char* archivo_resultado;
+}t_argumentos;
 
 extern t_log* logger;
 t_config_master* config;
