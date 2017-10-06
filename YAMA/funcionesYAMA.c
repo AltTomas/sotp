@@ -187,9 +187,9 @@ void trabajarSolicitudMaster(int socketMaster){
 				printf("Llego solicitud de tarea del Master en el socket %d\n", socketMaster);
 				log_info(logger,"Llego solicitud de tarea del Master en el socket %d", socketMaster);
 
-				printf("Archivo Objetivo: %s\n",(char*)estructuraRecibida);
-				log_info(logger,"Archivo Objetivo: %s",(char*)estructuraRecibida);
-				//getNodoByFile(((t_struct_string*)estructuraRecibida)->string);
+				printf("Archivo Objetivo: %s\n",((t_struct_string*)estructuraRecibida)->string);
+				log_info(logger,"Archivo Objetivo: %s",((t_struct_string*)estructuraRecibida)->string);
+				getNodoByFile(((t_struct_string*)estructuraRecibida)->string);
 				FD_SET(socketMaster,&setMasters);
 
 				break;
@@ -197,11 +197,12 @@ void trabajarSolicitudMaster(int socketMaster){
 	}
 }
 
-//void getNodoByFile(char* nombreFile){
-//	t_struct_string stringFile = malloc(sizeof(t_struct_string));
-//	stringFile.string = nombreFile;
-//	//se le envia el archivo al FS
-//}
+void getNodoByFile(char* nombreFile){
+	t_struct_string* stringFile = malloc(sizeof(t_struct_string));
+	stringFile->string = nombreFile;
+	socket_enviar(socketConexionFS,t_struct_string,stringFile);
+	free(stringFile);
+}
 
 void init(){
 	tablaEstados = list_create();
