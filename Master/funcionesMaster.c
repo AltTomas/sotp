@@ -72,7 +72,8 @@ void conectarConYAMA(void){
 
 	socketConexionYAMA = crearCliente(config->YAMA_ip, atoi(config->YAMA_puerto));
 
-	if(socketConexionYAMA == -1){
+	if(socketConexionYAMA == 1){
+		puts("No se pudo establecer la conexion con YAMA, cerrando Master...");
 		log_error(logger,"No se pudo establecer la conexion con YAMA, cerrando Master...");
 		exit(1);
 	}
@@ -85,36 +86,39 @@ void conectarConYAMA(void){
 
 	socket_enviar(socketConexionYAMA, D_STRUCT_NUMERO,enviado);
 	free(enviado);
-	log_info(logger,"Handshake enviado a YAMA");
+	log_info(logger,"Handshake argumentosMaster a YAMA");
 
 }
 
 void ejecutarJob(char** argumentos){
 
-	t_argumentos* enviado = malloc(sizeof(t_argumentos));
+	t_argumentos* argumentosMaster = malloc(sizeof(t_argumentos));
 
-	enviado->script_transformacion = malloc(sizeof(MAX_LEN_RUTA));
-	strcpy(enviado->script_transformacion, argumentos[1]);
+	argumentosMaster->script_transformacion = malloc(sizeof(MAX_LEN_RUTA));
+	strcpy(argumentosMaster->script_transformacion, argumentos[1]);
 
-	printf("script transformacion: %s\n", enviado->script_transformacion);
+	printf("script transformacion: %s\n", argumentosMaster->script_transformacion);
 
-	enviado->script_reduccion = malloc(sizeof(MAX_LEN_RUTA));
-	strcpy(enviado->script_reduccion, argumentos[2]);
+	argumentosMaster->script_reduccion = malloc(sizeof(MAX_LEN_RUTA));
+	strcpy(argumentosMaster->script_reduccion, argumentos[2]);
 
-	printf("script reduccion: %s\n", enviado->script_reduccion);
+	printf("script reduccion: %s\n", argumentosMaster->script_reduccion);
 
-	enviado->archivo = malloc(sizeof(MAX_LEN_RUTA));
-	strcpy(enviado->archivo, argumentos[3]);
+	argumentosMaster->archivo = malloc(sizeof(MAX_LEN_RUTA));
+	strcpy(argumentosMaster->archivo, argumentos[3]);
 
-	printf("archivo objetivo: %s\n", enviado->archivo);
+	printf("archivo objetivo: %s\n", argumentosMaster->archivo);
 
-	enviado->archivo_resultado = malloc(sizeof(MAX_LEN_RUTA));
-	strcpy(enviado->archivo_resultado, argumentos[4]);
+	argumentosMaster->archivo_resultado = malloc(sizeof(MAX_LEN_RUTA));
+	strcpy(argumentosMaster->archivo_resultado, argumentos[4]);
 
-	printf("archivo resultado: %s\n", enviado->archivo_resultado);
+	printf("archivo resultado: %s\n", argumentosMaster->archivo_resultado);
 
-	socket_enviar(socketConexionYAMA, MASTER_YAMA_SOLICITAR_INFO_NODO,enviado->archivo);
+	t_struct_string* enviado = malloc(sizeof(t_struct_string));
+	enviado->string = malloc(sizeof(MAX_LEN_RUTA));
+	strcpy(enviado->string,argumentosMaster->archivo);
 
+	socket_enviar(socketConexionYAMA, MASTER_YAMA_SOLICITAR_INFO_NODO,enviado);
 	puts("Solicitando ejecucion de tarea");
 	log_info(logger,"Solicitando ejecucion de tarea");
 }

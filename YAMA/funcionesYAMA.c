@@ -200,7 +200,7 @@ void trabajarSolicitudMaster(int socketMaster){
 void getNodoByFile(char* nombreFile){
 	t_struct_string* stringFile = malloc(sizeof(t_struct_string));
 	stringFile->string = nombreFile;
-	socket_enviar(socketConexionFS,t_struct_string,stringFile);
+	socket_enviar(socketConexionFS,D_STRUCT_STRING,stringFile);
 	free(stringFile);
 }
 

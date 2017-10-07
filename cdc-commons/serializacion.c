@@ -43,7 +43,7 @@ t_stream * serialize(int tipoEstructura, void * estructuraOrigen){
 				paquete = serializeStruct_jobR((t_struct_jobR *) estructuraOrigen,D_STRUCT_JOBR);
 				break;
 			case MASTER_YAMA_SOLICITAR_INFO_NODO:
-				paquete = serializeStruct_string((t_struct_string *) estructuraOrigen, D_STRUCT_STRING);
+				paquete = serializeStruct_string((t_struct_string *) estructuraOrigen, MASTER_YAMA_SOLICITAR_INFO_NODO);
 				break;
 		}
 
