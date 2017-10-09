@@ -197,7 +197,7 @@ void trabajarSolicitudMaster(int socketMaster){
 	}
 }
 
-void getNodoByFile(char* nombreFile,socketMaster){
+void getNodoByFile(char* nombreFile,int socketConexionMaster){
 	void* estructuraRecibida;
 	t_tipoEstructura tipoEstructura;
 	t_struct_string* stringFile = malloc(sizeof(t_struct_string));
@@ -214,7 +214,7 @@ void getNodoByFile(char* nombreFile,socketMaster){
 	else{
 		switch(tipoEstructura){
 			case FS_YAMA_NOT_LOAD:
-			socket_enviar_string(socketMaster,YAMA_MASTER_FS_NOT_LOAD,stringFile->string);
+			socket_enviar_string(socketConexionMaster,YAMA_MASTER_FS_NOT_LOAD,stringFile->string);
 			break;
 			case FS_YAMA_DATA_NODO:
 

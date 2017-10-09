@@ -26,4 +26,8 @@ int socket_recibir(int socketEmisor, t_tipoEstructura * tipoEstructura, void** e
 
 int socket_enviar(int socketReceptor, t_tipoEstructura tipoEstructura, void* estructura);
 
+void socket_enviar_string(int socketDestino,int codigoMensaje,char* stringEnviar);
+
+void socket_enviar_int(int socketDestino,int codigoMensaje,int numeroEnviar);
+
 #endif /* SOCKETS_SOCKETS_H_ */
