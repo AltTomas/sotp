@@ -189,7 +189,7 @@ void trabajarSolicitudMaster(int socketMaster){
 
 				printf("Archivo Objetivo: %s\n",((t_struct_string*)estructuraRecibida)->string);
 				log_info(logger,"Archivo Objetivo: %s",((t_struct_string*)estructuraRecibida)->string);
-				getNodoByFile(((t_struct_string*)estructuraRecibida)->string);
+				getNodoByFile(((t_struct_string*)estructuraRecibida)->string,socketMaster);
 				FD_SET(socketMaster,&setMasters);
 
 				break;
@@ -198,10 +198,28 @@ void trabajarSolicitudMaster(int socketMaster){
 }
 
 void getNodoByFile(char* nombreFile){
+	void* estructuraRecibida;
+	t_tipoEstructura tipoEstructura;
+
+	int recepcion = socket_recibir(socketConexionFS, &tipoEstructura,&estructuraRecibida);
+
 	t_struct_string* stringFile = malloc(sizeof(t_struct_string));
-	stringFile->string = nombreFile;
+	strcpy(stringFile->string ,nombreFile);
 	socket_enviar(socketConexionFS,D_STRUCT_STRING,stringFile);
 	free(stringFile);
+
+	if(recepcion == -1){
+		printf("Se desconecto el FS en el socket %d\n", socketConexionFS);
+		log_info(logger,"Se desconecto el Master en el socket %d", socketConexionFS);
+		close(socketConexionFS);
+	}
+	else{
+		switch(tipoEstructura){
+			case FS_YAMA_NOT_LOAD:
+
+			break;
+		}
+	}
 }
 
 void init(){
