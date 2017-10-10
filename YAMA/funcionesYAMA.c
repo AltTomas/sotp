@@ -241,3 +241,10 @@ int getAvailability(){
 	}
 	return config->Disp_Base + pwl;
 }
+
+char* generarNombreTemporal(char* nombreNodo, int nroBloque){
+	char* nombre = string_from_format("archTemporal%s", nombreNodo);
+	char* bloque = string_itoa(nroBloque);
+	string_append(&nombre, bloque);
+	return nombre;
+}
