@@ -114,11 +114,19 @@ void ejecutarJob(char** argumentos){
 
 	printf("archivo resultado: %s\n", argumentosMaster->archivo_resultado);
 
-	t_struct_string* enviado = malloc(sizeof(t_struct_string));
-	enviado->string = malloc(sizeof(MAX_LEN_RUTA));
-	strcpy(enviado->string,argumentosMaster->archivo);
 
-	socket_enviar(socketConexionYAMA, MASTER_YAMA_SOLICITAR_INFO_NODO,enviado);
-	puts("Solicitando ejecucion de tarea");
+	socket_enviar_string(socketConexionYAMA, MASTER_YAMA_SOLICITAR_INFO_NODO, argumentosMaster->archivo);
+	puts("Solicitando ejecucion de tarea argumentoo");
 	log_info(logger,"Solicitando ejecucion de tarea");
+
+	void* estructuraRecibida;
+	t_tipoEstructura tipoEstructura;
+
+	// Aca deberiamos recibir los nodos que nos envia YAMA para despues conectarnos
+	int recepcion = socket_recibir(socketConexionYAMA, &tipoEstructura, &estructuraRecibida );
+
+	if(recepcion == -1 || tipoEstructura != YAMA_MASTER_DATA_NODO){
+				log_info(logger,"No se recibio correctamente la informacion de los nodos");
+			}
+	// Manejamos el tipo de estructura y estructura recibida
 }
