@@ -28,10 +28,21 @@ typedef struct {
 } bloque;
 
 
+
 typedef struct {
-	int tamanio;
+	int numBloque;
+	int numNodo;
+	int ipNodo;
+	int puertoNodo;
+} bloquePrueba;
+
+typedef struct {
+	uint16_t path;
+	uint32_t tamanio;
 	char* tipo; //lectura o texto
-	t_list* bloques; //sruct bloque
+	bloquePrueba* bloques; //sruct bloque
 } file;
+
+
 
 #endif /* TABLAARCHIVOS_H_ */

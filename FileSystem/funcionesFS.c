@@ -1,5 +1,5 @@
 #include "funcionesFS.h"
-
+#include "tablaArchivos.h"
 
 void crearConfig(){
 
@@ -293,3 +293,69 @@ void trabajarSolicitudDataNode(int socketDataNode){
 		FD_SET(socketDataNode,&setDataNodes);
 	}
 }
+
+///////////////////////////////////CONEXION YAMA-FS//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void trabajarSolicitudYama(int socketYAMA){
+
+	void* estructuraRecibida;
+	t_tipoEstructura tipoEstructura;
+
+	int recepcion = socket_recibir(socketYAMA, &tipoEstructura,&estructuraRecibida);
+
+	if(recepcion == -1){
+		printf("Se desconecto el YAMA en el socket %d\n", socketYAMA);
+		log_info(logger,"Se desconecto el YAMA en el socket %d", socketYAMA);
+		close(socketYAMA);
+		FD_CLR(socketYAMA, &yama);
+		FD_CLR(socketYAMA, &setyama);
+	}
+	else{
+		switch(tipoEstructura){
+			case YAMA_FS_SOLICITAR_LISTABLOQUES :
+				printf("Llego solicitud de tarea del YAMA en el socket %d\n", socketYAMA);
+				log_info(logger,"Llego solicitud de tarea del YAMA en el socket %d", socketYAMA);
+
+				printf("Archivo Objetivo: %s\n",((t_struct_string*)estructuraRecibida)->string);
+				log_info(logger,"Archivo Objetivo: %s",((t_struct_string*)estructuraRecibida)->string);
+				buscarBloquesArchivo(((t_struct_string*)estructuraRecibida)->string,socketYAMA);
+				FD_SET(socketYAMA,&setyama);
+
+				break;
+		}
+	}
+}
+
+
+void buscarBloquesArchivo(char* nombreFile, int socketConexionYAMA) {
+
+	bool condition(void* element) {
+		file* archivo = element;
+		return string_equals_ignore_case(archivo->path, nombreFile);
+	}
+  file* archivoEncontrado = list_find(files, condition); //me devuelve el archivo, verificar si esta bien hecha
+
+
+  t_struct_bloques* bloquesFile = malloc(sizeof(t_struct_bloques));
+  strcpy(bloquesFile->numBloque ,archivoEncontrado -> bloques);
+  strcpy(bloquesFile->numNodo ,archivoEncontrado -> bloques);
+  strcpy(bloquesFile->ip,archivoEncontrado -> bloques);
+  strcpy(bloquesFile->numBloque ,archivoEncontrado -> bloques);
+  socket_enviar(socketConexionYAMA,FS_YAMA_LISTABLOQUES,bloquesFile);
+  free (bloquesFile);
+
+}
+
+//EN estructuras.h///////////////////
+/* YAMA_FS_SOLICITAR_LISTABLOQUES = 20
+ *
+ * FS_YAMA_LISTABLOQUES = 21
+ * typedef struct bloques{
+	int numBloque;
+	int numNodo;
+	int ip;
+	int puerto;
+}__attribute__((__packed__)) t_struct_bloques;
+ *
+ */
+
