@@ -199,8 +199,10 @@ void trabajarSolicitudMaster(int socketMaster){
 
 void getNodoByFile(char* nombreFile,int socketConexionMaster){
 	void* estructuraRecibida;
+	uint16_t i;
 	t_tipoEstructura tipoEstructura;
 	t_struct_string* stringFile = malloc(sizeof(t_struct_string));
+	int cantidadDeNodos = 0;
 	strcpy(stringFile->string ,nombreFile);
 	socket_enviar(socketConexionFS,D_STRUCT_STRING,stringFile);
 	free(stringFile);
@@ -217,7 +219,10 @@ void getNodoByFile(char* nombreFile,int socketConexionMaster){
 			socket_enviar_string(socketConexionMaster,YAMA_MASTER_FS_NOT_LOAD,stringFile->string);
 			break;
 			case FS_YAMA_DATA_NODO:
-
+			cantidadDeNodos = ((t_struct_numero*)estructuraRecibida)->numero;
+			for(i=0;i < cantidadDeNodos;i++){
+				/*recibo los nodos con las ips y puertos*/
+			}
 			break;
 		}
 	}
@@ -235,4 +240,11 @@ int getAvailability(){
 		//pwl =
 	}
 	return config->Disp_Base + pwl;
+}
+
+char* generarNombreTemporal(char* nombreNodo, int nroBloque){
+	char* nombre = string_from_format("archTemporal%s", nombreNodo);
+	char* bloque = string_itoa(nroBloque);
+	string_append(&nombre, bloque);
+	return nombre;
 }
