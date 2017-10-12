@@ -25,6 +25,16 @@ typedef struct{
 
 typedef uint8_t t_tipoEstructura;
 
+typedef struct controller{
+	u_int32_t job;
+	u_int32_t master;
+	char* nodo;
+	u_int32_t bloque;
+	char* etapa;
+	char* fileTemporal;
+	char* status;
+} t_controller;
+
 typedef struct Stream {
 	int length;
 	char* data;
@@ -46,6 +56,22 @@ enum{
 	D_STRUCT_JOBT=4,
 	D_STRUCT_JOBR=5,
 
+	/*OPERACIONES YAMA-FS*/
+	YAMA_FS_GET_DATA_BY_FILE = 17,
+
+	/*OPERACIONES FS-YAMA*/
+	FS_YAMA_NOT_LOAD = 18,
+	FS_YAMA_DATA_NODO = 19,
+
+	/*OPERACIONES YAMA-MASTER*/
+	YAMA_MASTER_FS_NOT_LOAD = 11,
+	YAMA_MASTER_EJECUTAR_TRANSFORMACION = 12,
+	YAMA_MASTER_EJECUTAR_REDUCCION_LOCAL = 13,
+	YAMA_MASTER_EJECUTAR_REDUCCION_GLOBAL = 14,
+	YAMA_MASTER_CONECTARSE_A = 15,
+	YAMA_MASTER_DATA_NODO = 16,
+	/* OPERACIONES MASTER-YAMA */
+	MASTER_YAMA_SOLICITAR_INFO_NODO=10,
 
 	//Handshake
 	ES_YAMA=100,
@@ -99,5 +125,9 @@ typedef struct error{
 	int errorid;
 }__attribute__ ((__packed__)) t_struct_error;
 
+typedef struct infoNodo{
+	char* nombreNodo;
+	int   bloquesDisponibles;
+}__attribute__((__packed__)) t_infoNodo;
 
 #endif /* ESTRUCTURAS_H_ */

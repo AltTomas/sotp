@@ -1,10 +1,3 @@
-/*
- * funcionesYAMA.h
- *
- *  Created on: 10/9/2017
- *      Author: utnso
- */
-
 #ifndef FUNCIONESYAMA_H_
 #define FUNCIONESYAMA_H_
 
@@ -26,6 +19,9 @@
 #define MAX_LEN_PUERTO 6
 #define MAX_ALGORITMO 3
 #define MAX_LEN_IP 20
+#define ESTADO_EN_PROCESO "En proceso"
+#define ESTADO_ERROR "Error"
+#define ESTADO_FINALIZADO_OK "Finalizado Ok"
 
 typedef struct {
 	char* FS_ip;
@@ -33,6 +29,7 @@ typedef struct {
 	char* YAMA_Puerto;
 	int Retardo_Planificacion;
 	char* Algoritmo_Balanceo;
+	u_int32_t Disp_Base;
 }t_config_YAMA;
 
 
@@ -54,6 +51,11 @@ int conectarConFS(void);
 void escucharConexiones(void);
 void aceptarNuevaConexion(int, fd_set* );
 void trabajarSolicitudMaster(int);
+char* generarNombreTemporal(char*, int );
 
+/* Variables Globales */
+int socketConexionFS;
+
+t_list * tablaEstados;
 
 #endif /* FUNCIONESYAMA_H_ */

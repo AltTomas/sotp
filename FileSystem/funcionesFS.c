@@ -274,22 +274,22 @@ void trabajarSolicitudDataNode(int socketDataNode){
 		FD_CLR(socketDataNode, &datanode);
 		FD_CLR(socketDataNode, &setDataNodes);
 	}
-	else if(tipoEstructura != D_STRUCT_JOB){
-		puts("Error en la serializacion");
-		log_info(logger,"Error en la serializacion");
-	}
+//	else if(tipoEstructura != D_STRUCT_JOB){
+//		puts("Error en la serializacion");
+//		log_info(logger,"Error en la serializacion");
+//	}
 	else{
 		printf("Llego solicitud de tarea del Nodo en el socket %d\n", socketDataNode);
 		log_info(logger,"Llego solicitud de tarea del Nodo en el socket %d", socketDataNode);
 
-		printf("Script Transformacion: %s\n",((t_struct_job*)estructuraRecibida)->scriptTransformacion);
-		log_info(logger,"Script Transformacion: %s",((t_struct_job*)estructuraRecibida)->scriptTransformacion);
-		printf("Script Reduccion: %s\n",((t_struct_job*)estructuraRecibida)->scriptReduccion);
-		log_info(logger,"Script Reduccion: %s",((t_struct_job*)estructuraRecibida)->scriptReduccion);
-		printf("Archivo Objetivo: %s\n",((t_struct_job*)estructuraRecibida)->archivoObjetivo);
-		log_info(logger,"Archivo Objetivo: %s",((t_struct_job*)estructuraRecibida)->archivoObjetivo);
-		printf("Archivo Resultado: %s\n",((t_struct_job*)estructuraRecibida)->archivoResultado);
-		log_info(logger,"Archivo Resultado: %s",((t_struct_job*)estructuraRecibida)->archivoResultado);
+//		printf("Script Transformacion: %s\n",((t_struct_job*)estructuraRecibida)->scriptTransformacion);
+//		log_info(logger,"Script Transformacion: %s",((t_struct_job*)estructuraRecibida)->scriptTransformacion);
+//		printf("Script Reduccion: %s\n",((t_struct_job*)estructuraRecibida)->scriptReduccion);
+//		log_info(logger,"Script Reduccion: %s",((t_struct_job*)estructuraRecibida)->scriptReduccion);
+//		printf("Archivo Objetivo: %s\n",((t_struct_job*)estructuraRecibida)->archivoObjetivo);
+//		log_info(logger,"Archivo Objetivo: %s",((t_struct_job*)estructuraRecibida)->archivoObjetivo);
+//		printf("Archivo Resultado: %s\n",((t_struct_job*)estructuraRecibida)->archivoResultado);
+//		log_info(logger,"Archivo Resultado: %s",((t_struct_job*)estructuraRecibida)->archivoResultado);
 		FD_SET(socketDataNode,&setDataNodes);
 	}
 }
