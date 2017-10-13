@@ -202,7 +202,6 @@ void getNodoByFile(char* nombreFile,int socketConexionMaster){
 	uint16_t i;
 	t_tipoEstructura tipoEstructura;
 	t_struct_string* stringFile = malloc(sizeof(t_struct_string));
-	int cantidadDeNodos = 0;
 	strcpy(stringFile->string ,nombreFile);
 	socket_enviar(socketConexionFS,D_STRUCT_STRING,stringFile);
 	free(stringFile);
@@ -218,8 +217,11 @@ void getNodoByFile(char* nombreFile,int socketConexionMaster){
 			case FS_YAMA_NOT_LOAD:
 			socket_enviar_string(socketConexionMaster,YAMA_MASTER_FS_NOT_LOAD,stringFile->string);
 			break;
-			case FS_YAMA_DATA_NODO:
+			case FS_YAMA_CANTIDAD_BLOQUES:
 			cantidadDeNodos = ((t_struct_numero*)estructuraRecibida)->numero;
+			break;
+			case FS_YAMA_UBICACION_BLOQUES:
+			t_info_bloque* bloque = malloc(sizeof(t_info_bloque));
 			for(i=0;i < cantidadDeNodos;i++){
 				/*recibo los nodos con las ips y puertos*/
 			}
