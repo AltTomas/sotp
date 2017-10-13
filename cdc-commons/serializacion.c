@@ -252,6 +252,17 @@ t_struct_string * deserializeStruct_string(char * dataPaquete, uint16_t length){
 	return estructuraDestino;
 }
 
+t_info_bloque * deserializeStruct_bloque(char * dataPaquete, uint16_t length){
+
+	t_info_bloque * estructuraDestino = malloc(sizeof(t_info_bloque));
+
+		int tamanoTotal = 0, tamanoDato = 0;
+
+		tamanoTotal = tamanoDato;
+		/* Deserialize Bloque*/
+		return estructuraDestino;
+}
+
 t_struct_jobT * deserializeStruct_jobT(char * dataPaquete, uint16_t length){
 
 	t_struct_jobT * estructuraDestino = malloc(sizeof(t_struct_jobT));
