@@ -42,8 +42,8 @@ t_stream * serialize(int tipoEstructura, void * estructuraOrigen){
 			case D_STRUCT_JOBR:
 				paquete = serializeStruct_jobR((t_struct_jobR *) estructuraOrigen,D_STRUCT_JOBR);
 				break;
-			case MASTER_YAMA_SOLICITAR_INFO_NODO:
-				paquete = serializeStruct_string((t_struct_string *) estructuraOrigen, MASTER_YAMA_SOLICITAR_INFO_NODO);
+			case D_STRUCT_BLOQUE:
+				paquete = serializeStruct_bloque((t_info_bloque *) estructuraOrigen, D_STRUCT_BLOQUE);
 				break;
 		}
 
@@ -96,7 +96,9 @@ t_stream * serializeStruct_string(t_struct_string * estructuraOrigen, int header
 
 	return paquete;
 }
+t_stream * serializeStruct_numero(t_info_bloque* estructuraOrigen, int headerOperacion){
 
+}
 t_stream * serializeStruct_jobT(t_struct_jobT * estructuraOrigen, int headerOperacion){
 
 	t_stream * paquete = malloc(sizeof(t_stream));
@@ -189,8 +191,8 @@ void * deserialize(uint8_t tipoEstructura, char * dataPaquete, uint16_t length){
 			case D_STRUCT_JOBR:
 				estructuraDestino = deserializeStruct_jobR(dataPaquete, length);
 				break;
-			case MASTER_YAMA_SOLICITAR_INFO_NODO:
-				estructuraDestino = deserializeStruct_string(dataPaquete, length);
+			case D_STRUCT_BLOQUE:
+				estructuraDestino = deserializeStruct_bloque(dataPaquete, length);
 				break;
 
 	}
