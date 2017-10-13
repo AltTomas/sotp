@@ -259,7 +259,19 @@ t_info_bloque * deserializeStruct_bloque(char * dataPaquete, uint16_t length){
 		int tamanoTotal = 0, tamanoDato = 0;
 
 		tamanoTotal = tamanoDato;
-		/* Deserialize Bloque*/
+
+		tamanoDato = sizeof(int);
+
+		memcpy(estructuraDestino->nroBloque, dataPaquete + tamanoTotal, tamanoDato);
+
+		tamanoTotal += tamanoDato;
+
+		for(tamanoDato = 1; (dataPaquete + tamanoTotal)[tamanoDato -1] != '\0';tamanoDato++);
+
+		estructuraDestino->ubicacionBloques = malloc(tamanoDato);
+
+		memcpy(estructuraDestino->ubicacionBloques, dataPaquete + tamanoTotal , tamanoDato);
+
 		return estructuraDestino;
 }
 
