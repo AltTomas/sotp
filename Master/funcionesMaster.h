@@ -50,5 +50,6 @@ bool verificarExistenciaDeArchivo(char*);
 void destruirConfig(t_config_master*);
 void conectarConYAMA(void);
 void ejecutarJob(char**);
+void ejecucionJob();
 
 #endif /* FUNCIONESMASTER_H_ */

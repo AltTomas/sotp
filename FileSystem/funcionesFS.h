@@ -48,5 +48,6 @@ void commandHandler();
 void escucharConexiones(void);
 void aceptarNuevaConexion(int, fd_set* );
 void trabajarSolicitudDataNode(int);
+void buscarBloquesArchivo(char*, int);
 
 #endif /* FUNCIONESFS_H_ */

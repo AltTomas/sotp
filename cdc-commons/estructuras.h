@@ -45,46 +45,59 @@ typedef struct Cabecera {
 	uint32_t longitud; /* Longitud del mensaje, en bytes */
 } cabecera_t;
 
+typedef struct Info_Nodo{
+	char * ip;
+	int puerto;
+} t_info_nodo;
+
+typedef struct Info_Bloque{
+	int nroBloque;
+	t_list* ubicacionBloques;
+}t_info_bloque;
 
 enum{
 
 	//Generales
-	D_STRUCT_NUMERO=1,
-	D_STRUCT_CHAR=2,
-	D_STRUCT_STRING=3,
+	  D_STRUCT_NUMERO=1,
+	  D_STRUCT_CHAR=2,
+	  D_STRUCT_STRING=3,
 
-	D_STRUCT_JOBT=4,
-	D_STRUCT_JOBR=5,
+	  D_STRUCT_JOBT=4,
+	  D_STRUCT_JOBR=5,
 
-	/*OPERACIONES YAMA-FS*/
-	YAMA_FS_GET_DATA_BY_FILE = 17,
+	  D_STRUCT_BLOQUE =6,
 
-	/*OPERACIONES FS-YAMA*/
-	FS_YAMA_NOT_LOAD = 18,
-	FS_YAMA_DATA_NODO = 19,
+	  /*OPERACIONES YAMA-FS*/
+	  YAMA_FS_GET_DATA_BY_FILE = 00,
+	  YAMA_FS_SOLICITAR_LISTABLOQUES = 01,
 
-	/*OPERACIONES YAMA-MASTER*/
-	YAMA_MASTER_FS_NOT_LOAD = 11,
-	YAMA_MASTER_EJECUTAR_TRANSFORMACION = 12,
-	YAMA_MASTER_EJECUTAR_REDUCCION_LOCAL = 13,
-	YAMA_MASTER_EJECUTAR_REDUCCION_GLOBAL = 14,
-	YAMA_MASTER_CONECTARSE_A = 15,
-	YAMA_MASTER_DATA_NODO = 16,
-	/* OPERACIONES MASTER-YAMA */
-	MASTER_YAMA_SOLICITAR_INFO_NODO=10,
+	  /*OPERACIONES FS-YAMA*/
+	  FS_YAMA_NOT_LOAD = 10,
+	  FS_YAMA_CANTIDAD_BLOQUES = 11,
+	  FS_YAMA_UBICACION_BLOQUES = 12,
+	  FS_YAMA_LISTABLOQUES = 13,
 
-	//Handshake
-	ES_YAMA=100,
-	ES_MASTER=101,
-	ES_WORKER=102,
-	ES_FILESYSTEM=103,
-	ES_DATANODE=104,
+	  /*OPERACIONES YAMA-MASTER*/
+	  YAMA_MASTER_FS_NOT_LOAD = 21,
+	  YAMA_MASTER_EJECUTAR_TRANSFORMACION = 22,
+	  YAMA_MASTER_EJECUTAR_REDUCCION_LOCAL = 23,
+	  YAMA_MASTER_EJECUTAR_REDUCCION_GLOBAL = 24,
+	  YAMA_MASTER_CONECTARSE_A = 25,
+	  YAMA_MASTER_DATA_NODO = 26,
 
-	//Errores
-	D_STRUCT_ERR=40,
-	ERR_RCV=41
+	  /* OPERACIONES MASTER-YAMA */
+	  MASTER_YAMA_SOLICITAR_INFO_NODO=30,
 
+	  //Handshake
+	  ES_YAMA=100,
+	  ES_MASTER=101,
+	  ES_WORKER=102,
+	  ES_FILESYSTEM=103,
+	  ES_DATANODE=104,
 
+	  //Errores
+	  D_STRUCT_ERR=90,
+	  ERR_RCV=91
 
 } t_operaciones;
 
@@ -129,5 +142,12 @@ typedef struct infoNodo{
 	char* nombreNodo;
 	int   bloquesDisponibles;
 }__attribute__((__packed__)) t_infoNodo;
+
+typedef struct bloques{
+    int numBloque;
+    int numNodo;
+    int ip;
+    int puerto;
+}__attribute__((__packed__)) t_struct_bloques;
 
 #endif /* ESTRUCTURAS_H_ */

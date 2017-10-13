@@ -112,25 +112,6 @@ int socket_enviar(int socketReceptor, t_tipoEstructura tipoEstructura, void* est
 	}
 }
 
-void socket_enviar_int(int socketDestino,int codigoMensaje,int numeroEnviar){
-	t_struct_numero* structInt = malloc(sizeof(t_struct_numero));
-	structInt->numero = malloc(sizeof(int32_t));
-	structInt->numero = numeroEnviar;
-	socket_enviar(socketDestino, codigoMensaje ,structInt);
-	free(structInt->numero);
-	free(structInt);
-
-}
-
-void socket_enviar_string(int socketDestino,int codigoMensaje,char* stringEnviar){
-	t_struct_string* enviado = malloc(sizeof(t_struct_string));
-	enviado->string = malloc(sizeof(stringEnviar));
-	strcpy(enviado->string,stringEnviar);
-	socket_enviar(socketDestino, codigoMensaje ,enviado);
-
-	free(enviado->string);
-	free(enviado);
-}
 int socket_recibir(int socketEmisor, t_tipoEstructura * tipoEstructura, void** estructura){
 	int cantBytesRecibidos;
 	t_header header;

@@ -97,28 +97,42 @@ void ejecutarJob(char** argumentos){
 	argumentosMaster->script_transformacion = malloc(sizeof(MAX_LEN_RUTA));
 	strcpy(argumentosMaster->script_transformacion, argumentos[1]);
 
-	printf("script transformacion: %s\n", argumentosMaster->script_transformacion);
-
 	argumentosMaster->script_reduccion = malloc(sizeof(MAX_LEN_RUTA));
 	strcpy(argumentosMaster->script_reduccion, argumentos[2]);
-
-	printf("script reduccion: %s\n", argumentosMaster->script_reduccion);
 
 	argumentosMaster->archivo = malloc(sizeof(MAX_LEN_RUTA));
 	strcpy(argumentosMaster->archivo, argumentos[3]);
 
-	printf("archivo objetivo: %s\n", argumentosMaster->archivo);
-
 	argumentosMaster->archivo_resultado = malloc(sizeof(MAX_LEN_RUTA));
 	strcpy(argumentosMaster->archivo_resultado, argumentos[4]);
-
-	printf("archivo resultado: %s\n", argumentosMaster->archivo_resultado);
 
 	t_struct_string* enviado = malloc(sizeof(t_struct_string));
 	enviado->string = malloc(sizeof(MAX_LEN_RUTA));
 	strcpy(enviado->string,argumentosMaster->archivo);
 
-	socket_enviar(socketConexionYAMA, MASTER_YAMA_SOLICITAR_INFO_NODO,enviado);
+	socket_enviar(socketConexionYAMA, D_STRUCT_STRING,enviado);
+	free(enviado);
+
 	puts("Solicitando ejecucion de tarea");
 	log_info(logger,"Solicitando ejecucion de tarea");
+
+	void* estructuraRecibida;
+	t_tipoEstructura tipoEstructura;
+
+	// Aca deberiamos recibir los nodos que nos envia YAMA para despues conectarnos
+	int recepcion = socket_recibir(socketConexionYAMA, &tipoEstructura, &estructuraRecibida);
+
+	if(recepcion == -1 || tipoEstructura != D_STRUCT_NUMERO){ //YAMA_MASTER_DATA_NODO
+				log_info(logger,"No se recibio correctamente la informacion de los nodos");
+	}
+	// Manejamos el tipo de estructura y estructura recibida
+	// Por cada worker al que tengamos que conectarnos
+	pthread_t hiloWorker;
+	pthread_create(&hiloWorker, NULL, (void*)ejecucionJob, NULL);
 }
+
+
+void ejecucionJob (){
+	//Aca nos conectamos al worker y manejamos todos los aspectos de la comunicacion
+}
+

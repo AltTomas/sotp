@@ -42,8 +42,8 @@ t_stream * serialize(int tipoEstructura, void * estructuraOrigen){
 			case D_STRUCT_JOBR:
 				paquete = serializeStruct_jobR((t_struct_jobR *) estructuraOrigen,D_STRUCT_JOBR);
 				break;
-			case MASTER_YAMA_SOLICITAR_INFO_NODO:
-				paquete = serializeStruct_string((t_struct_string *) estructuraOrigen, MASTER_YAMA_SOLICITAR_INFO_NODO);
+			case D_STRUCT_BLOQUE:
+				paquete = serializeStruct_bloque((t_info_bloque *) estructuraOrigen, D_STRUCT_BLOQUE);
 				break;
 		}
 
@@ -91,6 +91,29 @@ t_stream * serializeStruct_string(t_struct_string * estructuraOrigen, int header
 	int tamanoTotal = sizeof(t_header);
 
 	memcpy(data + tamanoTotal, estructuraOrigen->string, strlen(estructuraOrigen->string)+1);		//copio a data el string.
+
+	paquete->data = data;
+
+	return paquete;
+}
+t_stream * serializeStruct_bloque(t_info_bloque* estructuraOrigen, int headerOperacion){
+
+	t_stream * paquete = malloc(sizeof(t_stream));
+
+	paquete->length = sizeof(t_header) + sizeof(estructuraOrigen->nroBloque) +
+					  sizeof(estructuraOrigen->ubicacionBloques) +  1;
+
+	char * data = crearDataConHeader(headerOperacion, paquete->length); //creo el data
+
+	int tamanoTotal = sizeof(t_header) , tamanoDato = 0;
+
+	memcpy(data + tamanoTotal, estructuraOrigen->nroBloque , tamanoDato = sizeof(estructuraOrigen->nroBloque) + 1);
+
+	tamanoTotal+=tamanoDato;
+
+	memcpy(data + tamanoTotal, estructuraOrigen->ubicacionBloques , tamanoDato = sizeof(estructuraOrigen->ubicacionBloques) + 1);
+
+	tamanoTotal+=tamanoDato;
 
 	paquete->data = data;
 
@@ -189,8 +212,8 @@ void * deserialize(uint8_t tipoEstructura, char * dataPaquete, uint16_t length){
 			case D_STRUCT_JOBR:
 				estructuraDestino = deserializeStruct_jobR(dataPaquete, length);
 				break;
-			case MASTER_YAMA_SOLICITAR_INFO_NODO:
-				estructuraDestino = deserializeStruct_string(dataPaquete, length);
+			case D_STRUCT_BLOQUE:
+				estructuraDestino = deserializeStruct_bloque(dataPaquete, length);
 				break;
 
 	}
@@ -227,6 +250,29 @@ t_struct_string * deserializeStruct_string(char * dataPaquete, uint16_t length){
 	memcpy(estructuraDestino->string, dataPaquete + tamanoTotal, tamanoDato); //copio el string a la estructura
 
 	return estructuraDestino;
+}
+
+t_info_bloque * deserializeStruct_bloque(char * dataPaquete, uint16_t length){
+
+	t_info_bloque * estructuraDestino = malloc(sizeof(t_info_bloque));
+
+		int tamanoTotal = 0, tamanoDato = 0;
+
+		tamanoTotal = tamanoDato;
+
+		tamanoDato = sizeof(int);
+
+		memcpy(estructuraDestino->nroBloque, dataPaquete + tamanoTotal, tamanoDato);
+
+		tamanoTotal += tamanoDato;
+
+		for(tamanoDato = 1; (dataPaquete + tamanoTotal)[tamanoDato -1] != '\0';tamanoDato++);
+
+		estructuraDestino->ubicacionBloques = malloc(tamanoDato);
+
+		memcpy(estructuraDestino->ubicacionBloques, dataPaquete + tamanoTotal , tamanoDato);
+
+		return estructuraDestino;
 }
 
 t_struct_jobT * deserializeStruct_jobT(char * dataPaquete, uint16_t length){
