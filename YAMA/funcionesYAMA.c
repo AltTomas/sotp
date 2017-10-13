@@ -183,7 +183,7 @@ void trabajarSolicitudMaster(int socketMaster){
 	}
 	else{
 		switch(tipoEstructura){
-			case MASTER_YAMA_SOLICITAR_INFO_NODO :
+			case D_STRUCT_STRING :
 				printf("Llego solicitud de tarea del Master en el socket %d\n", socketMaster);
 				log_info(logger,"Llego solicitud de tarea del Master en el socket %d", socketMaster);
 
@@ -202,7 +202,6 @@ void getNodoByFile(char* nombreFile,int socketConexionMaster){
 	uint16_t i;
 	t_tipoEstructura tipoEstructura;
 	t_struct_string* stringFile = malloc(sizeof(t_struct_string));
-	int cantidadDeNodos = 0;
 	strcpy(stringFile->string ,nombreFile);
 	socket_enviar(socketConexionFS,D_STRUCT_STRING,stringFile);
 	free(stringFile);
@@ -215,14 +214,21 @@ void getNodoByFile(char* nombreFile,int socketConexionMaster){
 	}
 	else{
 		switch(tipoEstructura){
-			case FS_YAMA_NOT_LOAD:
-			socket_enviar_string(socketConexionMaster,YAMA_MASTER_FS_NOT_LOAD,stringFile->string);
-			break;
-			case FS_YAMA_DATA_NODO:
-			cantidadDeNodos = ((t_struct_numero*)estructuraRecibida)->numero;
-			for(i=0;i < cantidadDeNodos;i++){
-				/*recibo los nodos con las ips y puertos*/
-			}
+			case D_STRUCT_NUMERO:
+				switch(((t_struct_numero*)estructuraRecibida)->numero){
+					case FS_YAMA_NOT_LOAD:
+					t_struct_numero * numero2 = malloc(sizeof(t_struct_numero));
+					numero2->numero = YAMA_MASTER_FS_NOT_LOAD;
+					socket_enviar(socketConexionMaster,D_STRUCT_NUMERO,numero2);
+					free(numero2);
+					break;
+
+					case FS_YAMA_CANTIDAD_BLOQUES:
+					socket_recibir(socketConexionFS, D_STRUCT_NUMERO,&estructuraRecibida);
+					cantidadDeNodos = ((t_struct_numero*)estructuraRecibida)->numero;
+					break;
+
+				}
 			break;
 		}
 	}

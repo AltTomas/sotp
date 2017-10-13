@@ -45,6 +45,15 @@ typedef struct Cabecera {
 	uint32_t longitud; /* Longitud del mensaje, en bytes */
 } cabecera_t;
 
+typedef struct Info_Nodo{
+	char * ip;
+	int puerto;
+} t_info_nodo;
+
+typedef struct Info_Bloque{
+	int nroBloque;
+	t_list* ubicacionBloques;
+}t_info_bloque;
 
 enum{
 
@@ -56,12 +65,15 @@ enum{
 	D_STRUCT_JOBT=4,
 	D_STRUCT_JOBR=5,
 
+	D_STRUCT_BLOQUE =6,
+
 	/*OPERACIONES YAMA-FS*/
 	YAMA_FS_GET_DATA_BY_FILE = 17,
 
 	/*OPERACIONES FS-YAMA*/
 	FS_YAMA_NOT_LOAD = 18,
-	FS_YAMA_DATA_NODO = 19,
+	FS_YAMA_CANTIDAD_BLOQUES = 19,
+	FS_YAMA_UBICACION_BLOQUES = 20,
 
 	/*OPERACIONES YAMA-MASTER*/
 	YAMA_MASTER_FS_NOT_LOAD = 11,
