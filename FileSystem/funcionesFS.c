@@ -262,70 +262,63 @@ void aceptarNuevaConexion(int socketEscucha, fd_set* set){
 
 void trabajarSolicitudDataNode(int socketDataNode){
 
-	void* estructuraRecibida;
-	t_tipoEstructura tipoEstructura;
+  void* estructuraRecibida;
+  t_tipoEstructura tipoEstructura;
 
-	int recepcion = socket_recibir(socketDataNode, &tipoEstructura,&estructuraRecibida);
+  int recepcion = socket_recibir(socketDataNode, &tipoEstructura,&estructuraRecibida);
 
-	if(recepcion == -1){
-		printf("Se desconecto el Nodo en el socket %d\n", socketDataNode);
-		log_info(logger,"Se desconecto el Nodo en el socket %d", socketDataNode);
-		close(socketDataNode);
-		FD_CLR(socketDataNode, &datanode);
-		FD_CLR(socketDataNode, &setDataNodes);
-	}
-//	else if(tipoEstructura != D_STRUCT_JOB){
-//		puts("Error en la serializacion");
-//		log_info(logger,"Error en la serializacion");
-//	}
-	else{
-		printf("Llego solicitud de tarea del Nodo en el socket %d\n", socketDataNode);
-		log_info(logger,"Llego solicitud de tarea del Nodo en el socket %d", socketDataNode);
+  if(recepcion == -1){
+    printf("Se desconecto el Nodo en el socket %d\n", socketDataNode);
+    log_info(logger,"Se desconecto el Nodo en el socket %d", socketDataNode);
+    close(socketDataNode);
+    FD_CLR(socketDataNode, &datanode);
+    FD_CLR(socketDataNode, &setDataNodes);
+  }
+  else if(tipoEstructura != D_STRUCT_NUMERO){ // Aca puse D_STRUCT_NUMERO porque no se que iria realmente
+    puts("Error en la serializacion");
+    log_info(logger,"Error en la serializacion");
+  }
+  else{
+    printf("Llego solicitud de tarea del Nodo en el socket %d\n", socketDataNode);
+    log_info(logger,"Llego solicitud de tarea del Nodo en el socket %d", socketDataNode);
 
-//		printf("Script Transformacion: %s\n",((t_struct_job*)estructuraRecibida)->scriptTransformacion);
-//		log_info(logger,"Script Transformacion: %s",((t_struct_job*)estructuraRecibida)->scriptTransformacion);
-//		printf("Script Reduccion: %s\n",((t_struct_job*)estructuraRecibida)->scriptReduccion);
-//		log_info(logger,"Script Reduccion: %s",((t_struct_job*)estructuraRecibida)->scriptReduccion);
-//		printf("Archivo Objetivo: %s\n",((t_struct_job*)estructuraRecibida)->archivoObjetivo);
-//		log_info(logger,"Archivo Objetivo: %s",((t_struct_job*)estructuraRecibida)->archivoObjetivo);
-//		printf("Archivo Resultado: %s\n",((t_struct_job*)estructuraRecibida)->archivoResultado);
-//		log_info(logger,"Archivo Resultado: %s",((t_struct_job*)estructuraRecibida)->archivoResultado);
-		FD_SET(socketDataNode,&setDataNodes);
-	}
+    FD_SET(socketDataNode,&setDataNodes);
+  }
 }
 
 ///////////////////////////////////CONEXION YAMA-FS//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void trabajarSolicitudYama(int socketYAMA){
 
-	void* estructuraRecibida;
-	t_tipoEstructura tipoEstructura;
+  void* estructuraRecibida;
+  t_tipoEstructura tipoEstructura;
 
-	int recepcion = socket_recibir(socketYAMA, &tipoEstructura,&estructuraRecibida);
+  int recepcion = socket_recibir(socketYAMA, &tipoEstructura,&estructuraRecibida);
 
-	if(recepcion == -1){
-		printf("Se desconecto el YAMA en el socket %d\n", socketYAMA);
-		log_info(logger,"Se desconecto el YAMA en el socket %d", socketYAMA);
-		close(socketYAMA);
-		FD_CLR(socketYAMA, &yama);
-		FD_CLR(socketYAMA, &setyama);
-	}
-	else{
-		switch(tipoEstructura){
-			case YAMA_FS_SOLICITAR_LISTABLOQUES :
-				printf("Llego solicitud de tarea del YAMA en el socket %d\n", socketYAMA);
-				log_info(logger,"Llego solicitud de tarea del YAMA en el socket %d", socketYAMA);
+  if(recepcion == -1){
+    printf("Se desconecto el YAMA en el socket %d\n", socketYAMA);
+    log_info(logger,"Se desconecto el YAMA en el socket %d", socketYAMA);
+    close(socketYAMA);
+    FD_CLR(socketYAMA, &yama);
+    FD_CLR(socketYAMA, &setyama);
+  }
+  else{
+    switch(tipoEstructura){
+      case D_STRUCT_NUMERO:
+      switch(((t_struct_numero*)estructuraRecibida)->numero){
+        case YAMA_FS_SOLICITAR_LISTABLOQUES :
+          printf("Llego solicitud de tarea del YAMA en el socket %d\n", socketYAMA);
+          log_info(logger,"Llego solicitud de tarea del YAMA en el socket %d", socketYAMA);
 
-				printf("Archivo Objetivo: %s\n",((t_struct_string*)estructuraRecibida)->string);
-				log_info(logger,"Archivo Objetivo: %s",((t_struct_string*)estructuraRecibida)->string);
-				buscarBloquesArchivo(((t_struct_string*)estructuraRecibida)->string,socketYAMA);
-				FD_SET(socketYAMA,&setyama);
-
-				break;
-		}
-	}
+          printf("Archivo Objetivo: %s\n",((t_struct_string*)estructuraRecibida)->string);
+          log_info(logger,"Archivo Objetivo: %s",((t_struct_string*)estructuraRecibida)->string);
+          buscarBloquesArchivo(((t_struct_string*)estructuraRecibida)->string,socketYAMA);
+          FD_SET(socketYAMA,&setyama);
+          break;
+      }
+    }
+  }
 }
-
 
 void buscarBloquesArchivo(char* nombreFile, int socketConexionYAMA) {
 
@@ -345,17 +338,4 @@ void buscarBloquesArchivo(char* nombreFile, int socketConexionYAMA) {
   free (bloquesFile);
 
 }
-
-//EN estructuras.h///////////////////
-/* YAMA_FS_SOLICITAR_LISTABLOQUES = 20
- *
- * FS_YAMA_LISTABLOQUES = 21
- * typedef struct bloques{
-	int numBloque;
-	int numNodo;
-	int ip;
-	int puerto;
-}__attribute__((__packed__)) t_struct_bloques;
- *
- */
 

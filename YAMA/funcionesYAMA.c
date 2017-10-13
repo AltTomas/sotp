@@ -8,7 +8,6 @@
 #include "funcionesYAMA.h"
 
 void crearConfig(){
-
 	if(verificarExistenciaDeArchivo(configuracionYAMA)){
 		config=levantarConfiguracionMaster(configuracionYAMA);
 		log_info(logger,"Configuracion levantada correctamente");
@@ -216,12 +215,12 @@ void getNodoByFile(char* nombreFile,int socketConexionMaster){
 		switch(tipoEstructura){
 			case D_STRUCT_NUMERO:
 				switch(((t_struct_numero*)estructuraRecibida)->numero){
-					case FS_YAMA_NOT_LOAD:
+					case FS_YAMA_NOT_LOAD:{
 					t_struct_numero * numero2 = malloc(sizeof(t_struct_numero));
 					numero2->numero = YAMA_MASTER_FS_NOT_LOAD;
 					socket_enviar(socketConexionMaster,D_STRUCT_NUMERO,numero2);
 					free(numero2);
-					break;
+					break;}
 
 					case FS_YAMA_CANTIDAD_BLOQUES:
 					socket_recibir(socketConexionFS, D_STRUCT_NUMERO,&estructuraRecibida);
