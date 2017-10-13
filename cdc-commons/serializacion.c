@@ -96,9 +96,30 @@ t_stream * serializeStruct_string(t_struct_string * estructuraOrigen, int header
 
 	return paquete;
 }
-t_stream * serializeStruct_numero(t_info_bloque* estructuraOrigen, int headerOperacion){
+t_stream * serializeStruct_bloque(t_info_bloque* estructuraOrigen, int headerOperacion){
 
+	t_stream * paquete = malloc(sizeof(t_stream));
+
+	paquete->length = sizeof(t_header) + sizeof(estructuraOrigen->nroBloque) +
+					  sizeof(estructuraOrigen->ubicacionBloques) +  1;
+
+	char * data = crearDataConHeader(headerOperacion, paquete->length); //creo el data
+
+	int tamanoTotal = sizeof(t_header) , tamanoDato = 0;
+
+	memcpy(data + tamanoTotal, estructuraOrigen->nroBloque , tamanoDato = sizeof(estructuraOrigen->nroBloque) + 1);
+
+	tamanoTotal+=tamanoDato;
+
+	memcpy(data + tamanoTotal, estructuraOrigen->ubicacionBloques , tamanoDato = sizeof(estructuraOrigen->ubicacionBloques) + 1);
+
+	tamanoTotal+=tamanoDato;
+
+	paquete->data = data;
+
+	return paquete;
 }
+
 t_stream * serializeStruct_jobT(t_struct_jobT * estructuraOrigen, int headerOperacion){
 
 	t_stream * paquete = malloc(sizeof(t_stream));
