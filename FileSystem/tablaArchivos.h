@@ -32,7 +32,7 @@ typedef struct {
 typedef struct {
 	int numBloque;
 	int numNodo;
-	int ipNodo;
+	char* ipNodo;
 	int puertoNodo;
 } bloquePrueba;
 

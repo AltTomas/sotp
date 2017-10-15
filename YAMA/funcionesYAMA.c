@@ -7,6 +7,8 @@
 
 #include "funcionesYAMA.h"
 
+int cantidadDeNodos = 0;
+
 void crearConfig(){
 	if(verificarExistenciaDeArchivo(configuracionYAMA)){
 		config=levantarConfiguracionMaster(configuracionYAMA);
@@ -247,8 +249,8 @@ int getAvailability(){
 	return config->Disp_Base + pwl;
 }
 
-char* generarNombreTemporal(char* nombreNodo, int nroBloque){
-	char* nombre = string_from_format("archTemporal%s", nombreNodo);
+char* generarNombreTemporal(int socketMaster, int nroBloque){
+	char* nombre = string_from_format("/tmp/Master%d-temp", socketMaster);
 	char* bloque = string_itoa(nroBloque);
 	string_append(&nombre, bloque);
 	return nombre;

@@ -92,7 +92,7 @@ void conectarConYAMA(void){
 
 void ejecutarJob(char** argumentos){
 
-	t_argumentos* argumentosMaster = malloc(sizeof(t_argumentos));
+	argumentosMaster = malloc(sizeof(t_argumentos));
 
 	argumentosMaster->script_transformacion = malloc(sizeof(MAX_LEN_RUTA));
 	strcpy(argumentosMaster->script_transformacion, argumentos[1]);
@@ -122,17 +122,70 @@ void ejecutarJob(char** argumentos){
 	// Aca deberiamos recibir los nodos que nos envia YAMA para despues conectarnos
 	int recepcion = socket_recibir(socketConexionYAMA, &tipoEstructura, &estructuraRecibida);
 
-	if(recepcion == -1 || tipoEstructura != D_STRUCT_NUMERO){ //YAMA_MASTER_DATA_NODO
+	if(recepcion == -1 || tipoEstructura != D_STRUCT_NODOS){ //YAMA_MASTER_DATA_NODO
 				log_info(logger,"No se recibio correctamente la informacion de los nodos");
 	}
-	// Manejamos el tipo de estructura y estructura recibida
-	// Por cada worker al que tengamos que conectarnos
-	pthread_t hiloWorker;
-	pthread_create(&hiloWorker, NULL, (void*)ejecucionJob, NULL);
+
+	// Seria una lista de estructuras que vendrian a ser del nodo: IP, puerto, bloque, bytes ocupados y el nombre del temporal
+	int i;
+	for(i = 0; i<((t_struct_nodos_transformacion*)estructuraRecibida)->lista_nodos->elements_count; i++){ // Por cada worker al que tengamos que conectarnos creamos un hilo que maneje la conexion
+		t_struct_transformacion* info_nodo = list_get(((t_struct_nodos_transformacion*)estructuraRecibida)->lista_nodos,i);
+		pthread_t hiloWorker;
+		pthread_create(&hiloWorker, NULL, (void*)ejecutarTransformacion, info_nodo);
+	}
+
 }
 
 
-void ejecucionJob (){
-	//Aca nos conectamos al worker y manejamos todos los aspectos de la comunicacion
-}
+void ejecutarTransformacion (t_infoNodo worker){
+	// Se conecta al worker
+	//int crearCliente(char* ipServidor,int puertoServidor);
+	int socketConexionWorker = crearCliente(worker.ip,worker.puerto);
+	if(socketConexionWorker == 1){
+		puts("No se pudo establecer la conexion con Worker, cerrando Master...");
+		log_error(logger,"No se pudo establecer la conexion con Worker, cerrando Master...");
+		exit(1);
+	}
 
+	t_struct_transformacion* enviado = malloc(sizeof(t_struct_transformacion));
+	// Enviado vendria a ser una estructura igual a cada estructura contenida en la lista + el script
+	enviado->script_transformacion= malloc(sizeof(MAX_LEN_RUTA));
+	enviado->nombre_archivo_temporal = malloc(sizeof(MAX_LEN_RUTA));
+	enviado->ip = malloc(sizeof(MAX_LEN_IP));
+
+	enviado->puerto = worker.puerto;
+	enviado->bloque = worker.numBloque;
+	enviado->bytes_ocupados_bloque = worker.bytesOcupados;
+	strcpy(enviado->ip, worker.ip);
+	strcpy(enviado->script_transformacion, argumentosMaster->script_transformacion);
+	strcpy(enviado->nombre_archivo_temporal, worker.nombreTemporal);
+
+	socket_enviar(socketConexionWorker, D_STRUCT_TRANSFORMACION, enviado);
+	free(enviado);
+
+	void* estructuraRecibida;
+	t_tipoEstructura tipoEstructura;
+
+	int recepcion = socket_recibir(socketConexionWorker, &tipoEstructura, &estructuraRecibida);
+	if(recepcion == -1 || tipoEstructura != D_STRUCT_NUMERO){
+				log_info(logger,"No se recibio correctamente la confirmacion del Worker");
+	}
+	else{
+		t_struct_confirmacion_transformacion* confirmacion = malloc(sizeof(t_struct_confirmacion_transformacion));
+		switch(((t_struct_confirmacion_transformacion*)estructuraRecibida)->confirmacion){
+				case WORKER_MASTER_TRANSFORMACION_OK:
+				// Lo agregamos a una lista de sockets listos para la reduccion local?
+				socket_enviar(socketConexionYAMA, D_STRUCT_CONFIRMACION_TRANSFORMACION,confirmacion);
+				close(socketConexionWorker); // Lo tengo que cerrar o lo puedo dejar abierto para la reduccion local?
+				// Aca iria un recibe de YAMA para empezar la reduccion local?
+				break;
+
+				case WORKER_MASTER_TRANSFORMACION_FALLO:
+				socket_enviar(socketConexionYAMA, D_STRUCT_CONFIRMACION_TRANSFORMACION,confirmacion);
+				close(socketConexionWorker);
+				// Que YAMA replanifique
+				// Hacer recibe de lo que haya replanificado YAMA aca o hacer otro hilo?
+				break;
+	}
+}
+}

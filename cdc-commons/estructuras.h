@@ -66,6 +66,9 @@ enum{
 	  D_STRUCT_JOBR=5,
 
 	  D_STRUCT_BLOQUE =6,
+	  D_STRUCT_NODOS=7,
+	  D_STRUCT_TRANSFORMACION=8,
+	  D_STRUCT_CONFIRMACION_TRANSFORMACION=9,
 
 	  /*OPERACIONES YAMA-FS*/
 	  YAMA_FS_GET_DATA_BY_FILE = 00,
@@ -87,6 +90,12 @@ enum{
 
 	  /* OPERACIONES MASTER-YAMA */
 	  MASTER_YAMA_SOLICITAR_INFO_NODO=30,
+
+	  /* OPERACIONES MASTER-WORKER*/
+
+	  /* OPERACIONES WORKER-MASTER*/
+	  WORKER_MASTER_TRANSFORMACION_OK=50,
+	  WORKER_MASTER_TRANSFORMACION_FALLO=51,
 
 	  //Handshake
 	  ES_YAMA=100,
@@ -138,16 +147,38 @@ typedef struct error{
 	int errorid;
 }__attribute__ ((__packed__)) t_struct_error;
 
-typedef struct infoNodo{
-	char* nombreNodo;
-	int   bloquesDisponibles;
+typedef struct infoNodo{ // Lista de nodos con bloques que contienen al archivo pedido por Master
+	char* ip;
+	int puerto;
+	int numBloque;
+	int bytesOcupados;
+	char* nombreTemporal;
 }__attribute__((__packed__)) t_infoNodo;
 
-typedef struct bloques{
+typedef struct bloques{ // Elementos de la lista anterior
     int numBloque;
     int numNodo;
-    int ip;
+    int bytesOcupados;
+    char* ip;
     int puerto;
 }__attribute__((__packed__)) t_struct_bloques;
+
+typedef struct nodos{ // Lista de nodos que recibe master
+	t_list* lista_nodos;
+}__attribute__((__packed__))t_struct_nodos_transformacion;
+
+typedef struct transformacion{ // Los elementos de la lista recibida por master
+	char* ip;
+	int puerto;
+	int bloque;
+	int bytes_ocupados_bloque;
+	char* nombre_archivo_temporal;
+	char* script_transformacion;
+}__attribute__((__packed__))t_struct_transformacion;
+
+typedef struct confirmacionTransformacion{
+	int confirmacion;
+	int nodo;
+}__attribute__((__packed__))t_struct_confirmacion_transformacion;
 
 #endif /* ESTRUCTURAS_H_ */

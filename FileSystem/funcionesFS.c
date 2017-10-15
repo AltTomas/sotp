@@ -330,10 +330,11 @@ void buscarBloquesArchivo(char* nombreFile, int socketConexionYAMA) {
 
 
   t_struct_bloques* bloquesFile = malloc(sizeof(t_struct_bloques));
-  strcpy(bloquesFile->numBloque ,archivoEncontrado -> bloques);
-  strcpy(bloquesFile->numNodo ,archivoEncontrado -> bloques);
-  strcpy(bloquesFile->ip,archivoEncontrado -> bloques);
-  strcpy(bloquesFile->numBloque ,archivoEncontrado -> bloques);
+  //Habria que ver como usar el campo bytesOcupados de la estructura
+  bloquesFile->numBloque = archivoEncontrado -> bloques ->numBloque;
+  bloquesFile->numNodo = archivoEncontrado -> bloques -> numNodo;
+  strcpy(bloquesFile->ip,archivoEncontrado -> bloques -> ipNodo);
+  bloquesFile->puerto = archivoEncontrado -> bloques -> puertoNodo;
   socket_enviar(socketConexionYAMA,FS_YAMA_LISTABLOQUES,bloquesFile);
   free (bloquesFile);
 

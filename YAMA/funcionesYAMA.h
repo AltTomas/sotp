@@ -51,11 +51,10 @@ int conectarConFS(void);
 void escucharConexiones(void);
 void aceptarNuevaConexion(int, fd_set* );
 void trabajarSolicitudMaster(int);
-char* generarNombreTemporal(char*, int );
+char* generarNombreTemporal(int, int);
 
 /* Variables Globales */
 int socketConexionFS;
-int cantidadDeNodos = 0;
 
 t_list * tablaEstados;
 
