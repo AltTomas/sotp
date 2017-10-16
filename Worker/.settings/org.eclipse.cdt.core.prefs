@@ -1,0 +1,11 @@
+eclipse.preferences.version=1
+environment/project/cdt.managedbuild.config.gnu.exe.debug.459844946/LD_LIBRARY_PATH/delimiter=\:
+environment/project/cdt.managedbuild.config.gnu.exe.debug.459844946/LD_LIBRARY_PATH/operation=replace
+environment/project/cdt.managedbuild.config.gnu.exe.debug.459844946/LD_LIBRARY_PATH/value=/home/utnso/workspace/tp-2017-1c-Codeando-por-un-sueldo/cpus-commons/Debug
+environment/project/cdt.managedbuild.config.gnu.exe.debug.459844946/append=true
+environment/project/cdt.managedbuild.config.gnu.exe.debug.459844946/appendContributed=true
+environment/project/cdt.managedbuild.config.gnu.exe.release.338100853/LD_LIBRARY_PATH/delimiter=\:
+environment/project/cdt.managedbuild.config.gnu.exe.release.338100853/LD_LIBRARY_PATH/operation=append
+environment/project/cdt.managedbuild.config.gnu.exe.release.338100853/LD_LIBRARY_PATH/value=${LD_LIBRARY_PATH}\:/home/utnso/workspace/tp-2017-1c-Codeando-por-un-sueldo/cpus-commons/Debug
+environment/project/cdt.managedbuild.config.gnu.exe.release.338100853/append=true
+environment/project/cdt.managedbuild.config.gnu.exe.release.338100853/appendContributed=true

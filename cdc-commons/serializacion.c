@@ -37,10 +37,10 @@ t_stream * serialize(int tipoEstructura, void * estructuraOrigen){
 				paquete = serializeStruct_string((t_struct_string *) estructuraOrigen, D_STRUCT_STRING);
 				break;
 			case D_STRUCT_JOBT:
-				paquete = serializeStruct_job((t_struct_jobT *) estructuraOrigen,D_STRUCT_JOBT);
+				paquete = serializeStruct_jobT((t_struct_jobT *) estructuraOrigen,D_STRUCT_JOBT);
 				break;
 			case D_STRUCT_JOBR:
-				paquete = serializeStruct_job((t_struct_jobR *) estructuraOrigen,D_STRUCT_JOBR);
+				paquete = serializeStruct_jobR((t_struct_jobR *) estructuraOrigen,D_STRUCT_JOBR);
 				break;
 		}
 

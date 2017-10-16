@@ -44,5 +44,7 @@ bool verificarExistenciaDeArchivo(char*);
 void destruirConfig(t_config_master*);
 void conectarConYAMA(void);
 void ejecutarJob(char**);
+void testConexion();
+
 
 #endif /* FUNCIONESMASTER_H_ */

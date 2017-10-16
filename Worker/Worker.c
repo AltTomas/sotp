@@ -14,8 +14,10 @@ int main(void) {
 
 	logger = log_create("../logWorker","Worker", 0, LOG_LEVEL_TRACE);
 	crearConfig();
-	destruirConfig(config);
+	//destruirConfig(config);
 
-	crearServidor(config->Worker_Puerto);
+	escucharConexiones();
+
+	return 0;
 
 	}

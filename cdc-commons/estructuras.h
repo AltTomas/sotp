@@ -55,8 +55,10 @@ enum{
 	ES_DATANODE=104,
 
 	//Errores
-	D_STRUCT_ERR=40,
-	ERR_RCV=41
+	ERR_RCV=40, //Se utiliza para comunicar un error al recibir
+
+	//Respuestas
+	JOB_OK=30
 
 
 
@@ -94,10 +96,6 @@ typedef struct jobR{
 	char* pathTemp;
 	char* pathTempFinal;
 }__attribute__((__packed__)) t_struct_jobR;
-
-typedef struct error{
-	int errorid;
-}__attribute__ ((__packed__)) t_struct_error;
 
 
 #endif /* ESTRUCTURAS_H_ */

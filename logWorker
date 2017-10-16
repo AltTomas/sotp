@@ -1,0 +1,166 @@
+[DEBUG] 14:31:12:565 Worker/(4157:4157): Path config: ../Configs/configNodo.config
+[INFO] 14:31:12:569 Worker/(4157:4157): Configuracion levantada correctamente
+[INFO] 14:31:12:569 Worker/(4157:4157): Servidor escuchando en el puerto 141157224
+[INFO] 14:31:12:570 Worker/(4157:4157): Esperando por conexiones entrantes...
+[DEBUG] 14:34:21:719 Worker/(4177:4177): Path config: ../Configs/configNodo.config
+[INFO] 14:34:21:745 Worker/(4177:4177): Configuracion levantada correctamente
+[INFO] 14:34:21:745 Worker/(4177:4177): Servidor escuchando en el puerto 165434216
+[INFO] 14:34:21:745 Worker/(4177:4177): Esperando por conexiones entrantes...
+[DEBUG] 15:03:16:767 Worker/(4450:4450): Path config: ../Configs/configNodo.config
+[INFO] 15:03:16:773 Worker/(4450:4450): Configuracion levantada correctamente
+[INFO] 15:03:16:773 Worker/(4450:4450): Servidor escuchando en el puerto 162227048
+[INFO] 15:03:16:773 Worker/(4450:4450): Esperando por conexiones entrantes...
+[DEBUG] 15:04:23:814 Worker/(4492:4492): Path config: ../Configs/configNodo.config
+[INFO] 15:05:24:281 Worker/(4492:4492): Configuracion levantada correctamente
+[INFO] 15:06:06:0 Worker/(4492:4492): Servidor escuchando en el puerto 134529896
+[INFO] 15:06:08:137 Worker/(4492:4492): Esperando por conexiones entrantes...
+[DEBUG] 15:13:34:590 Worker/(4713:4713): Path config: ../Configs/configNodo.config
+[DEBUG] 15:16:31:255 Worker/(4827:4827): Path config: /home/utnso/workspace/tp-2017-2c-Los-caballeros-del-C-diaco/Configs/configNodo.config
+[INFO] 15:16:31:278 Worker/(4827:4827): Configuracion levantada correctamente
+[INFO] 15:16:31:278 Worker/(4827:4827): Servidor escuchando en el puerto 7710
+[INFO] 15:16:31:278 Worker/(4827:4827): Esperando por conexiones entrantes...
+[DEBUG] 15:17:45:491 Worker/(4874:4874): Path config: /home/utnso/workspace/tp-2017-2c-Los-caballeros-del-C-diaco/Configs/configNodo.config
+[INFO] 15:17:45:503 Worker/(4874:4874): Configuracion levantada correctamente
+[INFO] 15:17:45:503 Worker/(4874:4874): Servidor escuchando en el puerto 7710
+[INFO] 15:17:45:503 Worker/(4874:4874): Esperando por conexiones entrantes...
+[ERROR] 15:17:45:503 Worker/(4874:4874): Bind fallo. Error
+[DEBUG] 15:18:18:241 Worker/(4917:4917): Path config: /home/utnso/workspace/tp-2017-2c-Los-caballeros-del-C-diaco/Configs/configNodo.config
+[INFO] 15:18:18:243 Worker/(4917:4917): Configuracion levantada correctamente
+[INFO] 15:18:18:243 Worker/(4917:4917): Servidor escuchando en el puerto 7710
+[INFO] 15:18:18:243 Worker/(4917:4917): Esperando por conexiones entrantes...
+[DEBUG] 15:21:01:835 Worker/(4983:4983): Path config: /home/utnso/workspace/tp-2017-2c-Los-caballeros-del-C-diaco/Configs/configNodo.config
+[INFO] 15:21:01:846 Worker/(4983:4983): Configuracion levantada correctamente
+[INFO] 15:21:01:847 Worker/(4983:4983): Servidor escuchando en el puerto 7710
+[INFO] 15:21:01:847 Worker/(4983:4983): Esperando por conexiones entrantes...
+[DEBUG] 15:22:01:239 Worker/(5039:5039): Path config: /home/utnso/workspace/tp-2017-2c-Los-caballeros-del-C-diaco/Configs/configNodo.config
+[INFO] 15:22:01:245 Worker/(5039:5039): Configuracion levantada correctamente
+[INFO] 15:22:01:245 Worker/(5039:5039): Servidor escuchando en el puerto 7710
+[INFO] 15:22:01:245 Worker/(5039:5039): Esperando por conexiones entrantes...
+[DEBUG] 15:22:23:707 Worker/(5086:5086): Path config: /home/utnso/workspace/tp-2017-2c-Los-caballeros-del-C-diaco/Configs/configNodo.config
+[INFO] 15:22:23:718 Worker/(5086:5086): Configuracion levantada correctamente
+[INFO] 15:22:23:718 Worker/(5086:5086): Servidor escuchando en el puerto 7710
+[INFO] 15:22:23:718 Worker/(5086:5086): Esperando por conexiones entrantes...
+[DEBUG] 15:22:44:734 Worker/(5131:5131): Path config: /home/utnso/workspace/tp-2017-2c-Los-caballeros-del-C-diaco/Configs/configNodo.config
+[INFO] 15:22:44:744 Worker/(5131:5131): Configuracion levantada correctamente
+[INFO] 15:22:44:744 Worker/(5131:5131): Servidor escuchando en el puerto 7710
+[INFO] 15:22:44:744 Worker/(5131:5131): Esperando por conexiones entrantes...
+[DEBUG] 15:25:56:570 Worker/(5187:5187): Path config: /home/utnso/workspace/tp-2017-2c-Los-caballeros-del-C-diaco/Configs/configNodo.config
+[INFO] 15:25:56:571 Worker/(5187:5187): Configuracion levantada correctamente
+[INFO] 15:26:00:427 Worker/(5187:5187): Servidor escuchando en el puerto 7710
+[INFO] 15:26:00:427 Worker/(5187:5187): Esperando por conexiones entrantes...
+[DEBUG] 15:30:08:587 Worker/(5301:5301): Path config: /home/utnso/workspace/tp-2017-2c-Los-caballeros-del-C-diaco/Configs/configNodo.config
+[INFO] 15:30:08:597 Worker/(5301:5301): Configuracion levantada correctamente
+[INFO] 15:30:08:597 Worker/(5301:5301): Servidor escuchando en el puerto 7710
+[INFO] 15:30:08:597 Worker/(5301:5301): Esperando por conexiones entrantes...
+[INFO] 15:30:59:111 Worker/(5301:5301): No se recibio correctamente al Master
+[INFO] 15:33:30:393 Worker/(5301:5301): Se acaba de conectar un proceso Master en el socket 6
+[INFO] 15:33:30:424 Worker/(5301:5485): Error al recibir job del master 6
+[ERROR] 15:33:30:428 Worker/(5301:5485): Server no encontrado
+
+[DEBUG] 15:48:00:857 Worker/(5809:5809): Path config: /home/utnso/workspace/tp-2017-2c-Los-caballeros-del-C-diaco/Configs/configNodo.config
+[INFO] 15:48:00:859 Worker/(5809:5809): Configuracion levantada correctamente
+[INFO] 15:48:00:859 Worker/(5809:5809): Servidor escuchando en el puerto 7710
+[INFO] 15:48:00:859 Worker/(5809:5809): Esperando por conexiones entrantes...
+[INFO] 15:48:05:937 Worker/(5809:5809): Se acaba de conectar un proceso Master en el socket 5
+[INFO] 15:48:06:917 Worker/(5809:5860): Error al recibir job del master 5
+[ERROR] 15:48:06:918 Worker/(5809:5860): Server no encontrado
+
+[INFO] 15:50:22:283 Worker/(5809:5860): Se acaba de conectar un proceso Master en el socket 6
+[INFO] 15:51:27:699 Worker/(5809:5962): Error al recibir job del master 6
+[ERROR] 15:51:27:728 Worker/(5809:5962): Server no encontrado
+
+[DEBUG] 15:51:43:765 Worker/(5997:5997): Path config: /home/utnso/workspace/tp-2017-2c-Los-caballeros-del-C-diaco/Configs/configNodo.config
+[INFO] 15:51:43:767 Worker/(5997:5997): Configuracion levantada correctamente
+[INFO] 15:51:45:852 Worker/(5997:5997): Servidor escuchando en el puerto 7710
+[INFO] 15:51:45:853 Worker/(5997:5997): Esperando por conexiones entrantes...
+[INFO] 15:52:02:24 Worker/(5997:5997): Se acaba de conectar un proceso Master en el socket 5
+[INFO] 15:52:15:350 Worker/(5997:6092): Se recibio un job de transformación del master 5
+[INFO] 15:52:15:376 Worker/(5997:6092): Error al recibir job del master 5
+[ERROR] 15:52:15:376 Worker/(5997:6092): Server no encontrado
+
+[INFO] 15:53:58:317 Worker/(5997:6092): Se acaba de conectar un proceso Master en el socket 6
+[INFO] 15:53:58:329 Worker/(5997:6168): Se recibio un job de transformación del master 6
+[INFO] 15:53:58:481 Worker/(5997:6168): Error al recibir job del master 6
+[ERROR] 15:53:58:481 Worker/(5997:6168): Server no encontrado
+
+[DEBUG] 16:01:26:356 Worker/(6317:6317): Path config: /home/utnso/workspace/tp-2017-2c-Los-caballeros-del-C-diaco/Configs/configNodo.config
+[INFO] 16:01:26:375 Worker/(6317:6317): Configuracion levantada correctamente
+[INFO] 16:01:26:375 Worker/(6317:6317): Servidor escuchando en el puerto 7710
+[INFO] 16:01:26:376 Worker/(6317:6317): Esperando por conexiones entrantes...
+[INFO] 16:01:31:784 Worker/(6317:6317): Se acaba de conectar un proceso Master en el socket 5
+[INFO] 16:01:31:813 Worker/(6317:6363): Se recibio un job de transformación del master 5
+[DEBUG] 16:05:53:352 Worker/(6531:6531): Path config: /home/utnso/workspace/tp-2017-2c-Los-caballeros-del-C-diaco/Configs/configNodo.config
+[INFO] 16:05:53:353 Worker/(6531:6531): Configuracion levantada correctamente
+[INFO] 16:05:53:354 Worker/(6531:6531): Servidor escuchando en el puerto 7710
+[INFO] 16:05:53:354 Worker/(6531:6531): Esperando por conexiones entrantes...
+[INFO] 16:05:58:606 Worker/(6531:6531): Se acaba de conectar un proceso Master en el socket 5
+[INFO] 16:05:58:623 Worker/(6531:6558): Se recibio un job de transformación del master 5
+[INFO] 16:05:58:689 Worker/(6531:6558): El job pedido por el master 5, fue realizado exitosamente
+[DEBUG] 16:06:24:892 Worker/(6599:6599): Path config: /home/utnso/workspace/tp-2017-2c-Los-caballeros-del-C-diaco/Configs/configNodo.config
+[INFO] 16:06:24:908 Worker/(6599:6599): Configuracion levantada correctamente
+[INFO] 16:06:24:913 Worker/(6599:6599): Servidor escuchando en el puerto 7710
+[INFO] 16:06:24:913 Worker/(6599:6599): Esperando por conexiones entrantes...
+[DEBUG] 16:06:36:60 Worker/(6637:6637): Path config: /home/utnso/workspace/tp-2017-2c-Los-caballeros-del-C-diaco/Configs/configNodo.config
+[INFO] 16:06:36:72 Worker/(6637:6637): Configuracion levantada correctamente
+[INFO] 16:06:36:72 Worker/(6637:6637): Servidor escuchando en el puerto 7710
+[INFO] 16:06:36:72 Worker/(6637:6637): Esperando por conexiones entrantes...
+[INFO] 16:06:39:903 Worker/(6637:6637): Se acaba de conectar un proceso Master en el socket 5
+[INFO] 16:06:39:931 Worker/(6637:6665): Se recibio un job de transformación del master 5
+[INFO] 16:06:40:80 Worker/(6637:6665): El job pedido por el master 5, fue realizado exitosamente
+[INFO] 16:06:58:770 Worker/(6637:6637): Se acaba de conectar un proceso Master en el socket 6
+[INFO] 16:06:58:787 Worker/(6637:6709): Se recibio un job de transformación del master 6
+[INFO] 16:06:58:836 Worker/(6637:6709): El job pedido por el master 6, fue realizado exitosamente
+[INFO] 16:10:45:836 Worker/(6637:6637): Se acaba de conectar un proceso Master en el socket 7
+[INFO] 16:10:45:849 Worker/(6637:6908): Se recibio un job de transformación del master 7
+[INFO] 16:10:47:868 Worker/(6637:6908): El job pedido por el master 7 no se realizó
+[INFO] 16:12:06:422 Worker/(6637:6637): Se acaba de conectar un proceso Master en el socket 8
+[INFO] 16:12:06:451 Worker/(6637:6981): Se recibio un job de transformación del master 8
+[INFO] 16:12:06:587 Worker/(6637:6981): El job pedido por el master 8, fue realizado exitosamente
+[INFO] 16:12:23:48 Worker/(6637:6637): Se acaba de conectar un proceso Master en el socket 9
+[INFO] 16:12:23:73 Worker/(6637:7025): Se recibio un job de transformación del master 9
+[INFO] 16:12:23:157 Worker/(6637:7025): El job pedido por el master 9, fue realizado exitosamente
+[INFO] 16:12:41:861 Worker/(6637:6637): Se acaba de conectar un proceso Master en el socket 10
+[INFO] 16:12:41:892 Worker/(6637:7074): Se recibio un job de transformación del master 10
+[INFO] 16:12:42:11 Worker/(6637:7074): El job pedido por el master 10, fue realizado exitosamente
+[INFO] 16:12:54:152 Worker/(6637:6637): Se acaba de conectar un proceso Master en el socket 11
+[INFO] 16:12:54:190 Worker/(6637:7120): Se recibio un job de transformación del master 11
+[INFO] 16:12:54:337 Worker/(6637:7120): El job pedido por el master 11, fue realizado exitosamente
+[INFO] 16:13:07:343 Worker/(6637:6637): Se acaba de conectar un proceso Master en el socket 12
+[INFO] 16:13:07:361 Worker/(6637:7164): Se recibio un job de transformación del master 12
+[INFO] 16:13:07:497 Worker/(6637:7164): El job pedido por el master 12, fue realizado exitosamente
+[INFO] 16:13:20:134 Worker/(6637:6637): Se acaba de conectar un proceso Master en el socket 13
+[INFO] 16:13:20:179 Worker/(6637:7209): Se recibio un job de transformación del master 13
+[INFO] 16:13:22:280 Worker/(6637:7209): El job pedido por el master 13 no se realizó
+[INFO] 16:16:56:195 Worker/(6637:6637): Se acaba de conectar un proceso Master en el socket 14
+[INFO] 16:16:56:231 Worker/(6637:7285): Se recibio un job de transformación del master 14
+[INFO] 16:16:56:393 Worker/(6637:7285): El job pedido por el master 14, fue realizado exitosamente
+[INFO] 16:17:39:51 Worker/(6637:6637): Se acaba de conectar un proceso Master en el socket 15
+[INFO] 16:17:39:63 Worker/(6637:7339): Se recibio un job de transformación del master 15
+[INFO] 16:17:40:864 Worker/(6637:7339): El job pedido por el master 15 no se realizó
+[DEBUG] 16:22:58:624 Worker/(7430:7430): Path config: /home/utnso/workspace/tp-2017-2c-Los-caballeros-del-C-diaco/Configs/configNodo.config
+[INFO] 16:22:58:626 Worker/(7430:7430): Configuracion levantada correctamente
+[INFO] 16:22:58:627 Worker/(7430:7430): Servidor escuchando en el puerto 7710
+[INFO] 16:22:58:627 Worker/(7430:7430): Esperando por conexiones entrantes...
+[INFO] 16:23:02:14 Worker/(7430:7430): Se acaba de conectar un proceso Master en el socket 5
+[INFO] 16:23:02:42 Worker/(7430:7457): Se recibio un job de transformación del master 5
+[INFO] 16:23:04:129 Worker/(7430:7457): El job pedido por el master 5 no se realizó
+[DEBUG] 16:24:26:856 Worker/(7536:7536): Path config: /home/utnso/workspace/tp-2017-2c-Los-caballeros-del-C-diaco/Configs/configNodo.config
+[INFO] 16:24:26:873 Worker/(7536:7536): Configuracion levantada correctamente
+[INFO] 16:24:26:873 Worker/(7536:7536): Servidor escuchando en el puerto 7710
+[INFO] 16:24:26:873 Worker/(7536:7536): Esperando por conexiones entrantes...
+[INFO] 16:24:30:378 Worker/(7536:7536): Se acaba de conectar un proceso Master en el socket 5
+[INFO] 16:24:30:410 Worker/(7536:7562): Se recibio un job de transformación del master 5
+[INFO] 16:24:32:607 Worker/(7536:7562): El job pedido por el master 5 no se realizó
+[DEBUG] 16:25:36:542 Worker/(7628:7628): Path config: /home/utnso/workspace/tp-2017-2c-Los-caballeros-del-C-diaco/Configs/configNodo.config
+[INFO] 16:25:36:543 Worker/(7628:7628): Configuracion levantada correctamente
+[INFO] 16:25:39:223 Worker/(7628:7628): Servidor escuchando en el puerto 7710
+[INFO] 16:25:39:223 Worker/(7628:7628): Esperando por conexiones entrantes...
+[INFO] 16:25:58:325 Worker/(7628:7628): Se acaba de conectar un proceso Master en el socket 5
+[INFO] 16:26:28:630 Worker/(7628:7721): Se recibio un job de transformación del master 5
+[INFO] 16:26:29:750 Worker/(7628:7721): El job pedido por el master 5 no se realizó
+[INFO] 16:27:03:818 Worker/(7628:7628): Se acaba de conectar un proceso Master en el socket 6
+[INFO] 16:27:34:43 Worker/(7628:7854): Se recibio un job de transformación del master 6
+[INFO] 16:27:35:178 Worker/(7628:7854): El job pedido por el master 6 no se realizó
+[INFO] 16:27:55:925 Worker/(7628:7628): Se acaba de conectar un proceso Master en el socket 7
+[INFO] 16:28:05:515 Worker/(7628:7917): Se recibio un job de transformación del master 7
+[INFO] 16:28:06:500 Worker/(7628:7917): El job pedido por el master 7 no se realizó

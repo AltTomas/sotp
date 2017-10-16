@@ -89,6 +89,22 @@ void conectarConYAMA(void){
 
 }
 
+void testConexion(){
+	int socketCliente = crearCliente("127.0.0.1",7710);
+	t_struct_numero* es_master = malloc(sizeof(t_struct_numero));
+		es_master->numero = ES_MASTER;
+		socket_enviar(socketCliente, D_STRUCT_NUMERO, es_master);
+
+		t_struct_jobT* job = malloc(sizeof(t_struct_jobT));
+		job->scriptTransformacion = "/home/utnso/yama-test1/transformador.sh";
+		job->pathTemporal = "/home/utnso/temporal/temp";
+		job->pathOrigen = "/home/utnso/yama-test1/WBAN.csv";
+
+		socket_enviar(socketCliente, D_STRUCT_JOBT, job);
+		free(es_master);
+
+
+}
 //void ejecutarJob(char** argumentos){
 //
 //	t_struct_job* enviado = malloc(sizeof(t_struct_job));

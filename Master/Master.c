@@ -30,13 +30,7 @@ int main(int argc, char** argv){
 
 	conectarConYAMA();
 
-	ejecutarJob(argv);
+//	ejecutarJob(argv);
 
-	while(1){
-
-	}
-
-	destruirConfig(config);
-	puts("!!!Hello World!!!"); /* prints !!!Hello World!!! */
-	return EXIT_SUCCESS;
+	testConexion();
 }
