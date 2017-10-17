@@ -90,9 +90,11 @@ void conectarConYAMA(void){
 
 }
 
+///////////////////////////////////////////////////// EJECUTAR UN JOB ////////////////////////////////////////////////////////
+
 void ejecutarJob(char** argumentos){
 
-	t_argumentos* argumentosMaster = malloc(sizeof(t_argumentos));
+	argumentosMaster = malloc(sizeof(t_argumentos));
 
 	argumentosMaster->script_transformacion = malloc(sizeof(MAX_LEN_RUTA));
 	strcpy(argumentosMaster->script_transformacion, argumentos[1]);
@@ -119,20 +121,134 @@ void ejecutarJob(char** argumentos){
 	void* estructuraRecibida;
 	t_tipoEstructura tipoEstructura;
 
-	// Aca deberiamos recibir los nodos que nos envia YAMA para despues conectarnos
-	int recepcion = socket_recibir(socketConexionYAMA, &tipoEstructura, &estructuraRecibida);
+	///					TRANSFORMACION					///
 
-	if(recepcion == -1 || tipoEstructura != D_STRUCT_NUMERO){ //YAMA_MASTER_DATA_NODO
+	// Aca deberiamos recibir los nodos que nos envia YAMA para despues conectarnos
+	int recepcion = socket_recibir(socketConexionYAMA, &tipoEstructura, &estructuraRecibida); // Recibimos nodos para transformacion
+
+	if(recepcion == -1 || tipoEstructura != D_STRUCT_NODOS){ //YAMA_MASTER_DATA_NODO
 				log_info(logger,"No se recibio correctamente la informacion de los nodos");
 	}
-	// Manejamos el tipo de estructura y estructura recibida
-	// Por cada worker al que tengamos que conectarnos
-	pthread_t hiloWorker;
-	pthread_create(&hiloWorker, NULL, (void*)ejecucionJob, NULL);
+
+	// Seria una lista de estructuras que vendrian a ser del nodo: IP, puerto, bloque, bytes ocupados y el nombre del temporal
+	int i;
+	for(i = 0; i<((t_struct_nodos_transformacion*)estructuraRecibida)->lista_nodos->elements_count; i++){ // Por cada worker al que tengamos que conectarnos creamos un hilo que maneje la conexion
+		t_infoNodo_transformacion* info_nodo = list_get(((t_struct_nodos_transformacion*)estructuraRecibida)->lista_nodos,i);
+		pthread_t hiloWorker;
+		pthread_create(&hiloWorker, NULL, (void*)ejecutarTransformacion, info_nodo);
+	}
+
+
+
+	///					REDUCCION LOCAL					///
+	recepcion = socket_recibir(socketConexionYAMA, &tipoEstructura, &estructuraRecibida); // Recibimos nodos para reduccion local
+
+	if(recepcion == -1 || tipoEstructura != D_STRUCT_NODOS){ //YAMA_MASTER_DATA_NODO
+				log_info(logger,"No se recibio correctamente la informacion de los nodos");
+	}
+
+	// Seria una lista de estructuras que vendrian a ser del nodo: IP, puerto, bloque, bytes ocupados y el nombre del temporal
+
+	for(i = 0; i<((t_struct_nodos_transformacion*)estructuraRecibida)->lista_nodos->elements_count; i++){ // Por cada worker al que tengamos que conectarnos creamos un hilo que maneje la conexion
+		t_infoNodo_reduccionLocal* info_nodo = list_get(((t_struct_nodos_transformacion*)estructuraRecibida)->lista_nodos,i);
+		pthread_t hiloWorker;
+		pthread_create(&hiloWorker, NULL, (void*)ejecutarReduccionLocal, info_nodo);
+	}
+	// Aca convendria usar semaforos para esperar que se terminen las reducciones?
 }
 
 
-void ejecucionJob (){
-	//Aca nos conectamos al worker y manejamos todos los aspectos de la comunicacion
+void ejecutarTransformacion (t_infoNodo_transformacion worker){
+	// Se conecta al worker
+	int socketConexionWorker = crearCliente(worker.ip,worker.puerto);
+	if(socketConexionWorker == 1){
+		puts("No se pudo establecer la conexion con Worker, cerrando Master...");
+		log_error(logger,"No se pudo establecer la conexion con Worker, cerrando Master...");
+		exit(1);
+	}
+
+	t_struct_jobT* enviado = malloc(sizeof(t_struct_jobT));
+	// Enviado vendria a ser una estructura igual a cada estructura contenida en la lista + el script
+	enviado->scriptTransformacion= malloc(sizeof(MAX_LEN_RUTA));
+	enviado->pathTemporal = malloc(sizeof(MAX_LEN_RUTA));
+	//enviado->ip = malloc(sizeof(MAX_LEN_IP));
+
+	//enviado->puerto = worker.puerto;
+	enviado->bloque = worker.numBloque;
+	enviado->bytesOcupadosBloque = worker.bytesOcupados;
+	//strcpy(enviado->ip, worker.ip);
+	strcpy(enviado->scriptTransformacion, argumentosMaster->script_transformacion);
+	strcpy(enviado->pathTemporal, worker.nombreTemporal);
+
+	socket_enviar(socketConexionWorker, D_STRUCT_JOBT, enviado);
+	free(enviado);
+
+	void* estructuraRecibida;
+	t_tipoEstructura tipoEstructura;
+
+	int recepcion = socket_recibir(socketConexionWorker, &tipoEstructura, &estructuraRecibida);
+	if(recepcion == -1 || tipoEstructura != D_STRUCT_NUMERO){
+				log_info(logger,"No se recibio correctamente la confirmacion de la TRANSFORMACION del Worker");
+	}
+	else{
+		t_struct_confirmacion_transformacion* confirmacion = malloc(sizeof(t_struct_confirmacion_transformacion));
+		switch(((t_struct_confirmacion_transformacion*)estructuraRecibida)->confirmacion){
+				case WORKER_MASTER_TRANSFORMACION_OK:
+				// Lo agregamos a una lista de sockets listos para la reduccion local?
+				socket_enviar(socketConexionYAMA, D_STRUCT_CONFIRMACION_TRANSFORMACION,confirmacion);
+				close(socketConexionWorker);
+				break;
+
+				case WORKER_MASTER_TRANSFORMACION_FALLO:
+				socket_enviar(socketConexionYAMA, D_STRUCT_CONFIRMACION_TRANSFORMACION,confirmacion);
+				close(socketConexionWorker);
+				// Que YAMA replanifique
+				break;
+		}
+	}
 }
 
+void ejecutarReduccionLocal (t_infoNodo_reduccionLocal worker){
+	// Se conecta al worker
+	int socketConexionWorker = crearCliente(worker.ip,worker.puerto);
+	if(socketConexionWorker == 1){
+		puts("No se pudo establecer la conexion con Worker, cerrando Master...");
+		log_error(logger,"No se pudo establecer la conexion con Worker, cerrando Master...");
+		exit(1);
+	}
+
+	t_struct_jobR* enviado = malloc(sizeof(t_struct_jobR));
+	enviado->scriptReduccion = malloc(sizeof(MAX_LEN_RUTA));
+	enviado->pathTempFinal = malloc(sizeof(MAX_LEN_RUTA));
+	t_list* temporales = list_create();
+
+	strcpy(enviado->pathTempFinal, worker.pathTempFinal);
+	strcpy(enviado->scriptReduccion, argumentosMaster->script_reduccion);
+	list_add_all(temporales,worker.pathTemp);
+
+	socket_enviar(socketConexionWorker, D_STRUCT_JOBR, enviado);
+	free(enviado);
+
+	void* estructuraRecibida;
+	t_tipoEstructura tipoEstructura;
+
+	int recepcion = socket_recibir(socketConexionWorker, &tipoEstructura, &estructuraRecibida);
+	if(recepcion == -1 || tipoEstructura != D_STRUCT_NUMERO){
+				log_info(logger,"No se recibio correctamente la confirmacion de la REDUCCION LOCAL del Worker");
+	}
+	else{
+		t_struct_confirmacion_transformacion* confirmacion = malloc(sizeof(t_struct_confirmacion_transformacion));
+		switch(((t_struct_confirmacion_transformacion*)estructuraRecibida)->confirmacion){
+				case WORKER_MASTER_REDUCCIONL_OK:
+				// Lo agregamos a una lista de sockets que hicieron la reduccion local exitosamente?
+				socket_enviar(socketConexionYAMA, D_STRUCT_CONFIRMACION_REDUCCIONL,confirmacion);
+				close(socketConexionWorker);
+				break;
+
+				case WORKER_MASTER_REDUCCIONL_FALLO:
+				socket_enviar(socketConexionYAMA, D_STRUCT_CONFIRMACION_REDUCCIONL,confirmacion);
+				close(socketConexionWorker);
+				break;
+		}
+	}
+}

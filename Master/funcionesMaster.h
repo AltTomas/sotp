@@ -41,7 +41,7 @@ typedef struct {
 extern t_log* logger;
 t_config_master* config;
 int socketConexionYAMA;
-
+t_argumentos* argumentosMaster;
 
 void crearConfig();
 t_config_master* levantarConfiguracionMaster(char*);
@@ -50,6 +50,7 @@ bool verificarExistenciaDeArchivo(char*);
 void destruirConfig(t_config_master*);
 void conectarConYAMA(void);
 void ejecutarJob(char**);
-void ejecucionJob();
+void ejecutarTransformacion (t_infoNodo_transformacion);
+void ejecutarReduccionLocal (t_infoNodo_reduccionLocal);
 
 #endif /* FUNCIONESMASTER_H_ */
