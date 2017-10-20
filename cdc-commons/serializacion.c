@@ -45,6 +45,9 @@ t_stream * serialize(int tipoEstructura, void * estructuraOrigen){
 			case D_STRUCT_BLOQUE:
 				paquete = serializeStruct_bloque((t_info_bloque *) estructuraOrigen, D_STRUCT_BLOQUE);
 				break;
+			case D_STRUCT_NODOS_ESCLAVOS:
+				paquete = serializeStruct_NodosEsclavos((t_struct_jobRG*) estructuraOrigen, D_STRUCT_NODOS_ESCLAVOS);
+				break;
 		}
 
 	return paquete;
@@ -181,6 +184,71 @@ t_stream * serializeStruct_jobR(t_struct_jobR * estructuraOrigen, int headerOper
 	return paquete;
 }
 
+uint32_t calcularTamanioListaNodos (t_list* nodos){
+
+	int tamanio = 0, i;
+	t_infoNodo_reduccionGlobal * nodo = malloc(sizeof(t_infoNodo_reduccionGlobal));
+
+	for(i=0;i<list_size(nodos);i++){
+
+		nodo = list_get(nodos,i);
+
+		int tamanioIP = sizeof(char)*strlen(nodo->ip);
+		int tamanioPuerto = sizeof(int);
+		int tamanioEncargado = sizeof(bool);
+		int tamanioRutaTemporal = sizeof(char)*strlen(nodo->pathTemporal);
+		int tamanioRutaFinal = sizeof(char)*strlen(nodo->pathFinal);
+
+		int tamanioParcial = tamanioIP + tamanioPuerto + tamanioEncargado + tamanioRutaTemporal + tamanioRutaFinal;
+
+		tamanio += tamanioParcial;
+
+	}
+
+	return tamanio;
+}
+
+t_stream * serializeStruct_NodosEsclavos(t_struct_jobRG* estructuraOrigen, int headerOperacion){
+
+	t_stream* paquete = malloc(sizeof(t_stream));
+
+	uint32_t tamanioListaNodos = calcularTamanioListaNodos(estructuraOrigen->nodos);
+
+	paquete->length = sizeof(t_header) + sizeof(uint32_t) + strlen(estructuraOrigen->scriptReduccion) + tamanioListaNodos + 1;
+
+	char* data = crearDataConHeader(headerOperacion, paquete->length);
+
+	int tamDato = 0;
+	int tamTot = sizeof(t_header);
+	int contadorNodos = 0;
+
+	memcpy(data + tamTot, &estructuraOrigen->cantidadNodos , tamDato = sizeof(uint32_t));
+	tamTot+=tamDato;
+
+	memcpy(data + tamTot, estructuraOrigen->scriptReduccion , tamDato = strlen(estructuraOrigen->scriptReduccion)+1);
+	tamTot+=tamDato;
+
+	while (contadorNodos < estructuraOrigen->nodos->elements_count){
+
+		t_struct_nodoEsclavo* nodo = (t_struct_nodoEsclavo*) list_get(estructuraOrigen->nodos, contadorNodos);
+
+		memcpy(data + tamTot, &nodo->ip, tamDato= strlen(nodo->ip) + 1);
+		tamTot += tamDato;
+
+		memcpy(data + tamTot, &nodo->puerto, tamDato= sizeof(int));
+		tamTot += tamDato;
+
+		memcpy(data + tamTot, &nodo->nombreTemporal, tamDato= strlen(nodo->nombreTemporal) + 1);
+		tamTot += tamDato;
+
+		contadorNodos++;
+	}
+
+	paquete->data = data;
+
+	return paquete;
+}
+
 t_header desempaquetarHeader(char * header){
 	t_header estructuraHeader;
 
@@ -214,6 +282,9 @@ void * deserialize(uint8_t tipoEstructura, char * dataPaquete, uint16_t length){
 				break;
 			case D_STRUCT_BLOQUE:
 				estructuraDestino = deserializeStruct_bloque(dataPaquete, length);
+				break;
+			case D_STRUCT_NODOS_ESCLAVOS:
+				estructuraDestino = deserializeStruct_NodosEsclavos(dataPaquete, length);
 				break;
 
 	}
@@ -325,6 +396,50 @@ t_struct_jobR * deserializeStruct_jobR(char * dataPaquete, uint16_t length){
 		for(tamanoDato = 1; (dataPaquete + tamanoTotal)[tamanoDato -1] != '\0';tamanoDato++);
 		estructuraDestino->pathTempFinal = malloc(tamanoDato);
 		memcpy(estructuraDestino->pathTempFinal, dataPaquete + tamanoTotal, tamanoDato);
+
+		return estructuraDestino;
+}
+
+t_struct_jobRG * deserializeStruct_NodosEsclavos(char * dataPaquete, uint16_t length){
+
+	t_struct_jobRG * estructuraDestino = malloc(sizeof(t_struct_jobRG));
+
+		int tamanoTotal = 0, tamanoDato = 0;
+
+		tamanoTotal+= tamanoDato;
+
+		memcpy(&estructuraDestino->cantidadNodos,dataPaquete+tamanoTotal,tamanoDato=sizeof(uint32_t));
+		tamanoTotal+= tamanoDato;
+
+		for(tamanoDato = 1; (dataPaquete + tamanoTotal)[tamanoDato -1] != '\0';tamanoDato++);
+		estructuraDestino->scriptReduccion = malloc(tamanoDato);
+		memcpy(estructuraDestino->scriptReduccion, dataPaquete + tamanoTotal, tamanoDato);
+
+		tamanoTotal+= tamanoDato;
+
+		int contadorNodos = 0;
+		estructuraDestino->nodos = list_create();
+
+		while(contadorNodos < estructuraDestino->cantidadNodos){
+
+			t_struct_nodoEsclavo* nodo = malloc(sizeof(t_struct_nodoEsclavo));
+
+			for(tamanoDato = 1; (dataPaquete + tamanoTotal)[tamanoDato -1] != '\0';tamanoDato++);
+			nodo->ip = malloc(tamanoDato);
+			memcpy(nodo->ip, dataPaquete + tamanoTotal, tamanoDato);
+
+			for(tamanoDato = 1; (dataPaquete + tamanoTotal)[tamanoDato -1] != '\0';tamanoDato++);
+			nodo->nombreTemporal = malloc(tamanoDato);
+			memcpy(nodo->nombreTemporal, dataPaquete + tamanoTotal, tamanoDato);
+
+
+			memcpy(&nodo->puerto, dataPaquete + tamanoTotal, tamanoDato = sizeof(int));
+			tamanoTotal += tamanoDato;
+
+			list_add(estructuraDestino->nodos,nodo);
+
+			contadorNodos++;
+			}
 
 		return estructuraDestino;
 }

@@ -32,11 +32,8 @@ int main(int argc, char** argv){
 
 	ejecutarJob(argv);
 
-	while(1){
-
-	}
+	mostrarMetricas();
 
 	destruirConfig(config);
-	puts("!!!Hello World!!!"); /* prints !!!Hello World!!! */
 	return EXIT_SUCCESS;
 }

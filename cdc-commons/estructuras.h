@@ -69,6 +69,10 @@ enum{
 	  D_STRUCT_NODOS=7,
 	  D_STRUCT_CONFIRMACION_TRANSFORMACION=8,
 	  D_STRUCT_CONFIRMACION_REDUCCIONL=9,
+	  D_STRUCT_CONFIRMACION_REDUCCIONG = 60,
+
+	  D_STRUCT_NODOS_ESCLAVOS= 61,
+	  D_STRUCT_CONFIRMACION_ALMACENAMIENTO_FINAL=62,
 
 	  /*OPERACIONES YAMA-FS*/
 	  YAMA_FS_GET_DATA_BY_FILE = 00,
@@ -99,6 +103,10 @@ enum{
 	  WORKER_MASTER_TRANSFORMACION_FALLO=51,
 	  WORKER_MASTER_REDUCCIONL_OK=52,
 	  WORKER_MASTER_REDUCCIONL_FALLO=53,
+	  WORKER_MASTER_REDUCCIONG_OK=54,
+	  WORKER_MASTER_REDUCCIONG_FALLO=55,
+	  WORKER_MASTER_ALMACENAMIENTO_FINAL_OK=56,
+	  WORKER_MASTER_ALMACENAMIENTO_FINAL_FALLO=57,
 
 	  //Handshake
 	  ES_YAMA=100,
@@ -148,6 +156,24 @@ typedef struct jobR{
 	char* pathTempFinal;
 }__attribute__((__packed__)) t_struct_jobR;
 
+typedef struct jobRG{
+	char* scriptReduccion;
+	uint32_t cantidadNodos;
+	t_list* nodos; // Lista de t_struct_nodoEsclavo
+}__attribute__((__packed__)) t_struct_jobRG;
+
+typedef struct nodoEsclavo{
+	char* ip;
+	int puerto;
+	char* nombreTemporal;
+}__attribute__((__packed__)) t_struct_nodoEsclavo;
+
+typedef struct infoNodoF{
+	char* ip;
+	int puerto;
+	char* nombreResultadoRG;
+}__attribute__((__packed__)) t_infoNodo_Final;
+
 typedef struct error{
 	int errorid;
 }__attribute__ ((__packed__)) t_struct_error;
@@ -167,6 +193,14 @@ typedef struct infoNodoR{ // Lista de nodos con bloques que contienen al archivo
 	char* pathTempFinal;
 }__attribute__((__packed__)) t_infoNodo_reduccionLocal;
 
+typedef struct infoNodoRG{
+	char* ip;
+	int puerto;
+	bool encargado;
+	char* pathTemporal;
+	char* pathFinal;
+}__attribute__((__packed__)) t_infoNodo_reduccionGlobal;
+
 typedef struct bloques{ // Elementos de la lista anterior
     int numBloque;
     int numNodo;
@@ -175,9 +209,9 @@ typedef struct bloques{ // Elementos de la lista anterior
     int puerto;
 }__attribute__((__packed__)) t_struct_bloques;
 
-typedef struct nodos{ // Lista de nodos que recibe master
+typedef struct nodos{ // Lista de nodos que recibe master, se usa para transformacion y reduccion
 	t_list* lista_nodos;
-}__attribute__((__packed__))t_struct_nodos_transformacion;
+}__attribute__((__packed__))t_struct_nodos;
 
 typedef struct confirmacionTransformacion{
 	int confirmacion;

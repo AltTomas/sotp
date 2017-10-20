@@ -52,5 +52,10 @@ void conectarConYAMA(void);
 void ejecutarJob(char**);
 void ejecutarTransformacion (t_infoNodo_transformacion);
 void ejecutarReduccionLocal (t_infoNodo_reduccionLocal);
+void ejecutarReduccionGlobal(t_infoNodo_reduccionGlobal*, t_list*, char*);
+bool esEncargado(t_infoNodo_reduccionGlobal* nodo);
+t_infoNodo_reduccionGlobal* buscarEncargado(t_list*);
+void ejecutarAlmacenamientoFinal(t_infoNodo_Final* );
+void mostrarMetricas();
 
 #endif /* FUNCIONESMASTER_H_ */
