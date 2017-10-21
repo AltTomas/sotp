@@ -1,7 +1,0 @@
-[DEBUG] 10:39:44:282 YAMA/(4877:4877): Path config: ../../Configs/configYAMA.config
-[INFO] 10:39:44:284 YAMA/(4877:4877): Configuracion levantada correctamente
-[INFO] 10:39:44:284 YAMA/(4877:4877): Conectandose a FS
-[ERROR] 10:39:44:285 YAMA/(4877:4877): Error al conectar con servidor
-[INFO] 10:39:44:285 YAMA/(4877:4877): Conexión exitosa a FS
-[INFO] 10:39:44:285 YAMA/(4877:4877): Servidor escuchando en el puerto 7700
-[INFO] 10:39:44:285 YAMA/(4877:4877): Esperando por conexiones entrantes...

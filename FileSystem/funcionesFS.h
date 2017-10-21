@@ -21,17 +21,21 @@
 #define MAX_LEN_PUERTO 6
 #define PUNTO_MONTAJE 250
 
+
+
 typedef struct {
 	char* fs_puerto;
 	char* punto_montaje;
 }t_config_fs;
 
-
+t_list* files;
 t_log* logger;
 t_config_fs* config;
 
 fd_set datanode;
 fd_set setDataNodes;
+fd_set yama;
+fd_set setyama;
 int socketEscuchaDataNodes;
 int max_fd;
 
@@ -44,5 +48,6 @@ void commandHandler();
 void escucharConexiones(void);
 void aceptarNuevaConexion(int, fd_set* );
 void trabajarSolicitudDataNode(int);
+void buscarBloquesArchivo(char*, int);
 
 #endif /* FUNCIONESFS_H_ */

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 [ERROR] 08:27:34:332 Master/(2358:2358): ERROR: Se intento iniciar el programa con un numero incorrecto de parametros
 [ERROR] 08:30:08:341 Master/(2602:2602): ERROR: Se intento iniciar el programa con un numero incorrecto de parametros
 [ERROR] 08:30:16:45 Master/(2635:2635): ERROR: Se intento iniciar el programa con un numero incorrecto de parametros
@@ -18,3 +19,5 @@
 [ERROR] 10:41:49:260 Master/(4999:4999): Server no encontrado
 
 [INFO] 10:41:49:260 Master/(4999:4999): Handshake enviado a YAMA
+=======
+>>>>>>> bac1c3cf5de083d5e114fc76b1064775a1a3dbb6

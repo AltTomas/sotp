@@ -73,7 +73,11 @@ void escucharConexiones(void){
 	FD_ZERO(&maestro);
 	FD_ZERO(&setMasters);
 
+<<<<<<< HEAD
 	socketEscucha = crearServidor(config->Worker_Puerto);
+=======
+	socketEscucha = crearServidor(atoi(config->Worker_Puerto));
+>>>>>>> bac1c3cf5de083d5e114fc76b1064775a1a3dbb6
 
 	max_fd = socketEscucha;
 
@@ -137,22 +141,35 @@ void aceptarNuevaConexion(int socketEscucha, fd_set* set){
 
 void atenderMaster(int socketMaster){
 
+<<<<<<< HEAD
 	t_tipoEstructura estructura;
 	void* job;
 	t_struct_numero * response = malloc(sizeof(t_struct_numero));
 	int res_ok;
 
 	if (socket_recibir(socketMaster, &estructura, &job)){
+=======
+	t_tipoEstructura * estructura;
+	void* job;
+	t_struct_error * err = malloc(sizeof(t_struct_error));
+
+	if (socket_recibir(socketMaster, estructura, &job)){
+>>>>>>> bac1c3cf5de083d5e114fc76b1064775a1a3dbb6
 
 		if(estructura==D_STRUCT_JOBT){
 
 			log_info(logger, "Se recibio un job de transformación del master %d", socketMaster);
 
+<<<<<<< HEAD
 			res_ok = doJob_transformacion(job);
+=======
+			doJob_transformacion(job);
+>>>>>>> bac1c3cf5de083d5e114fc76b1064775a1a3dbb6
 
 		}else if(estructura==D_STRUCT_JOBR){
 			log_info(logger, "Se recibio un job de reducción del master %d", socketMaster);
 
+<<<<<<< HEAD
 			res_ok = doJob_reduccion(job);
 
 		}
@@ -169,10 +186,16 @@ void atenderMaster(int socketMaster){
 		log_info(logger, "El job pedido por el master %d no se realizó", socketMaster);
 		_exit(1);
 		}
+=======
+			doJob_reduccion(job);
+		}
+
+>>>>>>> bac1c3cf5de083d5e114fc76b1064775a1a3dbb6
 	}
 
 	log_info(logger, "Error al recibir job del master %d", socketMaster);
 
+<<<<<<< HEAD
 	response->numero=ERR_RCV;
 
 	socket_enviar(socketMaster, D_STRUCT_NUMERO, response);
@@ -180,10 +203,18 @@ void atenderMaster(int socketMaster){
 	free(response);
 
 	_exit(1);
+=======
+	err->errorid=ERR_RCV;
+
+	socket_enviar(socketMaster, D_STRUCT_ERR, err);
+
+	free(err);
+>>>>>>> bac1c3cf5de083d5e114fc76b1064775a1a3dbb6
 
 
 }
 
+<<<<<<< HEAD
 int doJob_transformacion(t_struct_jobT* job){
 
 	char command[500];
@@ -209,4 +240,24 @@ int doJob_reduccion(t_struct_jobR* job){
 		if(system(command)){
 			return 1;
 		}else return 0;
+=======
+void doJob_transformacion(t_struct_jobT* job){
+
+	char command[500];
+
+	sprintf(command, "cat %s | %s > %s", job->pathOrigen, job->scriptTransformacion, job->pathTemporal);
+
+	system(command);
+
+}
+
+void doJob_reduccion(t_struct_jobR* job){
+
+	char command[500];
+
+		sprintf(command, "cat %s | %s > %s", job->pathTemp, job->scriptReduccion, job->pathTempFinal);
+
+		system(command);
+
+>>>>>>> bac1c3cf5de083d5e114fc76b1064775a1a3dbb6
 }

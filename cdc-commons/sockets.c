@@ -1,10 +1,3 @@
-/*
- * sockets.c
- *
- *  Created on: 14/4/2017
- *      Author: utnso
- */
-
 #include "sockets.h"
 
 t_log* logger;

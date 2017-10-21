@@ -31,11 +31,17 @@ typedef struct {
 	char* YAMA_ip;
 }t_config_master;
 
+typedef struct {
+	char* script_transformacion;
+	char* script_reduccion;
+	char* archivo;
+	char* archivo_resultado;
+}t_argumentos;
 
 extern t_log* logger;
 t_config_master* config;
 int socketConexionYAMA;
-
+t_argumentos* argumentosMaster;
 
 void crearConfig();
 t_config_master* levantarConfiguracionMaster(char*);
@@ -44,7 +50,11 @@ bool verificarExistenciaDeArchivo(char*);
 void destruirConfig(t_config_master*);
 void conectarConYAMA(void);
 void ejecutarJob(char**);
+<<<<<<< HEAD
 void testConexion();
 
+=======
+void ejecutarTransformacion (t_infoNodo);
+>>>>>>> bac1c3cf5de083d5e114fc76b1064775a1a3dbb6
 
 #endif /* FUNCIONESMASTER_H_ */

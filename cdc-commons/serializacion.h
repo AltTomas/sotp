@@ -13,6 +13,10 @@
 	t_stream * serializeStruct_string(t_struct_string * estructuraOrigen, int headerOperacion);
 	t_stream * serializeStruct_jobT(t_struct_jobT * estructuraOrigen, int headerOperacion);
 	t_stream * serializeStruct_jobR(t_struct_jobR * estructuraOrigen, int headerOperacion);
+<<<<<<< HEAD
+=======
+	t_stream * serializeStruct_bloque(t_info_bloque* estructuraOrigen, int headerOperacion);
+>>>>>>> bac1c3cf5de083d5e114fc76b1064775a1a3dbb6
 	t_header desempaquetarHeader(char * header);
 	void * deserialize(uint8_t tipoEstructura, char * dataPaquete, uint16_t length);
 
@@ -21,5 +25,9 @@
 	t_struct_string * deserializeStruct_string(char * dataPaquete, uint16_t length);
 	t_struct_jobT * deserializeStruct_jobT(char* dataPaquete, uint16_t length);
 	t_struct_jobR * deserializeStruct_jobR(char* dataPaquete, uint16_t length);
+<<<<<<< HEAD
+=======
+	t_info_bloque * deserializeStruct_bloque(char * dataPaquete, uint16_t length);
+>>>>>>> bac1c3cf5de083d5e114fc76b1064775a1a3dbb6
 
 #endif /* SERIALIZACION_H_ */

@@ -7,8 +7,9 @@
 
 #include "funcionesYAMA.h"
 
-void crearConfig(){
+int cantidadDeNodos = 0;
 
+void crearConfig(){
 	if(verificarExistenciaDeArchivo(configuracionYAMA)){
 		config=levantarConfiguracionMaster(configuracionYAMA);
 		log_info(logger,"Configuracion levantada correctamente");
@@ -167,6 +168,7 @@ void aceptarNuevaConexion(int socketEscucha, fd_set* set){
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+<<<<<<< HEAD
 //void trabajarSolicitudMaster(int socketMaster){
 //
 //	void* estructuraRecibida;
@@ -200,3 +202,92 @@ void aceptarNuevaConexion(int socketEscucha, fd_set* set){
 //		FD_SET(socketMaster,&setMasters);
 //	}
 //}
+=======
+void trabajarSolicitudMaster(int socketMaster){
+
+	void* estructuraRecibida;
+	t_tipoEstructura tipoEstructura;
+
+	int recepcion = socket_recibir(socketMaster, &tipoEstructura,&estructuraRecibida);
+
+	if(recepcion == -1){
+		printf("Se desconecto el Master en el socket %d\n", socketMaster);
+		log_info(logger,"Se desconecto el Master en el socket %d", socketMaster);
+		close(socketMaster);
+		FD_CLR(socketMaster, &maestro);
+		FD_CLR(socketMaster, &setMasters);
+	}
+	else{
+		switch(tipoEstructura){
+			case D_STRUCT_STRING :
+				printf("Llego solicitud de tarea del Master en el socket %d\n", socketMaster);
+				log_info(logger,"Llego solicitud de tarea del Master en el socket %d", socketMaster);
+
+				printf("Archivo Objetivo: %s\n",((t_struct_string*)estructuraRecibida)->string);
+				log_info(logger,"Archivo Objetivo: %s",((t_struct_string*)estructuraRecibida)->string);
+				getNodoByFile(((t_struct_string*)estructuraRecibida)->string,socketMaster);
+				FD_SET(socketMaster,&setMasters);
+
+				break;
+		}
+	}
+}
+
+void getNodoByFile(char* nombreFile,int socketConexionMaster){
+	void* estructuraRecibida;
+	uint16_t i;
+	t_tipoEstructura tipoEstructura;
+	t_struct_string* stringFile = malloc(sizeof(t_struct_string));
+	strcpy(stringFile->string ,nombreFile);
+	socket_enviar(socketConexionFS,D_STRUCT_STRING,stringFile);
+	free(stringFile);
+
+	int recepcion = socket_recibir(socketConexionFS, &tipoEstructura,&estructuraRecibida);
+	if(recepcion == -1){
+		printf("Se desconecto el FS en el socket %d\n", socketConexionFS);
+		log_info(logger,"Se desconecto el Master en el socket %d", socketConexionFS);
+		close(socketConexionFS);
+	}
+	else{
+		switch(tipoEstructura){
+			case D_STRUCT_NUMERO:
+				switch(((t_struct_numero*)estructuraRecibida)->numero){
+					case FS_YAMA_NOT_LOAD:{
+					t_struct_numero * numero2 = malloc(sizeof(t_struct_numero));
+					numero2->numero = YAMA_MASTER_FS_NOT_LOAD;
+					socket_enviar(socketConexionMaster,D_STRUCT_NUMERO,numero2);
+					free(numero2);
+					break;}
+
+					case FS_YAMA_CANTIDAD_BLOQUES:
+					socket_recibir(socketConexionFS, D_STRUCT_NUMERO,&estructuraRecibida);
+					cantidadDeNodos = ((t_struct_numero*)estructuraRecibida)->numero;
+					break;
+
+				}
+			break;
+		}
+	}
+}
+
+void init(){
+	tablaEstados = list_create();
+}
+
+int getAvailability(){
+	int pwl;
+	if(config->Algoritmo_Balanceo == "Clock"){
+		pwl = 0;
+	}else{
+		//pwl =
+	}
+	return config->Disp_Base + pwl;
+}
+
+char* generarNombreTemporal(int socketMaster, int nroBloque){
+	char* nombre = string_from_format("/tmp/Master%d-temp", socketMaster);
+	char* bloque = string_itoa(nroBloque);
+	string_append(&nombre, bloque);
+	return nombre;
+}
+>>>>>>> bac1c3cf5de083d5e114fc76b1064775a1a3dbb6
