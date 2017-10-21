@@ -227,3 +227,38 @@
 
 [INFO] 16:27:21:783 Master/(7835:7835): Handshake enviado a YAMA
 [INFO] 16:27:21:786 Master/(7835:7835): Cliente conectado correctamente al servidor IP:127.0.0.1 Puerto: 7710
+[DEBUG] 23:56:52:472 Master/(3336:3336): Path config: ../Configs/configMaster.config
+[INFO] 23:56:52:506 Master/(3336:3336): Configuracion levantada correctamente
+[INFO] 23:56:52:507 Master/(3336:3336): Conectandose a YAMA
+[ERROR] 23:56:52:507 Master/(3336:3336): Error al conectar con servidor
+[ERROR] 23:56:52:507 Master/(3336:3336): No se pudo establecer la conexion con YAMA, cerrando Master...
+[DEBUG] 00:01:22:613 Master/(3540:3540): Path config: ../Configs/configMaster.config
+[INFO] 00:01:22:615 Master/(3540:3540): Configuracion levantada correctamente
+[INFO] 00:01:22:615 Master/(3540:3540): Conectandose a YAMA
+[INFO] 00:01:22:615 Master/(3540:3540): Cliente conectado correctamente al servidor IP:127.0.01 Puerto: 7700
+[INFO] 00:01:22:615 Master/(3540:3540): Me conecte a YAMA
+[INFO] 00:01:22:625 Master/(3540:3540): Handshake argumentosMaster a YAMA
+[DEBUG] 00:02:20:920 Master/(3598:3598): Path config: ../Configs/configMaster.config
+[INFO] 00:02:20:920 Master/(3598:3598): Configuracion levantada correctamente
+[INFO] 00:02:21:449 Master/(3598:3598): Conectandose a YAMA
+[INFO] 00:02:21:450 Master/(3598:3598): Cliente conectado correctamente al servidor IP:127.0.01 Puerto: 7700
+[INFO] 00:02:21:450 Master/(3598:3598): Me conecte a YAMA
+[INFO] 00:02:21:450 Master/(3598:3598): Handshake argumentosMaster a YAMA
+[DEBUG] 00:02:48:533 Master/(3641:3641): Path config: ../Configs/configMaster.config
+[INFO] 00:02:48:533 Master/(3641:3641): Configuracion levantada correctamente
+[INFO] 00:02:48:871 Master/(3641:3641): Conectandose a YAMA
+[INFO] 00:02:48:871 Master/(3641:3641): Cliente conectado correctamente al servidor IP:127.0.01 Puerto: 7700
+[INFO] 00:02:48:871 Master/(3641:3641): Me conecte a YAMA
+[INFO] 00:02:48:871 Master/(3641:3641): Handshake argumentosMaster a YAMA
+[DEBUG] 00:04:12:159 Master/(3676:3676): Path config: ../Configs/configMaster.config
+[INFO] 00:04:12:162 Master/(3676:3676): Configuracion levantada correctamente
+[INFO] 00:04:12:162 Master/(3676:3676): Conectandose a YAMA
+[INFO] 00:04:12:162 Master/(3676:3676): Cliente conectado correctamente al servidor IP:127.0.01 Puerto: 7700
+[INFO] 00:04:12:162 Master/(3676:3676): Me conecte a YAMA
+[INFO] 00:04:12:162 Master/(3676:3676): Handshake argumentosMaster a YAMA
+[DEBUG] 00:04:34:156 Master/(3731:3731): Path config: ../Configs/configMaster.config
+[INFO] 00:04:34:156 Master/(3731:3731): Configuracion levantada correctamente
+[INFO] 00:04:34:900 Master/(3731:3731): Conectandose a YAMA
+[INFO] 00:04:34:901 Master/(3731:3731): Cliente conectado correctamente al servidor IP:127.0.01 Puerto: 7700
+[INFO] 00:04:34:901 Master/(3731:3731): Me conecte a YAMA
+[INFO] 00:04:34:901 Master/(3731:3731): Handshake argumentosMaster a YAMA

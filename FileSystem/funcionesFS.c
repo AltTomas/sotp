@@ -260,7 +260,6 @@ void aceptarNuevaConexion(int socketEscucha, fd_set* set){
 	}
 }
 
-<<<<<<< HEAD
 //void trabajarSolicitudDataNode(int socketDataNode){
 //
 //	void* estructuraRecibida;
@@ -293,7 +292,7 @@ void aceptarNuevaConexion(int socketEscucha, fd_set* set){
 //		log_info(logger,"Archivo Resultado: %s",((t_struct_job*)estructuraRecibida)->archivoResultado);
 //		FD_SET(socketDataNode,&setDataNodes);
 //	}
-=======
+
 void trabajarSolicitudDataNode(int socketDataNode){
 
   void* estructuraRecibida;
@@ -372,6 +371,5 @@ void buscarBloquesArchivo(char* nombreFile, int socketConexionYAMA) {
   socket_enviar(socketConexionYAMA,FS_YAMA_LISTABLOQUES,bloquesFile);
   free (bloquesFile);
 
->>>>>>> bac1c3cf5de083d5e114fc76b1064775a1a3dbb6
 }
 

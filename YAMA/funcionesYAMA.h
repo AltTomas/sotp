@@ -57,6 +57,5 @@ char* generarNombreTemporal(int, int);
 int socketConexionFS;
 
 t_list * tablaEstados;
-t_estado_procesos * proceso;
 
 #endif /* FUNCIONESYAMA_H_ */

@@ -1,0 +1,27 @@
+[DEBUG] 23:56:29:535 YAMA/(3294:3294): Path config: ../Configs/configYAMA.config
+[DEBUG] 23:58:19:678 YAMA/(3426:3426): Path config: ../Configs/configYAMA.config
+[DEBUG] 23:58:40:59 YAMA/(3464:3464): Path config: ../Configs/configYAMA.config
+[DEBUG] 00:01:17:646 YAMA/(3520:3520): Path config: ../Configs/configYAMA.config
+[INFO] 00:01:17:647 YAMA/(3520:3520): Configuracion levantada correctamente
+[INFO] 00:01:17:647 YAMA/(3520:3520): Conectandose a FS
+[ERROR] 00:01:17:647 YAMA/(3520:3520): Error al conectar con servidor
+[INFO] 00:01:17:647 YAMA/(3520:3520): Conexión exitosa a FS
+[INFO] 00:01:17:647 YAMA/(3520:3520): Servidor escuchando en el puerto 7700
+[INFO] 00:01:17:647 YAMA/(3520:3520): Esperando por conexiones entrantes...
+[INFO] 00:01:22:616 YAMA/(3520:3520): Se acaba de conectar un proceso Master en el socket 6
+[INFO] 00:01:23:290 YAMA/(3520:3548): Se desconecto el Master en el socket 6
+[INFO] 00:02:21:450 YAMA/(3520:3520): Se acaba de conectar un proceso Master en el socket 6
+[INFO] 00:02:39:459 YAMA/(3520:3612): Se desconecto el Master en el socket 6
+[INFO] 00:02:48:871 YAMA/(3520:3520): Se acaba de conectar un proceso Master en el socket 6
+[INFO] 00:04:06:798 YAMA/(3520:3660): Se desconecto el Master en el socket 6
+[INFO] 00:04:12:162 YAMA/(3520:3520): Se acaba de conectar un proceso Master en el socket 6
+[INFO] 00:04:12:826 YAMA/(3520:3683): Se desconecto el Master en el socket 6
+[DEBUG] 00:04:27:739 YAMA/(3698:3698): Path config: ../Configs/configYAMA.config
+[INFO] 00:04:27:741 YAMA/(3698:3698): Configuracion levantada correctamente
+[INFO] 00:04:27:741 YAMA/(3698:3698): Conectandose a FS
+[ERROR] 00:04:27:741 YAMA/(3698:3698): Error al conectar con servidor
+[INFO] 00:04:27:741 YAMA/(3698:3698): Conexión exitosa a FS
+[INFO] 00:04:27:741 YAMA/(3698:3698): Servidor escuchando en el puerto 7700
+[INFO] 00:04:27:741 YAMA/(3698:3698): Esperando por conexiones entrantes...
+[INFO] 00:04:34:901 YAMA/(3698:3698): Se acaba de conectar un proceso Master en el socket 6
+[INFO] 00:04:41:801 YAMA/(3698:3746): Se desconecto el Master en el socket 6

@@ -164,3 +164,7 @@
 [INFO] 16:27:55:925 Worker/(7628:7628): Se acaba de conectar un proceso Master en el socket 7
 [INFO] 16:28:05:515 Worker/(7628:7917): Se recibio un job de transformación del master 7
 [INFO] 16:28:06:500 Worker/(7628:7917): El job pedido por el master 7 no se realizó
+[DEBUG] 23:56:49:763 Worker/(3318:3318): Path config: /home/utnso/workspace/tp-2017-2c-Los-caballeros-del-C-diaco/Configs/configNodo.config
+[INFO] 23:56:49:795 Worker/(3318:3318): Configuracion levantada correctamente
+[INFO] 23:56:49:795 Worker/(3318:3318): Servidor escuchando en el puerto 7710
+[INFO] 23:56:49:795 Worker/(3318:3318): Esperando por conexiones entrantes...
