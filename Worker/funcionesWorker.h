@@ -46,17 +46,10 @@ bool verificarConfig(t_config*);
 bool verificarExistenciaDeArchivo(char*);
 void destruirConfig(t_config_Worker*);
 void aceptarNuevaConexion(int socketEscucha, fd_set* set);
-<<<<<<< HEAD
 int doJob_transformacion(t_struct_jobT* job);
 int doJob_reduccion(t_struct_jobR* job);
 void atenderMaster(int socketMaster);
 void escucharConexiones(void);
-=======
-void atenderMaster();
-void doJob_transformacion(t_struct_jobT* job);
-void doJob_reduccion(t_struct_jobR* job);
-void atenderMaster(int socketMaster);
->>>>>>> bac1c3cf5de083d5e114fc76b1064775a1a3dbb6
 
 
 #endif /* FUNCIONESWORKER_H_ */

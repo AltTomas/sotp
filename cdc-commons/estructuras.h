@@ -51,6 +51,7 @@ typedef struct Info_Nodo{
 } t_info_nodo;
 
 typedef struct Info_Bloque{
+	int idNodo;
 	int nroBloque;
 	t_list* ubicacionBloques;
 }t_info_bloque;
@@ -58,7 +59,6 @@ typedef struct Info_Bloque{
 enum{
 
 	//Generales
-<<<<<<< HEAD
 	D_STRUCT_NUMERO=1,
 	D_STRUCT_CHAR=2,
 	D_STRUCT_STRING=3,
@@ -66,33 +66,16 @@ enum{
 	D_STRUCT_JOBT=4,
 	D_STRUCT_JOBR=5,
 
-
-	//Handshake
-	ES_YAMA=100,
-	ES_MASTER=101,
-	ES_WORKER=102,
-	ES_FILESYSTEM=103,
-	ES_DATANODE=104,
-
-	//Errores
-	ERR_RCV=40, //Se utiliza para comunicar un error al recibir
-
-	//Respuestas
-	JOB_OK=30
-
-
-=======
-	  D_STRUCT_NUMERO=1,
-	  D_STRUCT_CHAR=2,
-	  D_STRUCT_STRING=3,
-
-	  D_STRUCT_JOBT=4,
-	  D_STRUCT_JOBR=5,
-
 	  D_STRUCT_BLOQUE =6,
 	  D_STRUCT_NODOS=7,
-	  D_STRUCT_TRANSFORMACION=8,
-	  D_STRUCT_CONFIRMACION_TRANSFORMACION=9,
+	  D_STRUCT_INFO_BLOQUE=8,
+
+	  D_STRUCT_CONFIRMACION_TRANSFORMACION=8,
+	  D_STRUCT_CONFIRMACION_REDUCCIONL=9,
+	  D_STRUCT_CONFIRMACION_REDUCCIONG = 60,
+
+	  D_STRUCT_NODOS_ESCLAVOS= 61,
+	  D_STRUCT_CONFIRMACION_ALMACENAMIENTO_FINAL=62,
 
 	  /*OPERACIONES YAMA-FS*/
 	  YAMA_FS_GET_DATA_BY_FILE = 00,
@@ -115,11 +98,18 @@ enum{
 	  /* OPERACIONES MASTER-YAMA */
 	  MASTER_YAMA_SOLICITAR_INFO_NODO=30,
 
+
 	  /* OPERACIONES MASTER-WORKER*/
 
 	  /* OPERACIONES WORKER-MASTER*/
 	  WORKER_MASTER_TRANSFORMACION_OK=50,
 	  WORKER_MASTER_TRANSFORMACION_FALLO=51,
+	  WORKER_MASTER_REDUCCIONL_OK=52,
+	  WORKER_MASTER_REDUCCIONL_FALLO=53,
+	  WORKER_MASTER_REDUCCIONG_OK=54,
+	  WORKER_MASTER_REDUCCIONG_FALLO=55,
+	  WORKER_MASTER_ALMACENAMIENTO_FINAL_OK=56,
+	  WORKER_MASTER_ALMACENAMIENTO_FINAL_FALLO=57,
 
 	  //Handshake
 	  ES_YAMA=100,
@@ -131,7 +121,6 @@ enum{
 	  //Errores
 	  D_STRUCT_ERR=90,
 	  ERR_RCV=91
->>>>>>> bac1c3cf5de083d5e114fc76b1064775a1a3dbb6
 
 } t_operaciones;
 
@@ -158,36 +147,60 @@ typedef struct struct_string {
 
 typedef struct jobT{
 	char* scriptTransformacion;
+	int bloque;
+	int bytesOcupadosBloque;
 	char* pathOrigen;
 	char* pathTemporal;
 }__attribute__((__packed__)) t_struct_jobT;
-<<<<<<< HEAD
 
 typedef struct jobR{
 	char* scriptReduccion;
-	char* pathTemp;
+	t_list* pathTemp; // Lista de temporales de los cuales vamos a generar 1 archivo final
 	char* pathTempFinal;
 }__attribute__((__packed__)) t_struct_jobR;
-=======
->>>>>>> bac1c3cf5de083d5e114fc76b1064775a1a3dbb6
 
-typedef struct jobR{
+typedef struct jobRG{
 	char* scriptReduccion;
-	char* pathTemp;
-	char* pathTempFinal;
-}__attribute__((__packed__)) t_struct_jobR;
+	uint32_t cantidadNodos;
+	t_list* nodos; // Lista de t_struct_nodoEsclavo
+}__attribute__((__packed__)) t_struct_jobRG;
 
-typedef struct error{
-	int errorid;
-}__attribute__ ((__packed__)) t_struct_error;
+typedef struct nodoEsclavo{
+	char* ip;
+	int puerto;
+	char* nombreTemporal;
+}__attribute__((__packed__)) t_struct_nodoEsclavo;
 
-typedef struct infoNodo{ // Lista de nodos con bloques que contienen al archivo pedido por Master
+typedef struct infoNodoF{
+	char* ip;
+	int puerto;
+	char* nombreResultadoRG;
+}__attribute__((__packed__)) t_infoNodo_Final;
+
+
+
+typedef struct infoNodoT{ // Lista de nodos con bloques que contienen al archivo pedido por Master
 	char* ip;
 	int puerto;
 	int numBloque;
 	int bytesOcupados;
 	char* nombreTemporal;
-}__attribute__((__packed__)) t_infoNodo;
+}__attribute__((__packed__)) t_infoNodo_transformacion;
+
+typedef struct infoNodoR{ // Lista de nodos con bloques que contienen al archivo pedido por Master
+	char* ip;
+	int puerto;
+	t_list* pathTemp; // Lista de temporales de los cuales vamos a generar 1 archivo final
+	char* pathTempFinal;
+}__attribute__((__packed__)) t_infoNodo_reduccionLocal;
+
+typedef struct infoNodoRG{
+	char* ip;
+	int puerto;
+	bool encargado;
+	char* pathTemporal;
+	char* pathFinal;
+}__attribute__((__packed__)) t_infoNodo_reduccionGlobal;
 
 typedef struct bloques{ // Elementos de la lista anterior
     int numBloque;
@@ -197,18 +210,9 @@ typedef struct bloques{ // Elementos de la lista anterior
     int puerto;
 }__attribute__((__packed__)) t_struct_bloques;
 
-typedef struct nodos{ // Lista de nodos que recibe master
+typedef struct nodos{ // Lista de nodos que recibe master, se usa para transformacion y reduccion
 	t_list* lista_nodos;
-}__attribute__((__packed__))t_struct_nodos_transformacion;
-
-typedef struct transformacion{ // Los elementos de la lista recibida por master
-	char* ip;
-	int puerto;
-	int bloque;
-	int bytes_ocupados_bloque;
-	char* nombre_archivo_temporal;
-	char* script_transformacion;
-}__attribute__((__packed__))t_struct_transformacion;
+}__attribute__((__packed__))t_struct_nodos;
 
 typedef struct confirmacionTransformacion{
 	int confirmacion;

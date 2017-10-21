@@ -17,7 +17,7 @@
 
 #define configuracionYAMA "../../Configs/configYAMA.config"
 #define MAX_LEN_PUERTO 6
-#define MAX_ALGORITMO 3
+#define MAX_ALGORITMO 5
 #define MAX_LEN_IP 20
 #define ESTADO_EN_PROCESO "En proceso"
 #define ESTADO_ERROR "Error"
@@ -57,5 +57,6 @@ char* generarNombreTemporal(int, int);
 int socketConexionFS;
 
 t_list * tablaEstados;
+t_estado_procesos * proceso;
 
 #endif /* FUNCIONESYAMA_H_ */

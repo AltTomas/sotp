@@ -1,10 +1,3 @@
-/*
- * funcionesMaster.h
- *
- *  Created on: 6/9/2017
- *      Author: utnso
- */
-
 #ifndef FUNCIONESMASTER_H_
 #define FUNCIONESMASTER_H_
 
@@ -50,11 +43,12 @@ bool verificarExistenciaDeArchivo(char*);
 void destruirConfig(t_config_master*);
 void conectarConYAMA(void);
 void ejecutarJob(char**);
-<<<<<<< HEAD
-void testConexion();
-
-=======
-void ejecutarTransformacion (t_infoNodo);
->>>>>>> bac1c3cf5de083d5e114fc76b1064775a1a3dbb6
+void ejecutarTransformacion (t_infoNodo_transformacion);
+void ejecutarReduccionLocal (t_infoNodo_reduccionLocal);
+void ejecutarReduccionGlobal(t_infoNodo_reduccionGlobal*, t_list*, char*);
+bool esEncargado(t_infoNodo_reduccionGlobal* nodo);
+t_infoNodo_reduccionGlobal* buscarEncargado(t_list*);
+void ejecutarAlmacenamientoFinal(t_infoNodo_Final* );
+void mostrarMetricas();
 
 #endif /* FUNCIONESMASTER_H_ */
