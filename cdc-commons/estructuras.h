@@ -179,7 +179,9 @@ typedef struct infoNodoF{
 	char* nombreResultadoRG;
 }__attribute__((__packed__)) t_infoNodo_Final;
 
-
+typedef struct error{
+	int errorid;
+}__attribute__ ((__packed__)) t_struct_error;
 
 typedef struct infoNodoT{ // Lista de nodos con bloques que contienen al archivo pedido por Master
 	char* ip;
