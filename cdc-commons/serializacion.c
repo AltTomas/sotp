@@ -48,6 +48,18 @@ t_stream * serialize(int tipoEstructura, void * estructuraOrigen){
 			case D_STRUCT_NODOS_ESCLAVOS:
 				paquete = serializeStruct_NodosEsclavos((t_struct_jobRG*) estructuraOrigen, D_STRUCT_NODOS_ESCLAVOS);
 				break;
+			case D_STRUCT_CONFIRMACION_TRANSFORMACION:
+				paquete = serializeStruct_ConfirmacionEtapa((t_struct_confirmacion*) estructuraOrigen, D_STRUCT_CONFIRMACION_TRANSFORMACION);
+				break;
+			case D_STRUCT_CONFIRMACION_REDUCCIONL:
+				paquete = serializeStruct_ConfirmacionEtapa((t_struct_confirmacion*) estructuraOrigen, D_STRUCT_CONFIRMACION_REDUCCIONL);
+				break;
+			case D_STRUCT_CONFIRMACION_REDUCCIONG:
+				paquete = serializeStruct_ConfirmacionEtapa((t_struct_confirmacion*) estructuraOrigen, D_STRUCT_CONFIRMACION_REDUCCIONG);
+				break;
+			case D_STRUCT_CONFIRMACION_ALMACENAMIENTO_FINAL:
+				paquete = serializeStruct_ConfirmacionEtapa((t_struct_confirmacion*) estructuraOrigen, D_STRUCT_CONFIRMACION_ALMACENAMIENTO_FINAL);
+				break;
 		}
 
 	return paquete;
@@ -249,6 +261,29 @@ t_stream * serializeStruct_NodosEsclavos(t_struct_jobRG* estructuraOrigen, int h
 	return paquete;
 }
 
+
+
+t_stream * serializeStruct_ConfirmacionEtapa(t_struct_confirmacion* estructuraOrigen, int headerOperacion){
+
+	t_stream* paquete = malloc(sizeof(t_stream));
+
+	paquete->length = sizeof(t_header) 	+  2 * sizeof(uint32_t);
+
+	char * data = crearDataConHeader(headerOperacion, paquete->length);
+	int tamanoTotal = sizeof(t_header), tamanoDato = 0;
+
+	memcpy(data + tamanoTotal, &estructuraOrigen->confirmacion, sizeof(uint32_t));
+	tamanoTotal+=tamanoDato;
+
+	memcpy(data + tamanoTotal, &estructuraOrigen->nodo, sizeof(uint32_t));
+	tamanoTotal+=tamanoDato;
+
+	paquete->data = data;
+
+	return paquete;
+
+}
+
 t_header desempaquetarHeader(char * header){
 	t_header estructuraHeader;
 
@@ -285,6 +320,18 @@ void * deserialize(uint8_t tipoEstructura, char * dataPaquete, uint16_t length){
 				break;
 			case D_STRUCT_NODOS_ESCLAVOS:
 				estructuraDestino = deserializeStruct_NodosEsclavos(dataPaquete, length);
+				break;
+			case D_STRUCT_CONFIRMACION_TRANSFORMACION:
+				estructuraDestino = deserializeStruct_ConfirmacionEtapa(dataPaquete, length);
+				break;
+			case D_STRUCT_CONFIRMACION_REDUCCIONL:
+				estructuraDestino = deserializeStruct_ConfirmacionEtapa(dataPaquete, length);
+				break;
+			case D_STRUCT_CONFIRMACION_REDUCCIONG:
+				estructuraDestino = deserializeStruct_ConfirmacionEtapa(dataPaquete, length);
+				break;
+			case D_STRUCT_CONFIRMACION_ALMACENAMIENTO_FINAL:
+				estructuraDestino = deserializeStruct_ConfirmacionEtapa(dataPaquete, length);
 				break;
 
 	}
@@ -442,4 +489,21 @@ t_struct_jobRG * deserializeStruct_NodosEsclavos(char * dataPaquete, uint16_t le
 			}
 
 		return estructuraDestino;
+}
+
+t_struct_confirmacion * deserializeStruct_ConfirmacionEtapa(char * dataPaquete, uint16_t length){
+
+	t_struct_confirmacion * estructuraDestino = malloc(sizeof(t_struct_confirmacion));
+
+	int tamanoTotal = 0, tamanoDato = 0;
+
+	memcpy(&estructuraDestino->confirmacion,dataPaquete+tamanoTotal,tamanoDato=sizeof(uint32_t));
+
+	tamanoTotal+= tamanoDato;
+
+	memcpy(&estructuraDestino->nodo,dataPaquete+tamanoTotal,tamanoDato=sizeof(uint32_t));
+
+	tamanoTotal+= tamanoDato;
+
+	return estructuraDestino;
 }

@@ -51,6 +51,7 @@ typedef struct Info_Nodo{
 } t_info_nodo;
 
 typedef struct Info_Bloque{
+	int idNodo;
 	int nroBloque;
 	t_list* ubicacionBloques;
 }t_info_bloque;
@@ -58,15 +59,17 @@ typedef struct Info_Bloque{
 enum{
 
 	//Generales
-	  D_STRUCT_NUMERO=1,
-	  D_STRUCT_CHAR=2,
-	  D_STRUCT_STRING=3,
+	D_STRUCT_NUMERO=1,
+	D_STRUCT_CHAR=2,
+	D_STRUCT_STRING=3,
 
-	  D_STRUCT_JOBT=4,
-	  D_STRUCT_JOBR=5,
+	D_STRUCT_JOBT=4,
+	D_STRUCT_JOBR=5,
 
 	  D_STRUCT_BLOQUE =6,
 	  D_STRUCT_NODOS=7,
+	  D_STRUCT_INFO_BLOQUE=8,
+
 	  D_STRUCT_CONFIRMACION_TRANSFORMACION=8,
 	  D_STRUCT_CONFIRMACION_REDUCCIONL=9,
 	  D_STRUCT_CONFIRMACION_REDUCCIONG = 60,
@@ -94,6 +97,7 @@ enum{
 
 	  /* OPERACIONES MASTER-YAMA */
 	  MASTER_YAMA_SOLICITAR_INFO_NODO=30,
+	  MASTER_YAMA_CONEXION_OK = 38,
 
 
 	  /* OPERACIONES MASTER-WORKER*/
@@ -107,6 +111,7 @@ enum{
 	  WORKER_MASTER_REDUCCIONG_FALLO=55,
 	  WORKER_MASTER_ALMACENAMIENTO_FINAL_OK=56,
 	  WORKER_MASTER_ALMACENAMIENTO_FINAL_FALLO=57,
+	  JOB_OK=58,
 
 	  //Handshake
 	  ES_YAMA=100,
@@ -174,9 +179,7 @@ typedef struct infoNodoF{
 	char* nombreResultadoRG;
 }__attribute__((__packed__)) t_infoNodo_Final;
 
-typedef struct error{
-	int errorid;
-}__attribute__ ((__packed__)) t_struct_error;
+
 
 typedef struct infoNodoT{ // Lista de nodos con bloques que contienen al archivo pedido por Master
 	char* ip;
@@ -214,8 +217,8 @@ typedef struct nodos{ // Lista de nodos que recibe master, se usa para transform
 }__attribute__((__packed__))t_struct_nodos;
 
 typedef struct confirmacionTransformacion{
-	int confirmacion;
-	int nodo;
-}__attribute__((__packed__))t_struct_confirmacion_transformacion;
+	uint32_t confirmacion;
+	uint32_t nodo;
+}__attribute__((__packed__))t_struct_confirmacion;
 
 #endif /* ESTRUCTURAS_H_ */

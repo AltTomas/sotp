@@ -94,13 +94,17 @@ void conectarConYAMA(void){
 
 void ejecutarJob(char** argumentos){
 
+	// Obtenemos el codigo de los scripts
+	char* scriptTransformacion = obtenerContenido(argumentos[1]);
+	char* scriptReduccion = obtenerContenido(argumentos[2]);
+
 	argumentosMaster = malloc(sizeof(t_argumentos));
 
 	argumentosMaster->script_transformacion = malloc(sizeof(MAX_LEN_RUTA));
-	strcpy(argumentosMaster->script_transformacion, argumentos[1]);
+	strcpy(argumentosMaster->script_transformacion, scriptTransformacion);
 
 	argumentosMaster->script_reduccion = malloc(sizeof(MAX_LEN_RUTA));
-	strcpy(argumentosMaster->script_reduccion, argumentos[2]);
+	strcpy(argumentosMaster->script_reduccion, scriptReduccion);
 
 	argumentosMaster->archivo = malloc(sizeof(MAX_LEN_RUTA));
 	strcpy(argumentosMaster->archivo, argumentos[3]);
@@ -149,13 +153,20 @@ void ejecutarJob(char** argumentos){
 
 	// Seria una lista de estructuras que vendrian a ser del nodo: IP, puerto, bloque, bytes ocupados y el nombre del temporal
 
-	for(i = 0; i<((t_struct_nodos*)estructuraRecibida)->lista_nodos->elements_count; i++){ // Por cada worker al que tengamos que conectarnos creamos un hilo que maneje la conexion
+	t_list* listaNodosParaReduccionL = ((t_struct_nodos*)estructuraRecibida)->lista_nodos;
+	cantidadNodosReduccion = listaNodosParaReduccionL->elements_count;
+	contadorNodosReduccion = 0;
+	sem_init(&bin_reduccion,0,0);
+	sem_init(&mutex_contadorReduccion,0,1);
+
+	for(i = 0; i<cantidadNodosReduccion; i++){ // Por cada worker al que tengamos que conectarnos creamos un hilo que maneje la conexion
 		t_infoNodo_reduccionLocal* info_nodo = list_get(((t_struct_nodos*)estructuraRecibida)->lista_nodos,i);
 		pthread_t hiloWorker;
 		pthread_create(&hiloWorker, NULL, (void*)ejecutarReduccionLocal, info_nodo);
 	}
-	// Aca convendria usar semaforos para esperar que se terminen las reducciones?
 
+	// Esperamos a que se realicen todas las reducciones
+	sem_wait(&bin_reduccion);
 
 	///					REDUCCION GLOBAL					///
 	recepcion = socket_recibir(socketConexionYAMA, &tipoEstructura, &estructuraRecibida); // Recibimos nodos para reduccion global
@@ -233,8 +244,8 @@ void ejecutarTransformacion (t_infoNodo_transformacion worker){
 				log_error(logger,"TRANSFORMACION - No se recibio correctamente la confirmacion del Worker");
 	}
 	else{
-		t_struct_confirmacion_transformacion* confirmacion = malloc(sizeof(t_struct_confirmacion_transformacion));
-		switch(((t_struct_confirmacion_transformacion*)estructuraRecibida)->confirmacion){
+		t_struct_confirmacion* confirmacion = malloc(sizeof(t_struct_confirmacion));
+		switch(((t_struct_confirmacion*)estructuraRecibida)->confirmacion){
 				case WORKER_MASTER_TRANSFORMACION_OK:
 				// Lo agregamos a una lista de sockets listos para la reduccion local?
 				socket_enviar(socketConexionYAMA, D_STRUCT_CONFIRMACION_TRANSFORMACION,confirmacion);
@@ -278,15 +289,25 @@ void ejecutarReduccionLocal (t_infoNodo_reduccionLocal worker){
 				log_error(logger,"REDUCCION LOCAL - No se recibio correctamente la confirmacion del Worker");
 	}
 	else{
-		t_struct_confirmacion_transformacion* confirmacion = malloc(sizeof(t_struct_confirmacion_transformacion));
-		switch(((t_struct_confirmacion_transformacion*)estructuraRecibida)->confirmacion){
+		t_struct_confirmacion* confirmacion = malloc(sizeof(t_struct_confirmacion));
+		switch(((t_struct_confirmacion*)estructuraRecibida)->confirmacion){
 				case WORKER_MASTER_REDUCCIONL_OK:
 				// Lo agregamos a una lista de sockets que hicieron la reduccion local exitosamente?
 				socket_enviar(socketConexionYAMA, D_STRUCT_CONFIRMACION_REDUCCIONL,confirmacion);
 				close(socketConexionWorker);
+
+				if(contadorNodosReduccion != cantidadNodosReduccion){
+					sem_wait(&mutex_contadorReduccion);
+					contadorNodosReduccion++;
+					sem_post(&mutex_contadorReduccion);
+				}
+				else{
+					sem_post(&bin_reduccion);
+				}
+
 				break;
 
-				case WORKER_MASTER_REDUCCIONL_FALLO:
+				case WORKER_MASTER_REDUCCIONL_FALLO: //Si falla CantidadNodosReduccion--?
 				socket_enviar(socketConexionYAMA, D_STRUCT_CONFIRMACION_REDUCCIONL,confirmacion);
 				close(socketConexionWorker);
 				break;
@@ -321,8 +342,8 @@ void ejecutarReduccionGlobal (t_infoNodo_reduccionGlobal* workerEncargado, t_lis
 				log_error(logger," REDUCCION GLOBAL - No se recibio correctamente la confirmacion del Worker Encargado");
 	}
 	else{
-		t_struct_confirmacion_transformacion* confirmacion = malloc(sizeof(t_struct_confirmacion_transformacion));
-		switch(((t_struct_confirmacion_transformacion*)estructuraRecibida)->confirmacion){
+		t_struct_confirmacion* confirmacion = malloc(sizeof(t_struct_confirmacion));
+		switch(((t_struct_confirmacion*)estructuraRecibida)->confirmacion){
 				case WORKER_MASTER_REDUCCIONG_OK:
 				// Lo agregamos a una lista de sockets que hicieron la reduccion local exitosamente?
 				socket_enviar(socketConexionYAMA, D_STRUCT_CONFIRMACION_REDUCCIONG,confirmacion);
@@ -361,8 +382,8 @@ void ejecutarAlmacenamientoFinal (t_infoNodo_Final* workerEncargado){
 				log_error(logger," ALMACENAMIENTO FINAL - No se recibio correctamente la confirmacion del Worker Encargado");
 	}
 	else{
-		t_struct_confirmacion_transformacion* confirmacion = malloc(sizeof(t_struct_confirmacion_transformacion));
-		switch(((t_struct_confirmacion_transformacion*)estructuraRecibida)->confirmacion){
+		t_struct_confirmacion* confirmacion = malloc(sizeof(t_struct_confirmacion));
+		switch(((t_struct_confirmacion*)estructuraRecibida)->confirmacion){
 				case WORKER_MASTER_ALMACENAMIENTO_FINAL_OK:
 				// Lo agregamos a una lista de sockets que hicieron la reduccion local exitosamente?
 				socket_enviar(socketConexionYAMA, D_STRUCT_CONFIRMACION_ALMACENAMIENTO_FINAL,confirmacion);
@@ -379,6 +400,32 @@ void ejecutarAlmacenamientoFinal (t_infoNodo_Final* workerEncargado){
 }
 
 //////////////////////////////////////// OTRAS FUNCIONES ///////////////////////////////////////////////////
+char* obtenerContenido(char* ruta){
+	char *data;
+	struct stat sbuf;
+
+	int fd = open(ruta, O_RDONLY);
+
+	if (fd == -1){
+		perror("open");
+		exit(1);
+	}
+
+	 if (stat(ruta, &sbuf) == -1) {
+	     perror("stat");
+	     exit(1);
+	}
+
+	data = mmap((caddr_t)0, sbuf.st_size, PROT_READ, MAP_SHARED, fd, 0);
+
+	if (data == (caddr_t)(-1)) {
+		perror("mmap");
+		exit(1);
+	}
+
+	return data;
+}
+
 bool esEncargado(t_infoNodo_reduccionGlobal* nodo) {
 		if(nodo->encargado == 1){
 		return 1;
