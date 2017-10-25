@@ -14,6 +14,16 @@
 #include <stdbool.h>
 #include <pthread.h>
 
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <errno.h>
+
+#include <semaphore.h>
+
+
 #define configuracionMaster "../../Configs/configMaster.config"
 #define MAX_LEN_PUERTO 6
 #define MAX_LEN_IP 20
@@ -35,6 +45,10 @@ extern t_log* logger;
 t_config_master* config;
 int socketConexionYAMA;
 t_argumentos* argumentosMaster;
+int cantidadNodosReduccion;
+int contadorNodosReduccion;
+sem_t bin_reduccion;
+sem_t mutex_contadorReduccion;
 
 void crearConfig();
 t_config_master* levantarConfiguracionMaster(char*);
@@ -42,6 +56,7 @@ bool verificarConfig(t_config*);
 bool verificarExistenciaDeArchivo(char*);
 void destruirConfig(t_config_master*);
 void conectarConYAMA(void);
+char* obtenerContenido(char*);
 void ejecutarJob(char**);
 void ejecutarTransformacion (t_infoNodo_transformacion);
 void ejecutarReduccionLocal (t_infoNodo_reduccionLocal);

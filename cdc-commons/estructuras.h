@@ -179,7 +179,9 @@ typedef struct infoNodoF{
 	char* nombreResultadoRG;
 }__attribute__((__packed__)) t_infoNodo_Final;
 
-
+typedef struct error{
+	int errorid;
+}__attribute__ ((__packed__)) t_struct_error;
 
 typedef struct infoNodoT{ // Lista de nodos con bloques que contienen al archivo pedido por Master
 	char* ip;
@@ -217,8 +219,8 @@ typedef struct nodos{ // Lista de nodos que recibe master, se usa para transform
 }__attribute__((__packed__))t_struct_nodos;
 
 typedef struct confirmacionTransformacion{
-	int confirmacion;
-	int nodo;
-}__attribute__((__packed__))t_struct_confirmacion_transformacion;
+	uint32_t confirmacion;
+	uint32_t nodo;
+}__attribute__((__packed__))t_struct_confirmacion;
 
 #endif /* ESTRUCTURAS_H_ */
