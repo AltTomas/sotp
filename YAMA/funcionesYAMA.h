@@ -17,7 +17,7 @@
 
 #define configuracionYAMA "../../Configs/configYAMA.config"
 #define MAX_LEN_PUERTO 6
-#define MAX_ALGORITMO 5
+#define MAX_ALGORITMO 6
 #define MAX_LEN_IP 20
 #define ESTADO_EN_PROCESO "En proceso"
 #define ESTADO_ERROR "Error"
@@ -52,6 +52,7 @@ void escucharConexiones(void);
 void aceptarNuevaConexion(int, fd_set* );
 void trabajarSolicitudMaster(int);
 char* generarNombreTemporal(int, int);
+void getNodoByFile(char*, int);
 
 /* Variables Globales */
 int socketConexionFS;

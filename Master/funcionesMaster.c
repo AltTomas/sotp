@@ -95,25 +95,25 @@ void conectarConYAMA(void){
 void ejecutarJob(char** argumentos){
 
 	// Obtenemos el codigo de los scripts
-	char* scriptTransformacion = obtenerContenido(argumentos[1]);
-	char* scriptReduccion = obtenerContenido(argumentos[2]);
+	scriptTransformacion = obtenerContenido(argumentos[1]);
+	scriptReduccion = obtenerContenido(argumentos[2]);
 
 	argumentosMaster = malloc(sizeof(t_argumentos));
 
-	argumentosMaster->script_transformacion = malloc(sizeof(MAX_LEN_RUTA));
+	argumentosMaster->script_transformacion = (char*)malloc(strlen(scriptTransformacion)+1);
 	strcpy(argumentosMaster->script_transformacion, scriptTransformacion);
 
-	argumentosMaster->script_reduccion = malloc(sizeof(MAX_LEN_RUTA));
+	argumentosMaster->script_reduccion = (char*)malloc(strlen(scriptReduccion)+1);
 	strcpy(argumentosMaster->script_reduccion, scriptReduccion);
 
-	argumentosMaster->archivo = malloc(sizeof(MAX_LEN_RUTA));
+	argumentosMaster->archivo = (char*)malloc(strlen(argumentos[3])+1);
 	strcpy(argumentosMaster->archivo, argumentos[3]);
 
-	argumentosMaster->archivo_resultado = malloc(sizeof(MAX_LEN_RUTA));
+	argumentosMaster->archivo_resultado = (char*)malloc(strlen(argumentos[4])+1);
 	strcpy(argumentosMaster->archivo_resultado, argumentos[4]);
 
 	t_struct_string* enviado = malloc(sizeof(t_struct_string));
-	enviado->string = malloc(sizeof(MAX_LEN_RUTA));
+	enviado->string = (char*)malloc(strlen(argumentos[3])+1);
 	strcpy(enviado->string,argumentosMaster->archivo);
 
 	socket_enviar(socketConexionYAMA, D_STRUCT_STRING,enviado);
@@ -124,25 +124,48 @@ void ejecutarJob(char** argumentos){
 
 	void* estructuraRecibida;
 	t_tipoEstructura tipoEstructura;
-
+	int i;
 	///					TRANSFORMACION					///
 
 	// Aca deberiamos recibir los nodos que nos envia YAMA para despues conectarnos
 	int recepcion = socket_recibir(socketConexionYAMA, &tipoEstructura, &estructuraRecibida); // Recibimos nodos para transformacion
 
-	if(recepcion == -1 || tipoEstructura != D_STRUCT_NODOS){ //YAMA_MASTER_DATA_NODO
-				log_info(logger,"No se recibio correctamente la informacion de los nodos");
+	if(recepcion == -1){ // YAMA envia enum a ver si me puedo conectar a los nodos
+		puts("TRANSFORMACION - No se recibio correctamente la informacion de los nodos");
+		log_info(logger,"TRANSFORMACION - No se recibio correctamente la informacion de los nodos");
+		puts("Cerrando Master...");
+		exit(1);
 	}
+	else{
+		switch (tipoEstructura) {
+			case D_STRUCT_NUMERO:
+			switch (((t_struct_numero*)estructuraRecibida)->numero) {
+				case YAMA_MASTER_FS_NOT_LOAD: {
+					puts("TRANSFORMACION - FS NOT LOAD");
+					log_info(logger,"TRANSFORMACION - FS NOT LOAD");
+					puts("Cerrando Master...");
+					exit(1);
+				break;
+				}
+				case YAMA_MASTER_CONECTARSE_A:{
+					puts("TRANSFORMACION - CONECTARSE A");
+					recepcion = socket_recibir(socketConexionYAMA, &tipoEstructura, &estructuraRecibida);
+					if(recepcion == -1 || tipoEstructura != D_STRUCT_BLOQUE){ // Recibo lista de IPs y Puertos
+							puts("TRANSFORMACION - No se recibieron correctamente las IPs y Puertos");
+							log_info(logger,"TRANSFORMACION - No se recibieron correctamente las IPs y Puertos");
+							puts("Cerrando Master...");
+							exit(1);
+					}
 
-	// Seria una lista de estructuras que vendrian a ser del nodo: IP, puerto, bloque, bytes ocupados y el nombre del temporal
-	int i;
-	for(i = 0; i<((t_struct_nodos*)estructuraRecibida)->lista_nodos->elements_count; i++){ // Por cada worker al que tengamos que conectarnos creamos un hilo que maneje la conexion
-		t_infoNodo_transformacion* info_nodo = list_get(((t_struct_nodos*)estructuraRecibida)->lista_nodos,i);
-		pthread_t hiloWorker;
-		pthread_create(&hiloWorker, NULL, (void*)ejecutarTransformacion, info_nodo);
+					for(i = 0; i <((t_info_bloque*)estructuraRecibida)->ubicacionBloques->elements_count; i++){
+						t_info_nodo* info_nodo = list_get(((t_info_bloque*)estructuraRecibida)->ubicacionBloques, i);
+						pthread_t hiloWorker;
+						pthread_create(&hiloWorker, NULL, (void*)ejecutarTransformacion, info_nodo);
+					}
+				}
+			}
+		}
 	}
-
-
 
 	///					REDUCCION LOCAL					///
 	recepcion = socket_recibir(socketConexionYAMA, &tipoEstructura, &estructuraRecibida); // Recibimos nodos para reduccion local
@@ -211,28 +234,33 @@ void ejecutarJob(char** argumentos){
 
 ////////////////////////////////// ETAPAS ///////////////////////////////////////////////////////////////////
 
-void ejecutarTransformacion (t_infoNodo_transformacion worker){
+void ejecutarTransformacion (t_info_nodo* worker){
 	// Se conecta al worker
-	int socketConexionWorker = crearCliente(worker.ip,worker.puerto);
+	int socketConexionWorker = crearCliente(worker->ip,worker->puerto);
 	if(socketConexionWorker == 1){
 		puts("TRANSFORMACION - No se pudo establecer la conexion con Worker, cerrando Master...");
 		log_error(logger,"TRANSFORMACION - No se pudo establecer la conexion con Worker, cerrando Master...");
 		exit(1);
 	}
 
+	// Aca deberiamos recibir de YAMA el nodo id, numero de bloque, bytes ocupados y nombre de temporal
+
 	t_struct_jobT* enviado = malloc(sizeof(t_struct_jobT));
-	// Enviado vendria a ser una estructura igual a cada estructura contenida en la lista + el script
-	enviado->scriptTransformacion= malloc(sizeof(MAX_LEN_RUTA));
-	enviado->pathTemporal = malloc(sizeof(MAX_LEN_RUTA));
-	//enviado->ip = malloc(sizeof(MAX_LEN_IP));
 
-	//enviado->puerto = worker.puerto;
-	enviado->bloque = worker.numBloque;
-	enviado->bytesOcupadosBloque = worker.bytesOcupados;
-	//strcpy(enviado->ip, worker.ip);
-	strcpy(enviado->scriptTransformacion, argumentosMaster->script_transformacion);
-	strcpy(enviado->pathTemporal, worker.nombreTemporal);
+//	char* scriptTransformacion;
+//	int bloque;
+//	int bytesOcupadosBloque;
+//	char* pathOrigen;
+//	char* pathTemporal;
 
+	enviado->scriptTransformacion= malloc(strlen(scriptTransformacion)+1);
+	strcpy(enviado->scriptTransformacion, scriptTransformacion);
+
+	enviado->pathOrigen= malloc(strlen(argumentosMaster->archivo)+1);
+	strcpy(enviado->pathOrigen, argumentosMaster->archivo);
+
+	// Obviamente romperia aca
+	puts("Rompe master porque le faltan campos a la estructura enviada");
 	socket_enviar(socketConexionWorker, D_STRUCT_JOBT, enviado);
 	free(enviado);
 

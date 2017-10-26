@@ -49,6 +49,8 @@ int cantidadNodosReduccion;
 int contadorNodosReduccion;
 sem_t bin_reduccion;
 sem_t mutex_contadorReduccion;
+char* scriptTransformacion;
+char* scriptReduccion;
 
 void crearConfig();
 t_config_master* levantarConfiguracionMaster(char*);
@@ -58,7 +60,7 @@ void destruirConfig(t_config_master*);
 void conectarConYAMA(void);
 char* obtenerContenido(char*);
 void ejecutarJob(char**);
-void ejecutarTransformacion (t_infoNodo_transformacion);
+void ejecutarTransformacion (t_info_nodo*);
 void ejecutarReduccionLocal (t_infoNodo_reduccionLocal);
 void ejecutarReduccionGlobal(t_infoNodo_reduccionGlobal*, t_list*, char*);
 bool esEncargado(t_infoNodo_reduccionGlobal* nodo);

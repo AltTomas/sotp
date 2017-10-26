@@ -217,11 +217,14 @@ void trabajarSolicitudMaster(int socketMaster) {
 }
 
 void getNodoByFile(char* nombreFile, int socketConexionMaster) {
+
 	void* estructuraRecibida;
 	uint16_t i;
 	t_tipoEstructura tipoEstructura;
 	t_struct_string* stringFile = malloc(sizeof(t_struct_string));
 	strcpy(stringFile->string, nombreFile);
+
+
 	socket_enviar(socketConexionFS, D_STRUCT_STRING, stringFile);
 	free(stringFile);
 
@@ -233,6 +236,7 @@ void getNodoByFile(char* nombreFile, int socketConexionMaster) {
 				socketConexionFS);
 		close(socketConexionFS);
 	} else {
+
 		switch (tipoEstructura) {
 		case D_STRUCT_NUMERO:
 			switch (((t_struct_numero*) estructuraRecibida)->numero) {
@@ -256,7 +260,12 @@ void getNodoByFile(char* nombreFile, int socketConexionMaster) {
 					bloqueEnviar->idNodo =	((t_info_bloque*) estructuraRecibida)->idNodo;
 					bloqueEnviar->nroBloque = ((t_info_bloque*) estructuraRecibida)->nroBloque;
 					bloqueEnviar->ubicacionBloques = ((t_info_bloque*) estructuraRecibida)->ubicacionBloques;
-					socket_enviar(socketConexionMaster, D_STRUCT_NUMERO,YAMA_MASTER_CONECTARSE_A);
+					bloqueEnviar->cantidadNodos = ((t_info_bloque*) estructuraRecibida)->ubicacionBloques;
+
+					t_struct_numero * numero = malloc(sizeof(t_struct_numero));
+					numero->numero = YAMA_MASTER_CONECTARSE_A;
+
+					socket_enviar(socketConexionMaster, D_STRUCT_NUMERO,numero);
 					socket_enviar(socketConexionMaster, D_STRUCT_BLOQUE,bloqueEnviar);
 					/* Termina Envio */
 

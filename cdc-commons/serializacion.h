@@ -15,6 +15,8 @@
 	t_stream * serializeStruct_jobR(t_struct_jobR * estructuraOrigen, int headerOperacion);
 	t_stream * serializeStruct_bloque(t_info_bloque* estructuraOrigen, int headerOperacion);
 	t_stream * serializeStruct_NodosEsclavos(t_struct_jobRG* estructuraOrigen, int headerOperacion);
+	t_stream * serializeStruct_ConfirmacionEtapa(t_struct_confirmacion* estructuraOrigen, int headerOperacion);
+
 	t_header desempaquetarHeader(char * header);
 	void * deserialize(uint8_t tipoEstructura, char * dataPaquete, uint16_t length);
 

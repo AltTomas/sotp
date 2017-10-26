@@ -53,6 +53,7 @@ typedef struct Info_Nodo{
 typedef struct Info_Bloque{
 	int idNodo;
 	int nroBloque;
+	uint32_t cantidadNodos;
 	t_list* ubicacionBloques;
 }t_info_bloque;
 
