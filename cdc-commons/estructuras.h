@@ -224,4 +224,15 @@ typedef struct confirmacionTransformacion{
 	uint32_t nodo;
 }__attribute__((__packed__))t_struct_confirmacion;
 
+typedef struct listaUbicacionBloques{
+	int numeroBloque;
+	int idNodoOriginal;
+	char* ipOriginal;
+	int puertoOriginal;
+	int idNodoCopia;
+	char* ipCopia;
+	int puertoCopia;
+}__attribute__((__packed__)) listaUbicacionBloques;
+
+
 #endif /* ESTRUCTURAS_H_ */

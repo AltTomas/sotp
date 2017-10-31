@@ -314,3 +314,22 @@ char* generarNombreTemporal(int socketMaster, int nroBloque) {
 	string_append(&nombre, bloque);
 	return nombre;
 }
+void agregarBloqueALaLista(t_info_bloque* bloqueAgregar){
+	listaUbicacionBloques nuevoBloque = malloc(sizeof(listaUbicacionBloques));
+	t_info_nodo* datosNodoDelBloque = malloc(sizeof(t_info_nodo));
+	nuevoBloque->numeroBloque = bloqueAgregar->nroBloque;
+
+	/* Datos del nodo Original*/
+	datosNodoDelBloque = list_get(bloqueAgregar->ubicacionBloques,0);
+	nuevoBloque->idNodoOriginal = datosNodoDelBloque->idNodo;
+	strcpy(nuevoBloque->ipOriginal,datosNodoDelBloque->ip);
+	nuevoBloque->puertoOriginal = datosNodoDelBloque->puerto;
+	/* Datos del nodo Copia*/
+	datosNodoDelBloque = list_get(bloqueAgregar->ubicacionBloques,1);
+	nuevoBloque->idNodoCopia = datosNodoDelBloque->idNodo;
+	strcpy(nuevoBloque->ipCopia,datosNodoDelBloque->ip);
+	nuevoBloque->puertoCopia= datosNodoDelBloque->puerto;
+
+	list_add(listaInfoBloques,nuevoBloque); /* lista var global */
+	free(nuevoBloque);free(datosNodoDelBloque);
+}

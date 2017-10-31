@@ -58,5 +58,7 @@ void getNodoByFile(char*, int);
 int socketConexionFS;
 
 t_list * tablaEstados;
+t_list* listaInfoBloques;
+t_list* listaBalanceoCargas;
 
 #endif /* FUNCIONESYAMA_H_ */
