@@ -315,7 +315,7 @@ char* generarNombreTemporal(int socketMaster, int nroBloque) {
 	return nombre;
 }
 void agregarBloqueALaLista(t_info_bloque* bloqueAgregar){
-	listaUbicacionBloques nuevoBloque = malloc(sizeof(listaUbicacionBloques));
+	listaUbicacionBloques* nuevoBloque = malloc(sizeof(listaUbicacionBloques));
 	t_info_nodo* datosNodoDelBloque = malloc(sizeof(t_info_nodo));
 	nuevoBloque->numeroBloque = bloqueAgregar->nroBloque;
 

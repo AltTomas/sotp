@@ -46,12 +46,12 @@ typedef struct Cabecera {
 } cabecera_t;
 
 typedef struct Info_Nodo{
+	int idNodo;
 	char * ip;
 	int puerto;
 } t_info_nodo;
 
 typedef struct Info_Bloque{
-	int idNodo;
 	int nroBloque;
 	uint32_t cantidadNodos;
 	t_list* ubicacionBloques;
