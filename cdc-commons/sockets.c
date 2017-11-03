@@ -7,6 +7,7 @@
 
 #include "sockets.h"
 
+
 t_log* logger;
 
 int crearServidor(int puertoEscucha){

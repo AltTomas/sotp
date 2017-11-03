@@ -1,6 +1,7 @@
 #ifndef SERIALIZACION_H_
 #define SERIALIZACION_H_
 
+
 	#include "estructuras.h"
 
 	t_header crearHeader(uint8_t tipoEstructura, uint16_t lengthDatos);

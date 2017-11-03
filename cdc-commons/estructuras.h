@@ -209,10 +209,13 @@ typedef struct infoNodoRG{
 
 typedef struct bloques{ // Elementos de la lista anterior
     int numBloque;
-    int numNodo;
-    int bytesOcupados;
-    char* ip;
-    int puerto;
+    int finalBloque;
+    int numNodoOriginal;
+    char* ipNodoOriginal;
+    char* puertoNodoOriginal;
+    int numNodoCopia;
+    char* ipNodoCopia;
+    char* puertoNodoCopia;
 }__attribute__((__packed__)) t_struct_bloques;
 
 typedef struct nodos{ // Lista de nodos que recibe master, se usa para transformacion y reduccion

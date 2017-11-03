@@ -1,5 +1,6 @@
 #include "serializacion.h"
 
+
 t_header crearHeader(uint8_t tipoEstructura, uint16_t lengthDatos){
 	t_header header;
 	header.tipoEstructura = tipoEstructura;

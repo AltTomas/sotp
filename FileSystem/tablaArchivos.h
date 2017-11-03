@@ -14,9 +14,20 @@
 #define ARCH_EXT ".csv" //Verificar
 #define PATH_DIV "/"
 
+
+/*typedef struct {
+	int numBloque;
+	int numNodo;
+	char* ipNodo;
+	int puertoNodo;
+} bloquePrueba;*/
+
+
 typedef struct {
 	int numNodo;
 	int bloqueNodo; //bloque del nodo que compone el archivo
+	char* ip;
+	char* puerto;
 } copia;
 
 
@@ -28,21 +39,14 @@ typedef struct {
 } bloque;
 
 
-
 typedef struct {
-	int numBloque;
-	int numNodo;
-	char* ipNodo;
-	int puertoNodo;
-} bloquePrueba;
-
-typedef struct {
-	uint16_t path;
-	uint32_t tamanio;
+	char* path;
+	int tamanio;
 	char* tipo; //lectura o texto
-	bloquePrueba* bloques; //sruct bloque
+	t_list* bloques; //sruct bloque
 } file;
 
 
 
 #endif /* TABLAARCHIVOS_H_ */
+

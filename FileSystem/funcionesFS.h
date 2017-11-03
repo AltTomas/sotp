@@ -1,4 +1,5 @@
 
+#
 #ifndef FUNCIONESFS_H_
 #define FUNCIONESFS_H_
 
@@ -29,6 +30,8 @@ typedef struct {
 }t_config_fs;
 
 t_list* files;
+
+
 t_log* logger;
 t_config_fs* config;
 
@@ -38,6 +41,9 @@ fd_set yama;
 fd_set setyama;
 int socketEscuchaDataNodes;
 int max_fd;
+
+
+char estado; //estable o no estable
 
 void crearConfig();
 t_config_fs* levantarConfiguracionFS(char*);
