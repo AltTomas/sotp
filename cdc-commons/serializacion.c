@@ -42,9 +42,6 @@ t_stream * serialize(int tipoEstructura, void * estructuraOrigen){
 			case D_STRUCT_JOBR:
 				paquete = serializeStruct_jobR((t_struct_jobR *) estructuraOrigen,D_STRUCT_JOBR);
 				break;
-			case D_STRUCT_BLOQUE:
-				paquete = serializeStruct_bloque((t_info_bloque *) estructuraOrigen, D_STRUCT_BLOQUE);
-				break;
 			case D_STRUCT_NODO_TRANSFORMACION:
 				paquete = serializeStruct_Nodo_Transformacion((t_infoNodo_transformacion *) estructuraOrigen, D_STRUCT_NODO_TRANSFORMACION);
 				break;
@@ -103,87 +100,6 @@ t_stream * serializeStruct_string(t_struct_string * estructuraOrigen, int header
 	int tamanoTotal = sizeof(t_header);
 
 	memcpy(data + tamanoTotal, estructuraOrigen->string, strlen(estructuraOrigen->string)+1);		//copio a data el string.
-
-	paquete->data = data;
-
-	return paquete;
-}
-
-int calcularTamanioUbicacionBloques(t_list* lista){
-	puts("Calcular Tamanio Lista Bloques");
-	int tamanio = 0;
-	int i;
-
-	for(i = 0; i < list_size(lista); i++){
-		printf("I for: %d\n", i);
-		t_info_nodo* nodo = list_get(lista,i);
-		int tamanioIP = strlen(nodo->ip)+1;
-		int tamanioPuerto = sizeof(int);
-		printf("tamanioIP: %d\n", tamanioIP);
-		printf("tamanioPuerto: %d\n", tamanioPuerto);
-		tamanio += tamanioPuerto + tamanioIP;
-		printf("tamanio: %d\n", tamanio);
-	}
-
-	return tamanio;
-
-}
-
-t_stream * serializeStruct_bloque(t_info_bloque* estructuraOrigen, int headerOperacion){
-
-	t_stream * paquete = malloc(sizeof(t_stream));
-	int tamanioLista = calcularTamanioUbicacionBloques(estructuraOrigen->ubicacionBloques);
-
-	paquete->length = sizeof(t_header) + 2 * sizeof(int)+ sizeof(uint32_t) + tamanioLista;
-
-	printf("Length paquete: %d\n", paquete->length);
-
-	char * data = crearDataConHeader(headerOperacion, paquete->length); //creo el data
-
-	int tamanoTotal = sizeof(t_header) , tamanoDato = 0;
-	puts("agregamos Header");
-	printf("Tamanio hasta ahora %d\n", tamanoTotal);
-
-	estructuraOrigen->cantidadNodos = estructuraOrigen->ubicacionBloques->elements_count;
-
-	memcpy(data + tamanoTotal , &estructuraOrigen->cantidadNodos, tamanoDato = sizeof(uint32_t));
-	tamanoTotal += tamanoDato;
-
-	puts("agregamos uint32 - CantidadNodos");
-	printf("Tamanio hasta ahora %d\n", tamanoTotal);
-
-	memcpy(data + tamanoTotal , &estructuraOrigen->idNodo, tamanoDato = sizeof(int));
-	tamanoTotal += tamanoDato;
-
-	puts("agregamos Int - idNodo");
-	printf("Tamanio hasta ahora %d\n", tamanoTotal);
-
-	memcpy(data + tamanoTotal , &estructuraOrigen->nroBloque, tamanoDato = sizeof(int));
-	tamanoTotal += tamanoDato;
-
-	puts("agregamos Int - nroBloque");
-	printf("Tamanio hasta ahora %d\n", tamanoTotal);
-
-	int contadorNodos = 0;
-
-	while (contadorNodos < estructuraOrigen->cantidadNodos) {
-
-		t_info_nodo * nodo = list_get(estructuraOrigen->ubicacionBloques, contadorNodos);
-
-		memcpy(data + tamanoTotal , &nodo->puerto, tamanoDato = sizeof(int));
-		tamanoTotal += tamanoDato;
-
-		puts("agregamos Int - Puerto");
-		printf("Tamanio hasta ahora %d\n", tamanoTotal);
-
-		memcpy(data + tamanoTotal, nodo->ip , tamanoDato = strlen(nodo->ip)+1);
-		tamanoTotal+=tamanoDato;
-
-		puts("agregamos char* - IP");
-		printf("Tamanio hasta ahora %d\n", tamanoTotal);
-
-		contadorNodos++;
-	}
 
 	paquete->data = data;
 
@@ -486,9 +402,6 @@ void * deserialize(uint8_t tipoEstructura, char * dataPaquete, uint16_t length){
 			case D_STRUCT_JOBR:
 				estructuraDestino = deserializeStruct_jobR(dataPaquete, length);
 				break;
-			case D_STRUCT_BLOQUE:
-				estructuraDestino = deserializeStruct_bloque(dataPaquete, length);
-				break;
 			case D_STRUCT_NODO_TRANSFORMACION:
 				estructuraDestino = deserializeStruct_Nodo_Transformacion(dataPaquete, length);
 				break;
@@ -535,66 +448,6 @@ t_struct_string * deserializeStruct_string(char * dataPaquete, uint16_t length){
 	memcpy(estructuraDestino->string, dataPaquete + tamanoTotal, tamanoDato); //copio el string a la estructura
 
 	return estructuraDestino;
-}
-
-t_info_bloque * deserializeStruct_bloque(char * dataPaquete, uint16_t length){
-
-	t_info_bloque * estructuraDestino = malloc(length);
-
-	puts("Empezamos a deserializar");
-	printf("Length paquete %d\n", length);
-
-		int tamanoTotal = 0, tamanoDato = 0;
-
-		memcpy(&estructuraDestino->cantidadNodos,dataPaquete+tamanoTotal,tamanoDato=sizeof(uint32_t));
-		tamanoTotal+= tamanoDato;
-
-		puts("Sacamos uint32 - Cantidad Nodos");
-		printf("tamanoTotal %d\n", tamanoTotal);
-
-		memcpy(&estructuraDestino->idNodo,dataPaquete+tamanoTotal,tamanoDato=sizeof(int));
-		tamanoTotal+= tamanoDato;
-
-		puts("Sacamos int - idNodo");
-		printf("tamanoTotal %d\n", tamanoTotal);
-
-		memcpy(&estructuraDestino->nroBloque,dataPaquete+tamanoTotal,tamanoDato=sizeof(int));
-		tamanoTotal+= tamanoDato;
-
-		puts("Sacamos int - nroBloque");
-		printf("tamanoTotal %d\n", tamanoTotal);
-
-		int contadorNodos = 0;
-		estructuraDestino->ubicacionBloques = list_create();
-
-		while(contadorNodos < estructuraDestino->cantidadNodos){
-
-			printf("Ciclo while %d\n", contadorNodos);
-
-			t_info_nodo* nodo = malloc(sizeof(t_info_nodo));
-
-			memcpy(&nodo->puerto, dataPaquete + tamanoTotal, tamanoDato = sizeof(int));
-			tamanoTotal += tamanoDato;
-
-			puts("Sacamos int - Puerto");
-			printf("tamanoTotal %d\n", tamanoTotal);
-			printf("Puerto %d\n", nodo->puerto);
-
-			for(tamanoDato = 1; (dataPaquete + tamanoTotal)[tamanoDato -1] != '\0';tamanoDato++);
-			printf("String tamano dato: %d\n", tamanoDato);
-			nodo->ip = malloc(tamanoDato);
-			memcpy(nodo->ip, dataPaquete + tamanoTotal, tamanoDato);
-
-			puts("Sacamos int - IP");
-			printf("tamanoTotal %d\n", tamanoTotal + tamanoDato);
-			printf("IP %s\n", nodo->ip);
-
-			list_add(estructuraDestino->ubicacionBloques,nodo);
-
-			contadorNodos++;
-			}
-
-			return estructuraDestino;
 }
 
 t_struct_jobT * deserializeStruct_jobT(char * dataPaquete, uint16_t length){

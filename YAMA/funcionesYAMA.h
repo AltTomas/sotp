@@ -55,7 +55,6 @@ char* generarNombreTemporal(char*, int );
 
 /* Variables Globales */
 int socketConexionFS;
-int cantidadDeNodos = 0;
 
 t_list * tablaEstados;
 

@@ -13,7 +13,6 @@
 	t_stream * serializeStruct_string(t_struct_string * estructuraOrigen, int headerOperacion);
 	t_stream * serializeStruct_jobT(t_struct_jobT * estructuraOrigen, int headerOperacion);
 	t_stream * serializeStruct_jobR(t_struct_jobR * estructuraOrigen, int headerOperacion);
-	t_stream * serializeStruct_bloque(t_info_bloque* estructuraOrigen, int headerOperacion);
 	t_stream * serializeStruct_NodoEsclavo(t_struct_nodoEsclavo* estructuraOrigen, int headerOperacion);
 	t_stream * serializeStruct_Nodo_Transformacion(t_infoNodo_transformacion * estructuraOrigen, int headerOperacion);
 	t_stream * serializeStruct_Nodos_Reduccion_L(t_infoNodo_reduccionLocal* estructuraOrigen, int headerOperacion);
@@ -27,7 +26,6 @@
 	t_struct_string * deserializeStruct_string(char * dataPaquete, uint16_t length);
 	t_struct_jobT * deserializeStruct_jobT(char* dataPaquete, uint16_t length);
 	t_struct_jobR * deserializeStruct_jobR(char* dataPaquete, uint16_t length);
-	t_info_bloque * deserializeStruct_bloque(char * dataPaquete, uint16_t length);
 	t_struct_nodoEsclavo * deserializeStruct_NodoEsclavo(char * dataPaquete, uint16_t length);
 	t_infoNodo_transformacion * deserializeStruct_Nodo_Transformacion(char * dataPaquete, uint16_t length);
 	t_infoNodo_reduccionLocal* deserializeStruct_Nodos_Reduccion_L(char * dataPaquete, uint16_t length);

@@ -45,17 +45,6 @@ typedef struct Cabecera {
 	uint32_t longitud; /* Longitud del mensaje, en bytes */
 } cabecera_t;
 
-typedef struct Info_Nodo{
-	char * ip;
-	int puerto;
-} t_info_nodo;
-
-typedef struct Info_Bloque{
-	int idNodo;
-	int nroBloque;
-	uint32_t cantidadNodos;
-	t_list* ubicacionBloques;
-}t_info_bloque;
 
 enum{
 

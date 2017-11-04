@@ -7,6 +7,7 @@
 
 #include "funcionesYAMA.h"
 
+int cantidadDeNodos = 0;
 void crearConfig(){
 	if(verificarExistenciaDeArchivo(configuracionYAMA)){
 		config=levantarConfiguracionMaster(configuracionYAMA);
