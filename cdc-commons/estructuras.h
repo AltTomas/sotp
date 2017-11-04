@@ -57,6 +57,7 @@ typedef struct Info_Bloque{
 	t_list* ubicacionBloques;
 }t_info_bloque;
 
+
 enum{
 
 	//Generales
@@ -70,6 +71,7 @@ enum{
 	  D_STRUCT_BLOQUE =6,
 	  D_STRUCT_NODOS=7,
 	  D_STRUCT_INFO_BLOQUE=8,
+	  D_STRUCT_BLOQUE_FS_YAMA=99,
 
 	  D_STRUCT_CONFIRMACION_TRANSFORMACION=8,
 	  D_STRUCT_CONFIRMACION_REDUCCIONL=9,

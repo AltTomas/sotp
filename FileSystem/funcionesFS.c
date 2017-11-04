@@ -347,7 +347,7 @@ void buscarBloquesArchivo(char* nombreFile, int socketConexionYAMA) {
   bloquesFile->numNodoCopia = bloque -> copia1 -> numNodo;
   bloquesFile->ipNodoCopia = bloque -> copia1-> ip;
   bloquesFile->puertoNodoCopia = bloque -> copia1 -> puerto;
-  socket_enviar(socketConexionYAMA,FS_YAMA_LISTABLOQUES,bloquesFile);
+  socket_enviar(socketConexionYAMA,D_STRUCT_BLOQUE_FS_YAMA,bloquesFile);
   free (bloquesFile);
 
   }
