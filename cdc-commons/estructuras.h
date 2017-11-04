@@ -234,5 +234,10 @@ typedef struct listaUbicacionBloques{
 	int puertoCopia;
 }__attribute__((__packed__)) listaUbicacionBloques;
 
+typedef struct balanceoCargas{
+	int availability;
+	int worker;
+	t_list* bloques;
+}__attribute__((__packed__)) balanceCargas;
 
 #endif /* ESTRUCTURAS_H_ */

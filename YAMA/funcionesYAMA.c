@@ -281,8 +281,7 @@ void getNodoByFile(char* nombreFile, int socketConexionMaster) {
 							/*Clock Especial*/
 						}
 					} else {
-						log_error(
-								"Error conexion el bloque %d en el nodo %d \n",bloqueEnviar->nroBloque, bloqueEnviar->idNodo);
+						log_error("Error conexion el bloque %d en el nodo %d \n",bloqueEnviar->nroBloque, bloqueEnviar->idNodo);
 					}
 				}
 				break;
