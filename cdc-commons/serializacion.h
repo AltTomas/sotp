@@ -1,6 +1,7 @@
 #ifndef SERIALIZACION_H_
 #define SERIALIZACION_H_
 
+
 	#include "estructuras.h"
 
 	t_header crearHeader(uint8_t tipoEstructura, uint16_t lengthDatos);
@@ -13,9 +14,11 @@
 	t_stream * serializeStruct_string(t_struct_string * estructuraOrigen, int headerOperacion);
 	t_stream * serializeStruct_jobT(t_struct_jobT * estructuraOrigen, int headerOperacion);
 	t_stream * serializeStruct_jobR(t_struct_jobR * estructuraOrigen, int headerOperacion);
-	t_stream * serializeStruct_bloque(t_info_bloque* estructuraOrigen, int headerOperacion);
-	t_stream * serializeStruct_NodosEsclavos(t_struct_jobRG* estructuraOrigen, int headerOperacion);
-	t_stream * serializeStruct_ConfirmacionEtapa(t_struct_confirmacion* estructuraOrigen, int headerOperacion);
+	t_stream * serializeStruct_NodoEsclavo(t_struct_nodoEsclavo* estructuraOrigen, int headerOperacion);
+	t_stream * serializeStruct_Nodo_Transformacion(t_infoNodo_transformacion * estructuraOrigen, int headerOperacion);
+	t_stream * serializeStruct_Nodos_Reduccion_L(t_infoNodo_reduccionLocal* estructuraOrigen, int headerOperacion);
+	t_stream * serializeStruct_Nodos_Reduccion_G(t_infoNodo_reduccionGlobal* estructuraOrigen, int headerOperacion);
+	t_stream * serializeStruct_bloque_fs_yama(t_struct_bloques* estructuraOrigen, int headerOperacion);
 
 	t_header desempaquetarHeader(char * header);
 	void * deserialize(uint8_t tipoEstructura, char * dataPaquete, uint16_t length);
@@ -25,7 +28,10 @@
 	t_struct_string * deserializeStruct_string(char * dataPaquete, uint16_t length);
 	t_struct_jobT * deserializeStruct_jobT(char* dataPaquete, uint16_t length);
 	t_struct_jobR * deserializeStruct_jobR(char* dataPaquete, uint16_t length);
-	t_info_bloque * deserializeStruct_bloque(char * dataPaquete, uint16_t length);
-	t_struct_jobRG * deserializeStruct_NodosEsclavos(char * dataPaquete, uint16_t length);
+	t_struct_nodoEsclavo * deserializeStruct_NodoEsclavo(char * dataPaquete, uint16_t length);
+	t_infoNodo_transformacion * deserializeStruct_Nodo_Transformacion(char * dataPaquete, uint16_t length);
+	t_infoNodo_reduccionLocal* deserializeStruct_Nodos_Reduccion_L(char * dataPaquete, uint16_t length);
+	t_infoNodo_reduccionGlobal* deserializeStruct_Nodos_Reduccion_G(char * dataPaquete, uint16_t length);
+	t_struct_bloques * deserializeStruct_bloque_fs_yama(char * dataPaquete, uint16_t length);
 
 #endif /* SERIALIZACION_H_ */

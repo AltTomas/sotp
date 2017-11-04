@@ -41,6 +41,14 @@ typedef struct {
 	char* archivo_resultado;
 }t_argumentos;
 
+typedef struct {
+	char* ip;
+	int puerto;
+	int idNodo;
+	int numeroBloque;
+}t_conexionNodo_transformacion;
+
+
 extern t_log* logger;
 t_config_master* config;
 int socketConexionYAMA;
@@ -48,7 +56,7 @@ t_argumentos* argumentosMaster;
 int cantidadNodosReduccion;
 int contadorNodosReduccion;
 sem_t bin_reduccion;
-sem_t mutex_contadorReduccion;
+pthread_mutex_t mutex_contadorReduccion;
 char* scriptTransformacion;
 char* scriptReduccion;
 
@@ -60,8 +68,8 @@ void destruirConfig(t_config_master*);
 void conectarConYAMA(void);
 char* obtenerContenido(char*);
 void ejecutarJob(char**);
-void ejecutarTransformacion (t_info_nodo*);
-void ejecutarReduccionLocal (t_infoNodo_reduccionLocal);
+void ejecutarTransformacion (t_infoNodo_transformacion*);
+void ejecutarReduccionLocal (t_infoNodo_reduccionLocal*);
 void ejecutarReduccionGlobal(t_infoNodo_reduccionGlobal*, t_list*, char*);
 bool esEncargado(t_infoNodo_reduccionGlobal* nodo);
 t_infoNodo_reduccionGlobal* buscarEncargado(t_list*);
