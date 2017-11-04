@@ -115,7 +115,9 @@ void ejecutarJob(char** argumentos){
 	strcpy(argumentosMaster->archivo_resultado, argumentos[4]);
 
 	t_struct_string* enviado = malloc(sizeof(t_struct_string));
+
 	enviado->string = (char*)malloc(strlen(argumentosMaster->archivo)+1);
+
 	strcpy(enviado->string,argumentosMaster->archivo);
 
 	socket_enviar(socketConexionYAMA, D_STRUCT_STRING,enviado);
@@ -133,8 +135,10 @@ void ejecutarJob(char** argumentos){
 	int recepcion = socket_recibir(socketConexionYAMA, &tipoEstructura, &estructuraRecibida); // Recibimos nodos para transformacion
 
 	if(recepcion == -1){ // YAMA envia enum a ver si me puedo conectar a los nodos
+
 		puts("TRANSFORMACION - No se recibio correctamente la cantidad de nodos");
 		log_info(logger,"TRANSFORMACION - No se recibio correctamente la cantidad de nodos");
+
 		puts("Cerrando Master...");
 		exit(1);
 	}
@@ -184,7 +188,6 @@ void ejecutarJob(char** argumentos){
 
 	for(i = 0; i<info_nodo->cantidadTemporales; i++){
 		char* temporal = list_get(info_nodo->pathTemp, i);
-		printf("TEMPORAL - %s\n",temporal);
 		}
 
 	pthread_create(&hiloWorker, NULL, (void*)ejecutarReduccionLocal, info_nodo);
@@ -286,7 +289,6 @@ void ejecutarTransformacion (t_infoNodo_transformacion* worker){
 
 	enviado->pathTemporal = malloc(strlen(worker->nombreTemporal)+1);
 	strcpy(enviado->pathTemporal, worker->nombreTemporal);
-
 	socket_enviar(socketConexionWorker, D_STRUCT_JOBT, enviado);
 	free(enviado);
 
@@ -399,10 +401,10 @@ void ejecutarReduccionLocal (t_infoNodo_reduccionLocal* worker){
 								}
 
 								break;
-
 				break;
 
 				case WORKER_MASTER_REDUCCIONL_FALLO: //Si falla CantidadNodosReduccion--?
+
 					socket_enviar(socketConexionYAMA, D_STRUCT_NUMERO,idNodo);
 					socket_enviar(socketConexionYAMA, D_STRUCT_NUMERO,confirmacion);
 					close(socketConexionWorker);
@@ -543,22 +545,6 @@ char* obtenerContenido(char* ruta){
 	}
 
 	return data;
-}
-
-bool esEncargado(t_infoNodo_reduccionGlobal* nodo) {
-		if(nodo->encargado == 1){
-		return 1;
-		log_info(logger,"REDUCCION GLOBAL - Se encontro al nodo encargado");
-		}
-		puts("REDUCCION GLOBAL - No se encontro al nodo encargado");
-		log_error(logger,"REDUCCION GLOBAL - No se encontro al nodo encargado");
-		return 0;
-}
-
-t_infoNodo_reduccionGlobal* buscarEncargado(t_list* nodos){
-
-	t_infoNodo_reduccionGlobal* nodoEncargado = list_find(nodos, (void*)esEncargado);
-	return nodoEncargado;
 }
 
 void mostrarMetricas(){

@@ -23,18 +23,14 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-#define configuracionWorker "../../Configs/configNodo.config"
+#define configuracionWorker "/home/utnso/workspace/tp-2017-2c-Los-caballeros-del-C-diaco/Configs/configNodo.config"
 #define MAX_LEN_PUERTO 6
 #define MAX_LEN_NOMBRE 7
 #define MAX_RUTA 150
 #define MAX_LEN_IP 20
 
 typedef struct {
-	char* FS_ip;
-	char* FS_Puerto;
-	char* Nombre_Nodo;
-	char* Worker_Puerto;
-	char* Ruta_Databin;
+	int Worker_Puerto;
 }t_config_Worker;
 
 t_log* logger;
@@ -50,10 +46,10 @@ bool verificarConfig(t_config*);
 bool verificarExistenciaDeArchivo(char*);
 void destruirConfig(t_config_Worker*);
 void aceptarNuevaConexion(int socketEscucha, fd_set* set);
-void atenderMaster();
-void doJob_transformacion(t_struct_jobT* job);
-void doJob_reduccion(t_struct_jobR* job);
+int doJob_transformacion(t_struct_jobT* job);
+int doJob_reduccion(t_struct_jobR* job);
 void atenderMaster(int socketMaster);
+void escucharConexiones(void);
 
 
 #endif /* FUNCIONESWORKER_H_ */

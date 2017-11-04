@@ -56,6 +56,7 @@ t_argumentos* argumentosMaster;
 int cantidadNodosReduccion;
 int contadorNodosReduccion;
 sem_t bin_reduccion;
+pthread_mutex_t mutex_contadorReduccion;
 char* scriptTransformacion;
 char* scriptReduccion;
 

@@ -328,14 +328,27 @@ void buscarBloquesArchivo(char* nombreFile, int socketConexionYAMA) {
 	}
   file* archivoEncontrado = list_find(files, condition); //me devuelve el archivo, verificar si esta bien hecha
 
+  int cantidadBloques = list_size(archivoEncontrado -> bloques);
 
-  t_struct_bloques* bloquesFile = malloc(sizeof(t_struct_bloques));
-  strcpy(bloquesFile->numBloque ,archivoEncontrado -> bloques);
-  strcpy(bloquesFile->numNodo ,archivoEncontrado -> bloques);
-  strcpy(bloquesFile->ip,archivoEncontrado -> bloques);
-  strcpy(bloquesFile->numBloque ,archivoEncontrado -> bloques);
-  socket_enviar(socketConexionYAMA,FS_YAMA_LISTABLOQUES,bloquesFile);
+  socket_enviar(socketConexionYAMA,FS_YAMA_CANTIDAD_BLOQUES,cantidadBloques); //FS_YAMA_CANTIDAD_BLOQUES ya estaba definido del lado de funcionesYama
+
+  int i;
+
+  for(i=0;i<cantidadBloques;i++){
+
+  bloque* bloque = list_get(archivoEncontrado->bloques,i);
+
+  t_struct_bloques* bloquesFile = malloc(sizeof(t_struct_bloques));  //bloquesFile seria la informacion de cada Bloque del arch
+  bloquesFile->numBloque = bloque -> numBloque;
+  bloquesFile->finalBloque = bloque -> finBloque;
+  bloquesFile->numNodoOriginal = bloque -> copia0-> numNodo;
+  bloquesFile->ipNodoOriginal = bloque -> copia0 -> ip;
+  bloquesFile->puertoNodoOriginal = bloque -> copia0-> puerto;
+  bloquesFile->numNodoCopia = bloque -> copia1 -> numNodo;
+  bloquesFile->ipNodoCopia = bloque -> copia1-> ip;
+  bloquesFile->puertoNodoCopia = bloque -> copia1 -> puerto;
+  socket_enviar(socketConexionYAMA,D_STRUCT_BLOQUE_FS_YAMA,bloquesFile);
   free (bloquesFile);
 
+  }
 }
-

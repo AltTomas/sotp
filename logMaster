@@ -1,0 +1,264 @@
+[DEBUG] 15:30:59:84 Master/(5389:5389): Path config: ../Configs/configMaster.config
+[INFO] 15:30:59:100 Master/(5389:5389): Configuracion levantada correctamente
+[INFO] 15:30:59:100 Master/(5389:5389): Conectandose a YAMA
+[ERROR] 15:30:59:101 Master/(5389:5389): Error al conectar con servidor
+[INFO] 15:30:59:102 Master/(5389:5389): Me conecte a YAMA
+[ERROR] 15:30:59:102 Master/(5389:5389): Server no encontrado
+
+[INFO] 15:30:59:102 Master/(5389:5389): Handshake enviado a YAMA
+[INFO] 15:30:59:106 Master/(5389:5389): Cliente conectado correctamente al servidor IP:127.0.0.1 Puerto: 7710
+[DEBUG] 15:33:30:367 Master/(5480:5480): Path config: ../Configs/configMaster.config
+[INFO] 15:33:30:383 Master/(5480:5480): Configuracion levantada correctamente
+[INFO] 15:33:30:384 Master/(5480:5480): Conectandose a YAMA
+[ERROR] 15:33:30:388 Master/(5480:5480): Error al conectar con servidor
+[INFO] 15:33:30:388 Master/(5480:5480): Me conecte a YAMA
+[ERROR] 15:33:30:389 Master/(5480:5480): Server no encontrado
+
+[INFO] 15:33:30:389 Master/(5480:5480): Handshake enviado a YAMA
+[INFO] 15:33:30:391 Master/(5480:5480): Cliente conectado correctamente al servidor IP:127.0.0.1 Puerto: 7710
+[DEBUG] 15:48:05:912 Master/(5853:5853): Path config: ../Configs/configMaster.config
+[INFO] 15:48:05:926 Master/(5853:5853): Configuracion levantada correctamente
+[INFO] 15:48:05:926 Master/(5853:5853): Conectandose a YAMA
+[ERROR] 15:48:05:934 Master/(5853:5853): Error al conectar con servidor
+[INFO] 15:48:05:935 Master/(5853:5853): Me conecte a YAMA
+[ERROR] 15:48:05:935 Master/(5853:5853): Server no encontrado
+
+[INFO] 15:48:05:935 Master/(5853:5853): Handshake enviado a YAMA
+[INFO] 15:48:05:936 Master/(5853:5853): Cliente conectado correctamente al servidor IP:127.0.0.1 Puerto: 7710
+[DEBUG] 15:50:15:635 Master/(5924:5924): Path config: ../Configs/configMaster.config
+[INFO] 15:50:15:635 Master/(5924:5924): Configuracion levantada correctamente
+[INFO] 15:50:17:646 Master/(5924:5924): Conectandose a YAMA
+[ERROR] 15:50:17:646 Master/(5924:5924): Error al conectar con servidor
+[INFO] 15:50:17:646 Master/(5924:5924): Me conecte a YAMA
+[ERROR] 15:50:17:647 Master/(5924:5924): Server no encontrado
+
+[INFO] 15:50:17:647 Master/(5924:5924): Handshake enviado a YAMA
+[INFO] 15:50:20:273 Master/(5924:5924): Cliente conectado correctamente al servidor IP:127.0.0.1 Puerto: 7710
+[DEBUG] 15:51:57:342 Master/(6047:6047): Path config: ../Configs/configMaster.config
+[INFO] 15:51:57:346 Master/(6047:6047): Configuracion levantada correctamente
+[INFO] 15:51:57:346 Master/(6047:6047): Conectandose a YAMA
+[ERROR] 15:51:57:347 Master/(6047:6047): Error al conectar con servidor
+[INFO] 15:51:57:348 Master/(6047:6047): Me conecte a YAMA
+[ERROR] 15:51:57:349 Master/(6047:6047): Server no encontrado
+
+[INFO] 15:51:57:349 Master/(6047:6047): Handshake enviado a YAMA
+[INFO] 15:51:57:355 Master/(6047:6047): Cliente conectado correctamente al servidor IP:127.0.0.1 Puerto: 7710
+[DEBUG] 15:53:58:305 Master/(6163:6163): Path config: ../Configs/configMaster.config
+[INFO] 15:53:58:314 Master/(6163:6163): Configuracion levantada correctamente
+[INFO] 15:53:58:314 Master/(6163:6163): Conectandose a YAMA
+[ERROR] 15:53:58:315 Master/(6163:6163): Error al conectar con servidor
+[INFO] 15:53:58:315 Master/(6163:6163): Me conecte a YAMA
+[ERROR] 15:53:58:315 Master/(6163:6163): Server no encontrado
+
+[INFO] 15:53:58:315 Master/(6163:6163): Handshake enviado a YAMA
+[INFO] 15:53:58:315 Master/(6163:6163): Cliente conectado correctamente al servidor IP:127.0.0.1 Puerto: 7710
+[DEBUG] 16:01:31:775 Master/(6357:6357): Path config: ../Configs/configMaster.config
+[INFO] 16:01:31:779 Master/(6357:6357): Configuracion levantada correctamente
+[INFO] 16:01:31:779 Master/(6357:6357): Conectandose a YAMA
+[ERROR] 16:01:31:781 Master/(6357:6357): Error al conectar con servidor
+[INFO] 16:01:31:781 Master/(6357:6357): Me conecte a YAMA
+[ERROR] 16:01:31:781 Master/(6357:6357): Server no encontrado
+
+[INFO] 16:01:31:782 Master/(6357:6357): Handshake enviado a YAMA
+[INFO] 16:01:31:783 Master/(6357:6357): Cliente conectado correctamente al servidor IP:127.0.0.1 Puerto: 7710
+[DEBUG] 16:05:25:920 Master/(6488:6488): Path config: ../Configs/configMaster.config
+[INFO] 16:05:25:925 Master/(6488:6488): Configuracion levantada correctamente
+[INFO] 16:05:25:926 Master/(6488:6488): Conectandose a YAMA
+[ERROR] 16:05:25:926 Master/(6488:6488): Error al conectar con servidor
+[INFO] 16:05:25:927 Master/(6488:6488): Me conecte a YAMA
+[ERROR] 16:05:25:927 Master/(6488:6488): Server no encontrado
+
+[INFO] 16:05:25:927 Master/(6488:6488): Handshake enviado a YAMA
+[ERROR] 16:05:25:927 Master/(6488:6488): Error al conectar con servidor
+[ERROR] 16:05:25:927 Master/(6488:6488): Server no encontrado
+
+[ERROR] 16:05:25:927 Master/(6488:6488): Server no encontrado
+
+[DEBUG] 16:05:58:571 Master/(6553:6553): Path config: ../Configs/configMaster.config
+[INFO] 16:05:58:594 Master/(6553:6553): Configuracion levantada correctamente
+[INFO] 16:05:58:594 Master/(6553:6553): Conectandose a YAMA
+[ERROR] 16:05:58:596 Master/(6553:6553): Error al conectar con servidor
+[INFO] 16:05:58:601 Master/(6553:6553): Me conecte a YAMA
+[ERROR] 16:05:58:601 Master/(6553:6553): Server no encontrado
+
+[INFO] 16:05:58:601 Master/(6553:6553): Handshake enviado a YAMA
+[INFO] 16:05:58:604 Master/(6553:6553): Cliente conectado correctamente al servidor IP:127.0.0.1 Puerto: 7710
+[DEBUG] 16:06:39:880 Master/(6659:6659): Path config: ../Configs/configMaster.config
+[INFO] 16:06:39:897 Master/(6659:6659): Configuracion levantada correctamente
+[INFO] 16:06:39:897 Master/(6659:6659): Conectandose a YAMA
+[ERROR] 16:06:39:899 Master/(6659:6659): Error al conectar con servidor
+[INFO] 16:06:39:900 Master/(6659:6659): Me conecte a YAMA
+[ERROR] 16:06:39:901 Master/(6659:6659): Server no encontrado
+
+[INFO] 16:06:39:901 Master/(6659:6659): Handshake enviado a YAMA
+[INFO] 16:06:39:901 Master/(6659:6659): Cliente conectado correctamente al servidor IP:127.0.0.1 Puerto: 7710
+[DEBUG] 16:06:58:750 Master/(6704:6704): Path config: ../Configs/configMaster.config
+[INFO] 16:06:58:761 Master/(6704:6704): Configuracion levantada correctamente
+[INFO] 16:06:58:761 Master/(6704:6704): Conectandose a YAMA
+[ERROR] 16:06:58:763 Master/(6704:6704): Error al conectar con servidor
+[INFO] 16:06:58:765 Master/(6704:6704): Me conecte a YAMA
+[ERROR] 16:06:58:765 Master/(6704:6704): Server no encontrado
+
+[INFO] 16:06:58:765 Master/(6704:6704): Handshake enviado a YAMA
+[INFO] 16:06:58:766 Master/(6704:6704): Cliente conectado correctamente al servidor IP:127.0.0.1 Puerto: 7710
+[DEBUG] 16:10:45:788 Master/(6902:6902): Path config: ../Configs/configMaster.config
+[INFO] 16:10:45:822 Master/(6902:6902): Configuracion levantada correctamente
+[INFO] 16:10:45:823 Master/(6902:6902): Conectandose a YAMA
+[ERROR] 16:10:45:829 Master/(6902:6902): Error al conectar con servidor
+[INFO] 16:10:45:829 Master/(6902:6902): Me conecte a YAMA
+[ERROR] 16:10:45:829 Master/(6902:6902): Server no encontrado
+
+[INFO] 16:10:45:829 Master/(6902:6902): Handshake enviado a YAMA
+[INFO] 16:10:45:830 Master/(6902:6902): Cliente conectado correctamente al servidor IP:127.0.0.1 Puerto: 7710
+[DEBUG] 16:12:06:360 Master/(6976:6976): Path config: ../Configs/configMaster.config
+[INFO] 16:12:06:395 Master/(6976:6976): Configuracion levantada correctamente
+[INFO] 16:12:06:395 Master/(6976:6976): Conectandose a YAMA
+[ERROR] 16:12:06:397 Master/(6976:6976): Error al conectar con servidor
+[INFO] 16:12:06:405 Master/(6976:6976): Me conecte a YAMA
+[ERROR] 16:12:06:409 Master/(6976:6976): Server no encontrado
+
+[INFO] 16:12:06:409 Master/(6976:6976): Handshake enviado a YAMA
+[INFO] 16:12:06:416 Master/(6976:6976): Cliente conectado correctamente al servidor IP:127.0.0.1 Puerto: 7710
+[DEBUG] 16:12:23:33 Master/(7022:7022): Path config: ../Configs/configMaster.config
+[INFO] 16:12:23:40 Master/(7022:7022): Configuracion levantada correctamente
+[INFO] 16:12:23:40 Master/(7022:7022): Conectandose a YAMA
+[ERROR] 16:12:23:41 Master/(7022:7022): Error al conectar con servidor
+[INFO] 16:12:23:42 Master/(7022:7022): Me conecte a YAMA
+[ERROR] 16:12:23:42 Master/(7022:7022): Server no encontrado
+
+[INFO] 16:12:23:42 Master/(7022:7022): Handshake enviado a YAMA
+[INFO] 16:12:23:43 Master/(7022:7022): Cliente conectado correctamente al servidor IP:127.0.0.1 Puerto: 7710
+[DEBUG] 16:12:41:836 Master/(7068:7068): Path config: ../Configs/configMaster.config
+[INFO] 16:12:41:858 Master/(7068:7068): Configuracion levantada correctamente
+[INFO] 16:12:41:858 Master/(7068:7068): Conectandose a YAMA
+[ERROR] 16:12:41:859 Master/(7068:7068): Error al conectar con servidor
+[INFO] 16:12:41:859 Master/(7068:7068): Me conecte a YAMA
+[ERROR] 16:12:41:859 Master/(7068:7068): Server no encontrado
+
+[INFO] 16:12:41:859 Master/(7068:7068): Handshake enviado a YAMA
+[INFO] 16:12:41:860 Master/(7068:7068): Cliente conectado correctamente al servidor IP:127.0.0.1 Puerto: 7710
+[DEBUG] 16:12:54:122 Master/(7115:7115): Path config: ../Configs/configMaster.config
+[INFO] 16:12:54:130 Master/(7115:7115): Configuracion levantada correctamente
+[INFO] 16:12:54:130 Master/(7115:7115): Conectandose a YAMA
+[ERROR] 16:12:54:138 Master/(7115:7115): Error al conectar con servidor
+[INFO] 16:12:54:142 Master/(7115:7115): Me conecte a YAMA
+[ERROR] 16:12:54:142 Master/(7115:7115): Server no encontrado
+
+[INFO] 16:12:54:142 Master/(7115:7115): Handshake enviado a YAMA
+[INFO] 16:12:54:148 Master/(7115:7115): Cliente conectado correctamente al servidor IP:127.0.0.1 Puerto: 7710
+[DEBUG] 16:13:07:322 Master/(7159:7159): Path config: ../Configs/configMaster.config
+[INFO] 16:13:07:337 Master/(7159:7159): Configuracion levantada correctamente
+[INFO] 16:13:07:338 Master/(7159:7159): Conectandose a YAMA
+[ERROR] 16:13:07:340 Master/(7159:7159): Error al conectar con servidor
+[INFO] 16:13:07:341 Master/(7159:7159): Me conecte a YAMA
+[ERROR] 16:13:07:341 Master/(7159:7159): Server no encontrado
+
+[INFO] 16:13:07:341 Master/(7159:7159): Handshake enviado a YAMA
+[INFO] 16:13:07:341 Master/(7159:7159): Cliente conectado correctamente al servidor IP:127.0.0.1 Puerto: 7710
+[DEBUG] 16:13:20:113 Master/(7204:7204): Path config: ../Configs/configMaster.config
+[INFO] 16:13:20:121 Master/(7204:7204): Configuracion levantada correctamente
+[INFO] 16:13:20:121 Master/(7204:7204): Conectandose a YAMA
+[ERROR] 16:13:20:125 Master/(7204:7204): Error al conectar con servidor
+[INFO] 16:13:20:126 Master/(7204:7204): Me conecte a YAMA
+[ERROR] 16:13:20:130 Master/(7204:7204): Server no encontrado
+
+[INFO] 16:13:20:130 Master/(7204:7204): Handshake enviado a YAMA
+[INFO] 16:13:20:131 Master/(7204:7204): Cliente conectado correctamente al servidor IP:127.0.0.1 Puerto: 7710
+[DEBUG] 16:16:56:174 Master/(7279:7279): Path config: ../Configs/configMaster.config
+[INFO] 16:16:56:179 Master/(7279:7279): Configuracion levantada correctamente
+[INFO] 16:16:56:179 Master/(7279:7279): Conectandose a YAMA
+[ERROR] 16:16:56:183 Master/(7279:7279): Error al conectar con servidor
+[INFO] 16:16:56:192 Master/(7279:7279): Me conecte a YAMA
+[ERROR] 16:16:56:193 Master/(7279:7279): Server no encontrado
+
+[INFO] 16:16:56:193 Master/(7279:7279): Handshake enviado a YAMA
+[INFO] 16:16:56:193 Master/(7279:7279): Cliente conectado correctamente al servidor IP:127.0.0.1 Puerto: 7710
+[DEBUG] 16:17:39:38 Master/(7333:7333): Path config: ../Configs/configMaster.config
+[INFO] 16:17:39:41 Master/(7333:7333): Configuracion levantada correctamente
+[INFO] 16:17:39:41 Master/(7333:7333): Conectandose a YAMA
+[ERROR] 16:17:39:44 Master/(7333:7333): Error al conectar con servidor
+[INFO] 16:17:39:45 Master/(7333:7333): Me conecte a YAMA
+[ERROR] 16:17:39:45 Master/(7333:7333): Server no encontrado
+
+[INFO] 16:17:39:45 Master/(7333:7333): Handshake enviado a YAMA
+[INFO] 16:17:39:49 Master/(7333:7333): Cliente conectado correctamente al servidor IP:127.0.0.1 Puerto: 7710
+[DEBUG] 16:23:01:996 Master/(7452:7452): Path config: ../Configs/configMaster.config
+[INFO] 16:23:02:8 Master/(7452:7452): Configuracion levantada correctamente
+[INFO] 16:23:02:8 Master/(7452:7452): Conectandose a YAMA
+[ERROR] 16:23:02:9 Master/(7452:7452): Error al conectar con servidor
+[INFO] 16:23:02:13 Master/(7452:7452): Me conecte a YAMA
+[ERROR] 16:23:02:13 Master/(7452:7452): Server no encontrado
+
+[INFO] 16:23:02:13 Master/(7452:7452): Handshake enviado a YAMA
+[INFO] 16:23:02:14 Master/(7452:7452): Cliente conectado correctamente al servidor IP:127.0.0.1 Puerto: 7710
+[DEBUG] 16:24:30:358 Master/(7556:7556): Path config: ../Configs/configMaster.config
+[INFO] 16:24:30:373 Master/(7556:7556): Configuracion levantada correctamente
+[INFO] 16:24:30:374 Master/(7556:7556): Conectandose a YAMA
+[ERROR] 16:24:30:375 Master/(7556:7556): Error al conectar con servidor
+[INFO] 16:24:30:376 Master/(7556:7556): Me conecte a YAMA
+[ERROR] 16:24:30:376 Master/(7556:7556): Server no encontrado
+
+[INFO] 16:24:30:376 Master/(7556:7556): Handshake enviado a YAMA
+[INFO] 16:24:30:377 Master/(7556:7556): Cliente conectado correctamente al servidor IP:127.0.0.1 Puerto: 7710
+[DEBUG] 16:25:46:366 Master/(7661:7661): Path config: ../Configs/configMaster.config
+[INFO] 16:25:46:377 Master/(7661:7661): Configuracion levantada correctamente
+[INFO] 16:25:46:378 Master/(7661:7661): Conectandose a YAMA
+[ERROR] 16:25:46:388 Master/(7661:7661): Error al conectar con servidor
+[INFO] 16:25:46:389 Master/(7661:7661): Me conecte a YAMA
+[ERROR] 16:25:46:389 Master/(7661:7661): Server no encontrado
+
+[INFO] 16:25:46:389 Master/(7661:7661): Handshake enviado a YAMA
+[INFO] 16:25:46:396 Master/(7661:7661): Cliente conectado correctamente al servidor IP:127.0.0.1 Puerto: 7710
+[DEBUG] 16:26:55:921 Master/(7782:7782): Path config: ../Configs/configMaster.config
+[INFO] 16:26:55:924 Master/(7782:7782): Configuracion levantada correctamente
+[INFO] 16:26:55:924 Master/(7782:7782): Conectandose a YAMA
+[ERROR] 16:26:55:925 Master/(7782:7782): Error al conectar con servidor
+[INFO] 16:26:55:932 Master/(7782:7782): Me conecte a YAMA
+[ERROR] 16:26:55:933 Master/(7782:7782): Server no encontrado
+
+[INFO] 16:26:55:933 Master/(7782:7782): Handshake enviado a YAMA
+[INFO] 16:26:55:933 Master/(7782:7782): Cliente conectado correctamente al servidor IP:127.0.0.1 Puerto: 7710
+[DEBUG] 16:27:21:767 Master/(7835:7835): Path config: ../Configs/configMaster.config
+[INFO] 16:27:21:776 Master/(7835:7835): Configuracion levantada correctamente
+[INFO] 16:27:21:776 Master/(7835:7835): Conectandose a YAMA
+[ERROR] 16:27:21:782 Master/(7835:7835): Error al conectar con servidor
+[INFO] 16:27:21:783 Master/(7835:7835): Me conecte a YAMA
+[ERROR] 16:27:21:783 Master/(7835:7835): Server no encontrado
+
+[INFO] 16:27:21:783 Master/(7835:7835): Handshake enviado a YAMA
+[INFO] 16:27:21:786 Master/(7835:7835): Cliente conectado correctamente al servidor IP:127.0.0.1 Puerto: 7710
+[DEBUG] 23:56:52:472 Master/(3336:3336): Path config: ../Configs/configMaster.config
+[INFO] 23:56:52:506 Master/(3336:3336): Configuracion levantada correctamente
+[INFO] 23:56:52:507 Master/(3336:3336): Conectandose a YAMA
+[ERROR] 23:56:52:507 Master/(3336:3336): Error al conectar con servidor
+[ERROR] 23:56:52:507 Master/(3336:3336): No se pudo establecer la conexion con YAMA, cerrando Master...
+[DEBUG] 00:01:22:613 Master/(3540:3540): Path config: ../Configs/configMaster.config
+[INFO] 00:01:22:615 Master/(3540:3540): Configuracion levantada correctamente
+[INFO] 00:01:22:615 Master/(3540:3540): Conectandose a YAMA
+[INFO] 00:01:22:615 Master/(3540:3540): Cliente conectado correctamente al servidor IP:127.0.01 Puerto: 7700
+[INFO] 00:01:22:615 Master/(3540:3540): Me conecte a YAMA
+[INFO] 00:01:22:625 Master/(3540:3540): Handshake argumentosMaster a YAMA
+[DEBUG] 00:02:20:920 Master/(3598:3598): Path config: ../Configs/configMaster.config
+[INFO] 00:02:20:920 Master/(3598:3598): Configuracion levantada correctamente
+[INFO] 00:02:21:449 Master/(3598:3598): Conectandose a YAMA
+[INFO] 00:02:21:450 Master/(3598:3598): Cliente conectado correctamente al servidor IP:127.0.01 Puerto: 7700
+[INFO] 00:02:21:450 Master/(3598:3598): Me conecte a YAMA
+[INFO] 00:02:21:450 Master/(3598:3598): Handshake argumentosMaster a YAMA
+[DEBUG] 00:02:48:533 Master/(3641:3641): Path config: ../Configs/configMaster.config
+[INFO] 00:02:48:533 Master/(3641:3641): Configuracion levantada correctamente
+[INFO] 00:02:48:871 Master/(3641:3641): Conectandose a YAMA
+[INFO] 00:02:48:871 Master/(3641:3641): Cliente conectado correctamente al servidor IP:127.0.01 Puerto: 7700
+[INFO] 00:02:48:871 Master/(3641:3641): Me conecte a YAMA
+[INFO] 00:02:48:871 Master/(3641:3641): Handshake argumentosMaster a YAMA
+[DEBUG] 00:04:12:159 Master/(3676:3676): Path config: ../Configs/configMaster.config
+[INFO] 00:04:12:162 Master/(3676:3676): Configuracion levantada correctamente
+[INFO] 00:04:12:162 Master/(3676:3676): Conectandose a YAMA
+[INFO] 00:04:12:162 Master/(3676:3676): Cliente conectado correctamente al servidor IP:127.0.01 Puerto: 7700
+[INFO] 00:04:12:162 Master/(3676:3676): Me conecte a YAMA
+[INFO] 00:04:12:162 Master/(3676:3676): Handshake argumentosMaster a YAMA
+[DEBUG] 00:04:34:156 Master/(3731:3731): Path config: ../Configs/configMaster.config
+[INFO] 00:04:34:156 Master/(3731:3731): Configuracion levantada correctamente
+[INFO] 00:04:34:900 Master/(3731:3731): Conectandose a YAMA
+[INFO] 00:04:34:901 Master/(3731:3731): Cliente conectado correctamente al servidor IP:127.0.01 Puerto: 7700
+[INFO] 00:04:34:901 Master/(3731:3731): Me conecte a YAMA
+[INFO] 00:04:34:901 Master/(3731:3731): Handshake argumentosMaster a YAMA

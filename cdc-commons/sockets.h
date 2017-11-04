@@ -1,6 +1,7 @@
 #ifndef SOCKETS_SOCKETS_H_
 #define SOCKETS_SOCKETS_H_
 
+
 #include <stddef.h>
 #include <string.h>
 #include <stdio.h>
@@ -25,9 +26,5 @@ fd_set combinar_master_fd(fd_set* master_cpu, fd_set* master_consola, int fdmax)
 int socket_recibir(int socketEmisor, t_tipoEstructura * tipoEstructura, void** estructura);
 
 int socket_enviar(int socketReceptor, t_tipoEstructura tipoEstructura, void* estructura);
-
-void socket_enviar_string(int socketDestino,int codigoMensaje,char* stringEnviar);
-
-void socket_enviar_int(int socketDestino,int codigoMensaje,int numeroEnviar);
 
 #endif /* SOCKETS_SOCKETS_H_ */

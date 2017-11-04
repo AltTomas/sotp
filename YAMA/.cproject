@@ -141,4 +141,5 @@
 			<resource resourceType="PROJECT" workspacePath="/YAMA"/>
 		</configuration>
 	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 </cproject>

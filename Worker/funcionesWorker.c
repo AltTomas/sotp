@@ -40,20 +40,7 @@ t_config_Worker* levantarConfiguracionWorker(char* archivo_conf) {
         if(!verificarConfig(configWorker))
         	log_error(logger,"CONFIG NO VALIDA");
 
-        conf->FS_ip = malloc(MAX_LEN_IP);
-        strcpy(conf->FS_ip, config_get_string_value(configWorker, "IP_FILESYSTEM"));
-
-        conf->FS_Puerto = malloc(MAX_LEN_PUERTO);
-        strcpy(conf->FS_Puerto, config_get_string_value(configWorker, "PUERTO_FILESYSTEM"));
-
-        conf->Nombre_Nodo = malloc(MAX_LEN_NOMBRE);
-        strcpy(conf->Nombre_Nodo, config_get_string_value(configWorker, "NOMBRE_NODO"));
-
-        conf->Worker_Puerto = malloc(MAX_LEN_PUERTO);
-        strcpy(conf->Worker_Puerto, config_get_string_value(configWorker, "PUERTO_WORKER"));
-
-        conf->Ruta_Databin = malloc(MAX_RUTA);
-        strcpy(conf->Ruta_Databin, config_get_string_value(configWorker, "RUTA_DATABIN"));
+       conf->Worker_Puerto = config_get_int_value(configWorker, "PUERTO_WORKER");
 
         config_destroy(configWorker);
         printf("Configuracion levantada correctamente.\n");
@@ -78,11 +65,6 @@ bool verificarExistenciaDeArchivo(char* path) {
 }
 
 void destruirConfig(t_config_Worker* config){
-	free(config->FS_ip);
-	free(config->FS_Puerto);
-	free(config->Nombre_Nodo);
-	free(config->Worker_Puerto);
-	free(config->Ruta_Databin);
 	free(config);
 }
 
@@ -91,7 +73,7 @@ void escucharConexiones(void){
 	FD_ZERO(&maestro);
 	FD_ZERO(&setMasters);
 
-	socketEscucha = crearServidor(atoi(config->Worker_Puerto));
+	socketEscucha = crearServidor(config->Worker_Puerto);
 
 	max_fd = socketEscucha;
 
@@ -155,53 +137,76 @@ void aceptarNuevaConexion(int socketEscucha, fd_set* set){
 
 void atenderMaster(int socketMaster){
 
-	t_tipoEstructura * estructura;
+	t_tipoEstructura estructura;
 	void* job;
-	t_struct_error * err = malloc(sizeof(t_struct_error));
+	t_struct_numero * response = malloc(sizeof(t_struct_numero));
+	int res_ok;
 
-	if (socket_recibir(socketMaster, estructura, &job)){
+	if (socket_recibir(socketMaster, &estructura, &job)){
 
 		if(estructura==D_STRUCT_JOBT){
 
 			log_info(logger, "Se recibio un job de transformación del master %d", socketMaster);
 
-			doJob_transformacion(job);
+			res_ok = doJob_transformacion(job);
 
 		}else if(estructura==D_STRUCT_JOBR){
 			log_info(logger, "Se recibio un job de reducción del master %d", socketMaster);
 
-			doJob_reduccion(job);
+			res_ok = doJob_reduccion(job);
+
 		}
 
+		if(res_ok == 1){
+			log_info(logger, "El job pedido por el master %d, fue realizado exitosamente", socketMaster);
+
+			response->numero = JOB_OK;
+			socket_enviar(socketMaster, D_STRUCT_NUMERO, response);
+			_exit(1);
+
+		}else {
+
+		log_info(logger, "El job pedido por el master %d no se realizó", socketMaster);
+		_exit(1);
+		}
 	}
 
 	log_info(logger, "Error al recibir job del master %d", socketMaster);
 
-	err->errorid=ERR_RCV;
+	response->numero=ERR_RCV;
 
-	socket_enviar(socketMaster, D_STRUCT_ERR, err);
+	socket_enviar(socketMaster, D_STRUCT_NUMERO, response);
 
-	free(err);
+	free(response);
+
+	_exit(1);
 
 
 }
 
-void doJob_transformacion(t_struct_jobT* job){
+int doJob_transformacion(t_struct_jobT* job){
 
 	char command[500];
-
+	int resultado;
 	sprintf(command, "cat %s | %s > %s", job->pathOrigen, job->scriptTransformacion, job->pathTemporal);
 
-	system(command);
+	resultado = system(command);
+
+	if(resultado == 1){
+		return 1;
+	}else return 0;
+
+
 
 }
 
-void doJob_reduccion(t_struct_jobR* job){
+int doJob_reduccion(t_struct_jobR* job){
 
 	char command[500];
 
-		sprintf(command, "cat %s | %s > %s", job->pathTemp, job->scriptReduccion, job->pathTempFinal);
+		sprintf(command, "cat %s | %s >> %s", job->pathTemp, job->scriptReduccion, job->pathTempFinal);
 
-		system(command);
-
+		if(system(command)){
+			return 1;
+		}else return 0;
 }
