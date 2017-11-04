@@ -53,6 +53,7 @@ typedef struct Info_Nodo{
 typedef struct Info_Bloque{
 	int idNodo;
 	int nroBloque;
+	uint32_t cantidadNodos;
 	t_list* ubicacionBloques;
 }t_info_bloque;
 
@@ -66,16 +67,18 @@ enum{
 	D_STRUCT_JOBT=4,
 	D_STRUCT_JOBR=5,
 
-	  D_STRUCT_BLOQUE =6,
-	  D_STRUCT_NODOS=7,
-	  D_STRUCT_INFO_BLOQUE=8,
+	D_STRUCT_BLOQUE =6,
 
-	  D_STRUCT_CONFIRMACION_TRANSFORMACION=8,
-	  D_STRUCT_CONFIRMACION_REDUCCIONL=9,
-	  D_STRUCT_CONFIRMACION_REDUCCIONG = 60,
+	D_STRUCT_CANTIDAD_WORKERS=70,
 
-	  D_STRUCT_NODOS_ESCLAVOS= 61,
-	  D_STRUCT_CONFIRMACION_ALMACENAMIENTO_FINAL=62,
+	D_STRUCT_NODO_TRANSFORMACION= 71,
+	  D_STRUCT_NODOS_REDUCCION_LOCAL=7,
+	  D_STRUCT_NODOS_REDUCCION_GLOBAL=8,
+	  D_STRUCT_INFO_BLOQUE=9,
+
+	  D_STRUCT_NODO_ESCLAVO= 61,
+
+	  D_STRUCT_PRUEBA=79,
 
 	  /*OPERACIONES YAMA-FS*/
 	  YAMA_FS_GET_DATA_BY_FILE = 00,
@@ -97,7 +100,17 @@ enum{
 
 	  /* OPERACIONES MASTER-YAMA */
 	  MASTER_YAMA_SOLICITAR_INFO_NODO=30,
-	  MASTER_YAMA_CONEXION_OK = 38,
+	  MASTER_YAMA_TRANSFORMACION_WORKER_OK=31,
+	  MASTER_YAMA_TRANSFORMACION_WORKER_FALLO=32,
+	  MASTER_YAMA_REDUCCIONL_WORKER_OK=32,
+	  MASTER_YAMA_REDUCCIONL_WORKER_FALLO=32,
+	  MASTER_YAMA__REDUCCIONG_WORKER_OK=33,
+	  MASTER_YAMA__REDUCCIONG_WORKER_FALLO=34,
+	  MASTER_YAMA_ALMACENAMIENTO_FINAL_WORKER_OK=35,
+	  MASTER_YAMA_ALMACENAMIENTO_FINAL_WORKER_FALLO=36,
+
+	  MASTER_YAMA_CONEXION_WORKER_OK = 38,
+	  MASTER_YAMA_CONEXION_WORKER_FALLO=39,
 
 
 	  /* OPERACIONES MASTER-WORKER*/
@@ -157,6 +170,7 @@ typedef struct jobT{
 
 typedef struct jobR{
 	char* scriptReduccion;
+	uint16_t cantidadTemporales;
 	t_list* pathTemp; // Lista de temporales de los cuales vamos a generar 1 archivo final
 	char* pathTempFinal;
 }__attribute__((__packed__)) t_struct_jobR;
@@ -170,6 +184,7 @@ typedef struct jobRG{
 typedef struct nodoEsclavo{
 	char* ip;
 	int puerto;
+	uint32_t idNodo; // Hara falta aca?
 	char* nombreTemporal;
 }__attribute__((__packed__)) t_struct_nodoEsclavo;
 
@@ -186,6 +201,7 @@ typedef struct error{
 typedef struct infoNodoT{ // Lista de nodos con bloques que contienen al archivo pedido por Master
 	char* ip;
 	int puerto;
+	uint32_t idNodo;
 	int numBloque;
 	int bytesOcupados;
 	char* nombreTemporal;
@@ -194,6 +210,8 @@ typedef struct infoNodoT{ // Lista de nodos con bloques que contienen al archivo
 typedef struct infoNodoR{ // Lista de nodos con bloques que contienen al archivo pedido por Master
 	char* ip;
 	int puerto;
+	uint32_t idNodo;
+	uint32_t cantidadTemporales;
 	t_list* pathTemp; // Lista de temporales de los cuales vamos a generar 1 archivo final
 	char* pathTempFinal;
 }__attribute__((__packed__)) t_infoNodo_reduccionLocal;
@@ -201,6 +219,7 @@ typedef struct infoNodoR{ // Lista de nodos con bloques que contienen al archivo
 typedef struct infoNodoRG{
 	char* ip;
 	int puerto;
+	uint32_t idNodo;
 	bool encargado;
 	char* pathTemporal;
 	char* pathFinal;
@@ -210,13 +229,17 @@ typedef struct bloques{ // Elementos de la lista anterior
     int numBloque;
     int numNodo;
     int bytesOcupados;
+    uint32_t idNodo;
     char* ip;
     int puerto;
 }__attribute__((__packed__)) t_struct_bloques;
 
+//////////////////////// Estructuras que no se usan
+
 typedef struct nodos{ // Lista de nodos que recibe master, se usa para transformacion y reduccion
+	uint32_t cantidadNodos;
 	t_list* lista_nodos;
-}__attribute__((__packed__))t_struct_nodos;
+}__attribute__((__packed__))t_struct_nodos_reduccion_local;
 
 typedef struct confirmacionTransformacion{
 	uint32_t confirmacion;
