@@ -206,14 +206,32 @@ typedef struct infoNodoRG{
 }__attribute__((__packed__)) t_infoNodo_reduccionGlobal;
 
 typedef struct bloques{ // Elementos de la lista anterior
-    int numBloque;
     int finalBloque;
     int numNodoOriginal;
+    int numBloqueOriginal;
     char* ipNodoOriginal;
-    char* puertoNodoOriginal;
+    int puertoNodoOriginal;
     int numNodoCopia;
+    int numBloqueCopia;
     char* ipNodoCopia;
-    char* puertoNodoCopia;
+    int puertoNodoCopia;
 }__attribute__((__packed__)) t_struct_bloques;
+
+
+typedef struct listaUbicacionBloques{
+	int numeroBloque;
+	int idNodoOriginal;
+	char* ipOriginal;
+	int puertoOriginal;
+	int idNodoCopia;
+	char* ipCopia;
+	int puertoCopia;
+}__attribute__((__packed__)) listaUbicacionBloques;
+
+typedef struct balanceoCargas{
+	int availability;
+	int worker;
+	t_list* bloques;
+}__attribute__((__packed__)) balanceCargas;
 
 #endif /* ESTRUCTURAS_H_ */

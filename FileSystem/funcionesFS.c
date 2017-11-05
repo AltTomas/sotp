@@ -339,12 +339,13 @@ void buscarBloquesArchivo(char* nombreFile, int socketConexionYAMA) {
   bloque* bloque = list_get(archivoEncontrado->bloques,i);
 
   t_struct_bloques* bloquesFile = malloc(sizeof(t_struct_bloques));  //bloquesFile seria la informacion de cada Bloque del arch
-  bloquesFile->numBloque = bloque -> numBloque;
   bloquesFile->finalBloque = bloque -> finBloque;
   bloquesFile->numNodoOriginal = bloque -> copia0-> numNodo;
+  bloquesFile->numBloqueOriginal = bloque -> copia0-> bloqueNodo;
   bloquesFile->ipNodoOriginal = bloque -> copia0 -> ip;
   bloquesFile->puertoNodoOriginal = bloque -> copia0-> puerto;
   bloquesFile->numNodoCopia = bloque -> copia1 -> numNodo;
+  bloquesFile->numBloqueCopia = bloque -> copia1-> bloqueNodo;
   bloquesFile->ipNodoCopia = bloque -> copia1-> ip;
   bloquesFile->puertoNodoCopia = bloque -> copia1 -> puerto;
   socket_enviar(socketConexionYAMA,D_STRUCT_BLOQUE_FS_YAMA,bloquesFile);

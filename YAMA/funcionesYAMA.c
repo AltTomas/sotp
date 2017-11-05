@@ -7,7 +7,7 @@
 
 #include "funcionesYAMA.h"
 
-int cantidadDeNodos = 0;
+int cantidadDeBloques = 0;
 
 void crearConfig() {
 	if (verificarExistenciaDeArchivo(configuracionYAMA)) {
@@ -250,23 +250,23 @@ void getNodoByFile(char* nombreFile, int socketConexionMaster) {
 
 			case FS_YAMA_CANTIDAD_BLOQUES:
 				socket_recibir(socketConexionFS, D_STRUCT_NUMERO,&estructuraRecibida);
-				cantidadDeNodos =((t_struct_numero*) estructuraRecibida)->numero;
+				cantidadDeBloques =((t_struct_numero*) estructuraRecibida)->numero;
 			break;
 			case FS_YAMA_LISTABLOQUES:{
-				t_info_bloque* bloqueEnviar = malloc(sizeof(t_info_bloque));
-				for (i = 0; i < cantidadDeNodos; i++) {
+				t_struct_bloques* bloqueEnviar = malloc(sizeof(t_struct_bloques));
+				for (i = 0; i < cantidadDeBloques; i++) {
 					/* Mando cada Bloque con la lista de nodos en la cual se encuentran */
-					socket_recibir(socketConexionFS, D_STRUCT_BLOQUE,&estructuraRecibida);
-					bloqueEnviar->idNodo =	((t_info_bloque*) estructuraRecibida)->idNodo;
-					bloqueEnviar->nroBloque = ((t_info_bloque*) estructuraRecibida)->nroBloque;
-					bloqueEnviar->ubicacionBloques = ((t_info_bloque*) estructuraRecibida)->ubicacionBloques;
-					bloqueEnviar->cantidadNodos = ((t_info_bloque*) estructuraRecibida)->ubicacionBloques;
+					socket_recibir(socketConexionFS, D_STRUCT_BLOQUE_FS_YAMA,&estructuraRecibida);
+//					bloqueEnviar->=	((t_info_bloque*) estructuraRecibida)->idNodo;
+//					bloqueEnviar->nroBloque = ((t_info_bloque*) estructuraRecibida)->nroBloque;
+//					bloqueEnviar->ubicacionBloques = ((t_info_bloque*) estructuraRecibida)->ubicacionBloques;
+//					bloqueEnviar->cantidadNodos = ((t_info_bloque*) estructuraRecibida)->ubicacionBloques;
 
 					t_struct_numero * numero = malloc(sizeof(t_struct_numero));
 					numero->numero = YAMA_MASTER_CONECTARSE_A;
 
 					socket_enviar(socketConexionMaster, D_STRUCT_NUMERO,numero);
-					socket_enviar(socketConexionMaster, D_STRUCT_BLOQUE,bloqueEnviar);
+					socket_enviar(socketConexionMaster, D_STRUCT_INFO_BLOQUE,bloqueEnviar);
 					/* Termina Envio */
 
 					/*Recibo Respuesta de Conexion*/
@@ -281,8 +281,7 @@ void getNodoByFile(char* nombreFile, int socketConexionMaster) {
 							/*Clock Especial*/
 						}
 					} else {
-						log_error(
-								"Error conexion el bloque %d en el nodo %d \n",bloqueEnviar->nroBloque, bloqueEnviar->idNodo);
+//						log_error("Error conexion el bloque %d en el nodo %d \n",bloqueEnviar->nroBloque, bloqueEnviar->idNodo);
 					}
 				}
 				break;
@@ -314,3 +313,22 @@ char* generarNombreTemporal(int socketMaster, int nroBloque) {
 	string_append(&nombre, bloque);
 	return nombre;
 }
+//void agregarBloqueALaLista(t_info_bloque* bloqueAgregar){
+//	listaUbicacionBloques* nuevoBloque = malloc(sizeof(listaUbicacionBloques));
+//	t_info_nodo* datosNodoDelBloque = malloc(sizeof(t_info_nodo));
+//	nuevoBloque->numeroBloque = bloqueAgregar->nroBloque;
+//
+//	/* Datos del nodo Original*/
+//	datosNodoDelBloque = list_get(bloqueAgregar->ubicacionBloques,0);
+//	nuevoBloque->idNodoOriginal = datosNodoDelBloque->idNodo;
+//	strcpy(nuevoBloque->ipOriginal,datosNodoDelBloque->ip);
+//	nuevoBloque->puertoOriginal = datosNodoDelBloque->puerto;
+//	/* Datos del nodo Copia*/
+//	datosNodoDelBloque = list_get(bloqueAgregar->ubicacionBloques,1);
+//	nuevoBloque->idNodoCopia = datosNodoDelBloque->idNodo;
+//	strcpy(nuevoBloque->ipCopia,datosNodoDelBloque->ip);
+//	nuevoBloque->puertoCopia= datosNodoDelBloque->puerto;
+//
+//	list_add(listaInfoBloques,nuevoBloque); /* lista var global */
+//	free(nuevoBloque);free(datosNodoDelBloque);
+//}
