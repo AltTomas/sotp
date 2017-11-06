@@ -253,6 +253,8 @@ void getNodoByFile(char* nombreFile, int socketConexionMaster) {
 				cantidadDeBloques =((t_struct_numero*) estructuraRecibida)->numero;
 			break;
 			case FS_YAMA_LISTABLOQUES:{
+				socket_recibir(socketConexionFS, D_STRUCT_NUMERO,&estructuraRecibida);
+				cantidadDeBloques =((t_struct_numero*) estructuraRecibida)->numero;
 				t_struct_bloques* bloqueEnviar = malloc(sizeof(t_struct_bloques));
 				for (i = 0; i < cantidadDeBloques; i++) {
 					/* Mando cada Bloque con la lista de nodos en la cual se encuentran */
