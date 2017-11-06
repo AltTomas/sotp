@@ -206,14 +206,15 @@ typedef struct infoNodoRG{
 }__attribute__((__packed__)) t_infoNodo_reduccionGlobal;
 
 typedef struct bloques{ // Elementos de la lista anterior
-    int numBloque;
     int finalBloque;
     int numNodoOriginal;
+    int numBloqueOriginal;
     char* ipNodoOriginal;
-    char* puertoNodoOriginal;
+    int puertoNodoOriginal;
     int numNodoCopia;
+    int numBloqueCopia;
     char* ipNodoCopia;
-    char* puertoNodoCopia;
+    int puertoNodoCopia;
 }__attribute__((__packed__)) t_struct_bloques;
 
 

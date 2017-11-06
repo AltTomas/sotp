@@ -27,7 +27,7 @@ typedef struct {
 	int numNodo;
 	int bloqueNodo; //bloque del nodo que compone el archivo
 	char* ip;
-	char* puerto;
+	int puerto;
 } copia;
 
 
