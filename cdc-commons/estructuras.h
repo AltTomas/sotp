@@ -219,19 +219,21 @@ typedef struct bloques{ // Elementos de la lista anterior
 
 
 typedef struct listaUbicacionBloques{
-	int numeroBloque;
+	int numeroBloqueOriginal;
 	int idNodoOriginal;
 	char* ipOriginal;
 	int puertoOriginal;
+	int numeroBloqueCopia;
 	int idNodoCopia;
 	char* ipCopia;
 	int puertoCopia;
+	int finalBloque;
 }__attribute__((__packed__)) listaUbicacionBloques;
 
 typedef struct balanceoCargas{
 	int availability;
 	int worker;
 	t_list* bloques;
-}__attribute__((__packed__)) balanceCargas;
+}__attribute__((__packed__)) balanceoCargas;
 
 #endif /* ESTRUCTURAS_H_ */
