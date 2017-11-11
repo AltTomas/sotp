@@ -353,3 +353,4 @@ void buscarBloquesArchivo(char* nombreFile, int socketConexionYAMA) {
 
   }
 }
+
