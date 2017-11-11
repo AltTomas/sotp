@@ -139,7 +139,7 @@ t_stream * serializeStruct_bloque_fs_yama(t_struct_bloques* estructuraOrigen, in
 
 	tamanoTotal+=tamanoDato;
 
-	memcpy(data + tamanoTotal, estructuraOrigen->puertoNodoOriginal , tamanoDato = sizeof(int));
+	memcpy(data + tamanoTotal,&estructuraOrigen->puertoNodoOriginal , tamanoDato = sizeof(int));
 
 	tamanoTotal+=tamanoDato;
 
@@ -155,7 +155,7 @@ t_stream * serializeStruct_bloque_fs_yama(t_struct_bloques* estructuraOrigen, in
 
 	tamanoTotal+=tamanoDato;
 
-	memcpy(data + tamanoTotal, estructuraOrigen->puertoNodoCopia , tamanoDato = sizeof(int));
+	memcpy(data + tamanoTotal, &estructuraOrigen->puertoNodoCopia , tamanoDato = sizeof(int));
 
 	tamanoTotal+=tamanoDato;
 
@@ -196,6 +196,68 @@ t_stream * serializeStruct_jobT(t_struct_jobT * estructuraOrigen, int headerOper
 	memcpy(data + tamanoTotal, &estructuraOrigen->bytesOcupadosBloque , tamanoDato = sizeof(int));
 
 	tamanoTotal+=tamanoDato;
+
+	paquete->data = data;
+
+	return paquete;
+}
+
+int calcularTamanioBloques(t_list* bloqueDN){
+
+	int tamanio = 0, i;
+
+	for(i=0;i<list_size(bloqueDN);i++){
+
+		char* bloque = list_get(bloqueDN,i);
+
+		int tamanioBloque = strlen(bloque)+1;
+
+		int tamanioParcial = tamanioBloque;
+
+		tamanio += tamanioParcial;
+
+	}
+
+	return tamanio;
+}
+
+t_stream * serializeStruct_datanode(t_struct_datanode* estructuraOrigen, int headerOperacion){
+
+	t_stream * paquete = malloc(sizeof(t_stream));
+
+	int tamaniobloques = calcularTamanioBloques(estructuraOrigen->bloqueDN);
+
+	paquete->length = sizeof(t_header)  	+ sizeof(uint16_t)
+											+ strlen(estructuraOrigen->ipDN) + 1
+											+ tamaniobloques;
+
+	char * data = crearDataConHeader(headerOperacion, paquete->length);
+
+	int tamanoTotal = sizeof(t_header), tamanoDato = 0;
+
+	memcpy(data + tamanoTotal, &estructuraOrigen->ipDN , tamanoDato = strlen(estructuraOrigen->ipDN)+1);
+
+	tamanoTotal+=tamanoDato;
+
+	memcpy(data + tamanoTotal, &estructuraOrigen->puertoDN , tamanoDato = sizeof(int));
+
+	tamanoTotal+=tamanoDato;
+
+	memcpy(data + tamanoTotal, &estructuraOrigen->nomDN , tamanoDato = sizeof(int));
+
+	tamanoTotal+=tamanoDato;
+
+	int contadorBloques = 0;
+
+	int cantidadBloques = list_size(estructuraOrigen->bloqueDN); //chequear
+
+	while(contadorBloques < cantidadBloques){
+
+		char* temporal = list_get(estructuraOrigen->bloqueDN,contadorBloques);
+
+		memcpy(data + tamanoTotal, temporal , tamanoDato = strlen(temporal)+1);
+		tamanoTotal+=tamanoDato;
+	}
 
 	paquete->data = data;
 
@@ -392,6 +454,7 @@ t_stream * serializeStruct_Nodos_Reduccion_L(t_infoNodo_reduccionLocal* estructu
 
 	return paquete;
 }
+
 
 t_stream * serializeStruct_Nodos_Reduccion_G(t_infoNodo_reduccionGlobal* estructuraOrigen, int headerOperacion){
 
@@ -625,6 +688,47 @@ t_struct_bloques * deserializeStruct_bloque_fs_yama(char * dataPaquete, uint16_t
 
 		return estructuraDestino;
 }
+
+t_struct_datanode * deserializeStruct_datanode(char * dataPaquete, uint16_t length){
+
+			t_struct_datanode * estructuraDestino = malloc(sizeof(t_struct_datanode));
+
+			int tamanoTotal = 0, tamanoDato = 0;
+
+			tamanoTotal = tamanoDato;
+
+			for(tamanoDato = 1; (dataPaquete + tamanoTotal)[tamanoDato -1] != '\0';tamanoDato++);
+			estructuraDestino->ipDN = malloc(tamanoDato);
+			memcpy(estructuraDestino->ipDN, dataPaquete + tamanoTotal, tamanoDato);
+
+			tamanoTotal+= tamanoDato;
+
+			memcpy(&estructuraDestino->puertoDN,dataPaquete+tamanoTotal,tamanoDato=sizeof(int));
+
+			tamanoTotal+= tamanoDato;
+
+			memcpy(&estructuraDestino->nomDN,dataPaquete+tamanoTotal,tamanoDato=sizeof(int));
+
+			tamanoTotal+= tamanoDato;
+
+			int contadorBloques = 0;
+
+			int cantidadBloques = list_size(estructuraDestino->bloqueDN); //chequear
+
+			while(contadorBloques < cantidadBloques){
+				char* temporal = list_get(estructuraDestino->bloqueDN,contadorBloques);
+
+				for(tamanoDato = 1; (dataPaquete + tamanoTotal)[tamanoDato -1] != '\0';tamanoDato++);
+				temporal = (char*)malloc(tamanoDato);
+				memcpy(temporal, dataPaquete + tamanoTotal, tamanoDato);
+				tamanoTotal+= tamanoDato;
+			}
+
+			return estructuraDestino;
+	}
+
+
+
 
 t_struct_jobT * deserializeStruct_jobT(char * dataPaquete, uint16_t length){
 

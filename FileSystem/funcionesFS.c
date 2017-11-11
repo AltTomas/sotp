@@ -353,3 +353,24 @@ void buscarBloquesArchivo(char* nombreFile, int socketConexionYAMA) {
 
   }
 }
+
+int determinarEstado() {
+
+	int cantidadArchivosAlmacenados = list_size(filesAlmacenados);
+
+	int i;
+
+	for(i=0;i<cantidadArchivosAlmacenados;i++){
+
+		file* archivoAlmacenado1 = list_get(filesAlmacenados,i);
+
+		int cantidadBloquesArchivosAlmacenados = list_size(archivoAlmacenado1->bloques);
+
+		for(i=0;i<cantidadBloquesArchivosAlmacenados;i++){
+			//comparo si alguna de las dos copias de ese bloque esta dentro de los Nodos conectados con el md5 con un IF
+			//IF -> OK -> esta ese bloque en el Nodo Conectado
+
+		}
+		//IF se cumple todo, esta en estado estable
+	}
+

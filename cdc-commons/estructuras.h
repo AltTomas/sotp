@@ -13,15 +13,6 @@
 #include <commons/collections/queue.h>
 #include <commons/string.h>
 
-//Estructura definida para Archivo de Configuracion del DataNode.
-typedef struct{
-  char*   IP_FILESYSTEM;
-	int   PUERTO_FILESYSTEM;
-  char*   NOMBRE_NODO;
-	int   PUERTO_WORKER;
-	int   PUERTO_DATANODE;
-  char*   RUTA_DATABIN;
-} t_DataNode;
 
 typedef uint8_t t_tipoEstructura;
 
@@ -57,6 +48,7 @@ enum{
 	D_STRUCT_NODOS_REDUCCION_LOCAL=7,
 	D_STRUCT_NODOS_REDUCCION_GLOBAL=8,
 	D_STRUCT_INFO_BLOQUE=9,
+	D_STRUCT_DATA_NODE= 111,
 
 	D_STRUCT_CANTIDAD_WORKERS=70,
 	D_STRUCT_NODO_TRANSFORMACION= 71,
@@ -216,6 +208,20 @@ typedef struct bloques{ // Elementos de la lista anterior
     char* ipNodoCopia;
     int puertoNodoCopia;
 }__attribute__((__packed__)) t_struct_bloques;
+
+
+typedef struct bloqueDN{
+	int numBloque;
+	int estado; //ocupado o libre
+}__attribute__((__packed__)) t_struct_bloqueDN;
+
+
+typedef struct dataNode{
+	char* ipDN;
+	int puertoDN;
+	int nomDN;
+	t_list* bloqueDN;//t_struct_bloqueDN
+}__attribute__((__packed__)) t_struct_datanode;
 
 
 typedef struct listaUbicacionBloques{

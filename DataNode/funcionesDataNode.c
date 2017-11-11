@@ -1,4 +1,7 @@
 #include "funcionesDataNode.h"
+#include <estructuras.h>
+
+
 
 void leerArchivoConfig(char* rutaArchivoConfig)
 {
@@ -35,7 +38,26 @@ void conectarConFS(void){
 	puts("Me conecte a FS");
 	log_info(logger,"Me conecte a FS");
 
+		int cantidadBloquesDN = list_size(blokesDN);
 
+		int i;
+
+		t_bloquesDN* bloqueDataN = list_get(blokesDN,i);
+
+		t_struct_datanode* datanodeParaFS = malloc(sizeof(t_struct_datanode));
+
+		datanodeParaFS->ipDN = DataNodePRUEBA->IP_NODO;
+		datanodeParaFS->puertoDN = DataNode->PUERTO_NODO;
+		datanodeParaFS->nomDN = DataNode->NOMBRE_N;
+
+		for(i=0;i<cantidadBloquesDN;i++){
+			t_bloquesDN* bloque = list_get(data_DataNode->bloquesDN,i)
+			datanodeParaFs->bloqueDN-> = DataNode->bloqueDN->numBloque;
+
+		}
+
+
+		socket_enviar(socketConexionFS, D_STRUCT_DATA_NODE,dataNodeParaFS);
 	//socket_enviar(socketConexionFS, D_STRUCT_NUMERO,enviado);
 
 	log_info(logger,"Handshake enviado a YAMA");

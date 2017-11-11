@@ -25,12 +25,30 @@ typedef unsigned char dataNode_block[DATANODE_BLOCK_SIZE];
 typedef uint32_t dataNode_block_pointer;
 
 typedef struct{
+	int numBloque;
+	int estado; //ocupado o libre
+}t_bloquesDN;
+
+typedef struct{
   char*   IP_FILESYSTEM;
 	int   PUERTO_FILESYSTEM;
   char*   NOMBRE_NODO;
 	int   PUERTO_WORKER;
- char*   RUTA_DATABIN;
+	int   PUERTO_DATANODE;
+  char*   RUTA_DATABIN;
 } t_DataNode;
+
+typedef struct{
+  char*   IP_FILESYSTEM;
+  int   PUERTO_FILESYSTEM;
+  int   NOMBRE_N;
+  int   PUERTO_WORKER;
+  char*   RUTA_DATABIN;
+  int 	  PUERTO_NODO;
+  char*   IP_NODO;
+} DataNodePRUEBA;
+
+t_list* blokesDN;//t_bloqueDN
 
 t_DataNode* data_DataNode;
 

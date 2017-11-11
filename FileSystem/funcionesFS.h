@@ -29,7 +29,7 @@ typedef struct {
 	char* punto_montaje;
 }t_config_fs;
 
-t_list* files;
+t_list* filesAlmacenados;
 
 
 t_log* logger;
