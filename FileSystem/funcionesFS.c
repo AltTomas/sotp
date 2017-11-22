@@ -1,5 +1,6 @@
 #include "funcionesFS.h"
-#include "tablaArchivos.h"
+
+int sizeBloque = 1048576;
 
 void crearConfig(){
 
@@ -65,6 +66,29 @@ void destruirConfig(t_config_fs* config){
 	free(config);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void crearEstructurasAdministrativas(){
+
+	char* crearDirectorioArchivos = string_from_format("mkdir -p %s", "../../yamaFS/metadata/archivos");
+	system(crearDirectorioArchivos);
+
+	char* crearDirectorioBitmaps = string_from_format("mkdir -p %s", "../../yamaFS/metadata/bitmaps");
+	system(crearDirectorioBitmaps);
+
+	directorios = list_create();
+	char* crearTablaDirectorios = string_from_format("touch %s", tablaDirectorios);
+	system(crearTablaDirectorios);
+
+	infoNodos = malloc(sizeof(t_Nodos));
+	char* crearTablaNodos = string_from_format("touch %s", tablaNodos);
+	system(crearTablaNodos);
+	log_info(logger,"Se creo la tabla de nodos");
+
+	infoNodos->nodos = list_create();
+
+
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void commandHandler(){
 
 	char * linea;
@@ -103,8 +127,48 @@ void commandHandler(){
 		case 6:
 			puts("Ingre el path del directorio a crear");
 			break;
-		case 7:
-			puts("Ingrese el path del archivo y el directorio donde se encuenta YAMAFS");
+		case 7:{
+
+			char* pathArchivo = readline("Ingrese path del archivo en FS local: ");
+			char* pathYAMAFS = readline("Ingrese path de YAMAFS: ");
+
+			//encontrar el archivo en el FS local
+			// Si no esta terminar la operacion y avisar, si esta leerlo
+			//char* contenidoArchivoLocal = obtenerContenido(pathArchivo);
+
+			// Crear un archivo con el mismo nombre en YAMA FS
+			// Copiar el contenido
+			// En realidad esto no seria asi - a partir del contenido deberiamos hacer los bloques y guardarlos
+			char* comandoCrearArchivo = string_from_format("cat  %s >", pathArchivo);
+			string_append(&comandoCrearArchivo, pathYAMAFS);
+			system(comandoCrearArchivo);
+
+			//Actualizar tabla de archivos
+			file* archivoNuevo = malloc(sizeof(file));
+
+			archivoNuevo->path = (char*)malloc(strlen(pathYAMAFS)+1);
+			strcpy(archivoNuevo->path, pathYAMAFS);
+
+			archivoNuevo->tamanio = conseguirTamanioArchivo(pathArchivo);
+
+			archivoNuevo->tipo = (char*)malloc(strlen("tipo")+1);
+			strcpy(archivoNuevo->tipo, "tipo");
+
+			//Ahora habria que hacer toda la asignacion de bloques
+			if(strcmp(archivoNuevo->tipo, "Binario") == 0){
+				// Hay que ir leyendolo de a cachos de 1MB
+				// Nos tenemos que fijar
+			}
+			else if(strcmp(archivoNuevo->tipo, "Texto") == 0){
+				// Hay que ir leyendolo y ver cuantos /n entran en 1MB (hacer un split por /n al contenido y ver que onda)
+			}
+			// Cortar en bloques de 1 MB y repartir entre los nodos
+
+
+		printf("path archivo copiado: %s\n", archivoNuevo->path);
+		printf("tamanio archivo copiado: %d\n", archivoNuevo->tamanio);
+		printf("tipo archivo copiado: %s\n", archivoNuevo->tipo);
+		}
 			break;
 		case 8:
 			puts("Ingrese el path del archivo en el YAMAFS y el directorio del FS final");
@@ -250,12 +314,43 @@ void aceptarNuevaConexion(int socketEscucha, fd_set* set){
 		if(recepcion == -1 || tipoEstructura != D_STRUCT_NUMERO){
 			log_info(logger,"No se recibio correctamente a que atendio FS");
 		}
-		else if(((t_struct_numero*)estructuraRecibida)->numero == ES_DATANODE){
+		else if(((t_struct_numero*)estructuraRecibida)->numero == ES_DATANODE){ // Aca deberiamos rebotar nodos si el FS esta formateado
 			FD_SET(socketNuevo, &datanode);
 			FD_SET(socketNuevo, set);
 			if(socketNuevo > max_fd) max_fd = socketNuevo;
-				printf("Se acaba de conectar un proceso  en el socket %d\n", socketNuevo);
-				log_info(logger,"Se acaba de conectar un proceso  en el socket %d", socketNuevo);
+				printf("Se acaba de conectar un DATANODE  en el socket %d\n", socketNuevo);
+				log_info(logger,"Se acaba de conectar un DATANODE  en el socket %d", socketNuevo);
+
+			t_struct_numero* enviado = malloc(sizeof(t_struct_numero));
+			enviado->numero = FS_DATANODE_PEDIDO_INFO;
+			socket_enviar(socketNuevo,D_STRUCT_NUMERO,enviado); // Este send puede estar de mas, podria enviarlo el DN
+			free(enviado);
+
+			void* estructuraRecibida;
+			t_tipoEstructura tipoEstructura;
+
+			 int recepcion = socket_recibir(socketNuevo, &tipoEstructura,&estructuraRecibida);
+
+			  if(recepcion == -1){
+			    printf("Se desconecto el Nodo en el socket %d\n", socketNuevo);
+			    log_info(logger,"Se desconecto el Nodo en el socket %d", socketNuevo);
+			    close(socketNuevo);
+			    FD_CLR(socketNuevo, &datanode);
+			    FD_CLR(socketNuevo, &setDataNodes);
+			  }
+			  else if(tipoEstructura != D_STRUCT_INFO_NODO){
+			    puts("Se esperaba recibir una estructura D_STRUCT_INFO_NODO");
+			    log_error(logger,"Se esperaba recibir una estructura D_STRUCT_INFO_NODO");
+			  }
+			  else{
+				  // Recibimos la info del nodo que se conecto
+			  }
+		}
+		else if(1){ // estado Estable
+			// Pueden conectarse YAMA y workers
+		}
+		else{ // estado NO estable
+			// No puede conectarse nada que no sea datanode
 		}
 	}
 }
@@ -307,12 +402,14 @@ void trabajarSolicitudYama(int socketYAMA){
       case D_STRUCT_NUMERO:
       switch(((t_struct_numero*)estructuraRecibida)->numero){
         case YAMA_FS_SOLICITAR_LISTABLOQUES :
-          printf("Llego solicitud de tarea del YAMA en el socket %d\n", socketYAMA);
-          log_info(logger,"Llego solicitud de tarea del YAMA en el socket %d", socketYAMA);
+          printf("Llego solicitud de bloques del YAMA en el socket %d\n", socketYAMA);
+          log_info(logger,"Llego solicitud de bloques del YAMA en el socket %d", socketYAMA);
 
           printf("Archivo Objetivo: %s\n",((t_struct_string*)estructuraRecibida)->string);
           log_info(logger,"Archivo Objetivo: %s",((t_struct_string*)estructuraRecibida)->string);
+
           buscarBloquesArchivo(((t_struct_string*)estructuraRecibida)->string,socketYAMA);
+
           FD_SET(socketYAMA,&setyama);
           break;
       }
@@ -326,11 +423,11 @@ void buscarBloquesArchivo(char* nombreFile, int socketConexionYAMA) {
 		file* archivo = element;
 		return string_equals_ignore_case(archivo->path, nombreFile);
 	}
-  file* archivoEncontrado = list_find(files, condition); //me devuelve el archivo, verificar si esta bien hecha
+  file* archivoEncontrado = list_find(filesAlmacenados, condition); //me devuelve el archivo, verificar si esta bien hecha
 
   int cantidadBloques = list_size(archivoEncontrado -> bloques);
 
-  socket_enviar(socketConexionYAMA,FS_YAMA_CANTIDAD_BLOQUES,cantidadBloques); //FS_YAMA_CANTIDAD_BLOQUES ya estaba definido del lado de funcionesYama
+  socket_enviar(socketConexionYAMA,D_STRUCT_NUMERO,cantidadBloques); //FS_YAMA_CANTIDAD_BLOQUES ya estaba definido del lado de funcionesYama
 
   int i;
 
@@ -373,4 +470,93 @@ int determinarEstado() {
 		}
 		//IF se cumple todo, esta en estado estable
 	}
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int almacenarArchivo(char* ruta, char* nombreArchivo, char* tipo){// Faltan argumentos
 
+}
+
+void enviarADataNode(char* data, int numeroBloque, int tam, int sizeBloque){ // Aca distribuimos el envio a los datanodes
+	// Aca leemos la tabla de nodos para saber cual tiene mas nodos libres
+	t_Nodos* metadataNodos = leerMetadataNodos(tablaNodos);
+
+	//Guardamos copia 0
+
+	//Guardamos copia 1
+
+}
+
+t_Nodos* leerMetadataNodos(char* archivoNodos){
+
+	t_Nodos* metadata = malloc(sizeof(t_Nodos));
+    t_config* metadataNodos;
+
+    if(!verificarMetadataNodos(metadataNodos))
+    log_error(logger,"TABLA DE NODOS NO VALIDA");
+
+    metadata->tamanio_total =  config_get_int_value(metadataNodos, "TAMANIO");
+    metadata->libre_total = config_get_int_value(metadataNodos, "LIBRE");
+    metadata->nodos = config_get_array_value(metadataNodos,"NODOS");
+
+    nodo* infoNodo = malloc(sizeof(nodo));
+
+    int i;
+    for(i = 0; i<metadata->nodos->elements_count; i++){ // list_get y asignar o hacer strcpy del get?
+    	 infoNodo->nombreNodo = list_get(metadata->nodos,i);
+
+    	 char* bloquesTotalesNodo = string_new(); // Hacer de otra forma mas eficiente
+    	 string_append(&bloquesTotalesNodo,infoNodo->nombreNodo);
+    	 string_append(&bloquesTotalesNodo,"Total");
+
+    	 char* bloquesLibresNodo = string_new(); // Hacer de otra forma mas eficiente
+    	 string_append(&bloquesLibresNodo,infoNodo->nombreNodo);
+    	 string_append(&bloquesLibresNodo,"Libre");
+
+    	 infoNodo->tamTotal = config_get_int_value(metadataNodos, bloquesTotalesNodo);
+    	 infoNodo->tamLibre = config_get_int_value(metadataNodos, bloquesLibresNodo);
+
+    	 list_add(metadata->nodos,infoNodo);
+    }
+
+    return metadata;
+}
+
+bool verificarMetadataNodos(t_config* metadataNodos){
+	return config_has_property(metadataNodos,"TAMANIO") &&
+			config_has_property(metadataNodos,"LIBRE") &&
+			config_has_property(metadataNodos,"NODOS");
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+char* obtenerContenido(char* ruta){
+	char *data;
+	struct stat sbuf;
+
+	int fd = open(ruta, O_RDONLY);
+
+	if (fd == -1){
+		perror("open");
+		exit(1);
+	}
+
+	 if (stat(ruta, &sbuf) == -1) {
+	     perror("stat");
+	     exit(1);
+	}
+
+	data = mmap((caddr_t)0, sbuf.st_size, PROT_READ, MAP_SHARED, fd, 0);
+
+	if (data == (caddr_t)(-1)) {
+		perror("mmap");
+		exit(1);
+	}
+
+	return data;
+}
+
+int conseguirTamanioArchivo(char* ruta){
+
+	struct stat st;
+	stat(ruta, &st);
+	return st.st_size;
+}
