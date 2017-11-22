@@ -50,19 +50,14 @@ enum{
 	D_STRUCT_INFO_BLOQUE=9,
 	D_STRUCT_DATA_NODE= 111,
 
-	D_STRUCT_CANTIDAD_WORKERS=70,
 	D_STRUCT_NODO_TRANSFORMACION= 71,
 	D_STRUCT_NODO_ESCLAVO= 61,
 
 	  /*OPERACIONES YAMA-FS*/
 	  YAMA_FS_GET_DATA_BY_FILE = 00,
-	  YAMA_FS_SOLICITAR_LISTABLOQUES = 01,
 
 	  /*OPERACIONES FS-YAMA*/
 	  FS_YAMA_NOT_LOAD = 10,
-	  FS_YAMA_CANTIDAD_BLOQUES = 11,
-	  FS_YAMA_UBICACION_BLOQUES = 12,
-	  FS_YAMA_LISTABLOQUES = 13,
 
 	  /*OPERACIONES YAMA-MASTER*/
 	  YAMA_MASTER_FS_NOT_LOAD = 21,
@@ -106,7 +101,6 @@ enum{
 	  ES_DATANODE=104,
 
 	  //Errores
-	  D_STRUCT_ERR=90,
 	  ERR_RCV=91
 
 } t_operaciones;
@@ -222,19 +216,6 @@ typedef struct dataNode{
 	int nomDN;
 	t_list* bloqueDN;//t_struct_bloqueDN
 }__attribute__((__packed__)) t_struct_datanode;
-
-
-typedef struct listaUbicacionBloques{
-	int numeroBloqueOriginal;
-	int idNodoOriginal;
-	char* ipOriginal;
-	int puertoOriginal;
-	int numeroBloqueCopia;
-	int idNodoCopia;
-	char* ipCopia;
-	int puertoCopia;
-	int finalBloque;
-}__attribute__((__packed__)) listaUbicacionBloques;
 
 typedef struct balanceoCargas{
 	int availability;
