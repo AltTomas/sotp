@@ -73,8 +73,10 @@ void trabajarSolicitudDataNode(int);
 void buscarBloquesArchivo(char*, int);
 char* obtenerContenido(char*);
 int conseguirTamanioArchivo(char*);
-void enviarADataNode(char*, int, int, int);
+void enviarADataNode(char*, int, int);
 t_Nodos* leerMetadataNodos(char*);
 bool verificarMetadataNodos(t_config*);
+int obtenerCantidadElementos(char**);
+bool esBinario(const void *, size_t);
 
 #endif /* FUNCIONESFS_H_ */

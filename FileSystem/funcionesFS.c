@@ -127,47 +127,23 @@ void commandHandler(){
 		case 6:
 			puts("Ingre el path del directorio a crear");
 			break;
-		case 7:{
+		case 7:{ // CPFROM
 
 			char* pathArchivo = readline("Ingrese path del archivo en FS local: ");
 			char* pathYAMAFS = readline("Ingrese path de YAMAFS: ");
 
-			//encontrar el archivo en el FS local
-			// Si no esta terminar la operacion y avisar, si esta leerlo
-			//char* contenidoArchivoLocal = obtenerContenido(pathArchivo);
+			void* contenido = obtenerContenido(pathArchivo);
+			int tamanioArchivo = conseguirTamanioArchivo(pathArchivo);
+			char* tipo;
 
-			// Crear un archivo con el mismo nombre en YAMA FS
-			// Copiar el contenido
-			// En realidad esto no seria asi - a partir del contenido deberiamos hacer los bloques y guardarlos
-			char* comandoCrearArchivo = string_from_format("cat  %s >", pathArchivo);
-			string_append(&comandoCrearArchivo, pathYAMAFS);
-			system(comandoCrearArchivo);
-
-			//Actualizar tabla de archivos
-			file* archivoNuevo = malloc(sizeof(file));
-
-			archivoNuevo->path = (char*)malloc(strlen(pathYAMAFS)+1);
-			strcpy(archivoNuevo->path, pathYAMAFS);
-
-			archivoNuevo->tamanio = conseguirTamanioArchivo(pathArchivo);
-
-			archivoNuevo->tipo = (char*)malloc(strlen("tipo")+1);
-			strcpy(archivoNuevo->tipo, "tipo");
-
-			//Ahora habria que hacer toda la asignacion de bloques
-			if(strcmp(archivoNuevo->tipo, "Binario") == 0){
-				// Hay que ir leyendolo de a cachos de 1MB
-				// Nos tenemos que fijar
+			if(esBinario(contenido,tamanioArchivo)){
+				tipo = strdup("Binario");
 			}
-			else if(strcmp(archivoNuevo->tipo, "Texto") == 0){
-				// Hay que ir leyendolo y ver cuantos /n entran en 1MB (hacer un split por /n al contenido y ver que onda)
+			else{
+				tipo = strdup("Texto");
 			}
-			// Cortar en bloques de 1 MB y repartir entre los nodos
 
-
-		printf("path archivo copiado: %s\n", archivoNuevo->path);
-		printf("tamanio archivo copiado: %d\n", archivoNuevo->tamanio);
-		printf("tipo archivo copiado: %s\n", archivoNuevo->tipo);
+			int resultado = almacenarArchivo(pathArchivo, pathYAMAFS, tipo);// Faltan argumentos
 		}
 			break;
 		case 8:
@@ -474,9 +450,42 @@ int determinarEstado() {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int almacenarArchivo(char* ruta, char* nombreArchivo, char* tipo){// Faltan argumentos
 
+	int tamanioFile = conseguirTamanioArchivo(ruta);
+	void* data = obtenerContenido(ruta);
+	int numeroBloque = 0;
+
+	if(strcmp(tipo,"Binario") == 0){
+
+		int cantidadBloques = tamanioFile/sizeBloque + (tamanioFile % sizeBloque !=0);
+		int offset = 0;
+
+		for(numeroBloque = 0; numeroBloque < cantidadBloques; numeroBloque++){ // Fijarse bien como cortar el void*
+			if(tamanioFile > sizeBloque){
+				char* dataBloque = string_substring(data,offset,sizeBloque);
+				offset += sizeBloque;
+				enviarADataNode(dataBloque, numeroBloque, sizeBloque); // Considerando que los binarios no tiene basura
+			}
+			else{
+				enviarADataNode(data, numeroBloque, tamanioFile);
+			}
+
+		}
+	}
+	else if(strcmp(tipo,"Texto") == 0){
+
+		char **registros = string_split((char*)data, "\n");
+
+		int cantidadRegistros = obtenerCantidadElementos(registros);
+
+		for(numeroBloque = 0; numeroBloque< cantidadRegistros; numeroBloque++){
+			enviarADataNode(registros[numeroBloque],numeroBloque,strlen(registros[numeroBloque]));
+		}// habra que poner el +1 en el strlen?
+
+	}
+	return 0;
 }
 
-void enviarADataNode(char* data, int numeroBloque, int tam, int sizeBloque){ // Aca distribuimos el envio a los datanodes
+void enviarADataNode(char* data, int numeroBloque, int bytesOcupados){ // Aca distribuimos el envio a los datanodes
 	// Aca leemos la tabla de nodos para saber cual tiene mas nodos libres
 	t_Nodos* metadataNodos = leerMetadataNodos(tablaNodos);
 
@@ -560,3 +569,13 @@ int conseguirTamanioArchivo(char* ruta){
 	stat(ruta, &st);
 	return st.st_size;
 }
+
+int obtenerCantidadElementos(char** array){
+	int cantidadElementos;
+	for (cantidadElementos = 0; array[cantidadElementos] != NULL; cantidadElementos++);
+	return cantidadElementos;
+}
+
+bool esBinario(const void *data, size_t len){// revisar porque puede fallar
+	    return memchr(data, '\0', len) != NULL;
+	}
