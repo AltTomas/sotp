@@ -49,15 +49,18 @@ enum{
 	D_STRUCT_NODOS_REDUCCION_GLOBAL=8,
 	D_STRUCT_INFO_BLOQUE=9,
 	D_STRUCT_DATA_NODE= 111,
+	D_STRUCT_INFO_NODO= 112,
 
 	D_STRUCT_NODO_TRANSFORMACION= 71,
 	D_STRUCT_NODO_ESCLAVO= 61,
 
 	  /*OPERACIONES YAMA-FS*/
 	  YAMA_FS_GET_DATA_BY_FILE = 00,
+	  YAMA_FS_SOLICITAR_LISTABLOQUES = 12,
 
 	  /*OPERACIONES FS-YAMA*/
 	  FS_YAMA_NOT_LOAD = 10,
+	  FS_YAMA_LISTABLOQUES = 11,
 
 	  /*OPERACIONES YAMA-MASTER*/
 	  YAMA_MASTER_FS_NOT_LOAD = 21,
@@ -92,6 +95,10 @@ enum{
 	  WORKER_MASTER_ALMACENAMIENTO_FINAL_OK=56,
 	  WORKER_MASTER_ALMACENAMIENTO_FINAL_FALLO=57,
 	  JOB_OK=58,
+
+	  /* OPERACIONES FS-DATANODE*/
+	  FS_DATANODE_PEDIDO_INFO=80,
+	  FS_DATANODE_ALMACENAR_BLOQUE=81,
 
 	  //Handshake
 	  ES_YAMA=100,
@@ -213,7 +220,7 @@ typedef struct bloqueDN{
 typedef struct dataNode{
 	char* ipDN;
 	int puertoDN;
-	int nomDN;
+	char* nomDN;
 	t_list* bloqueDN;//t_struct_bloqueDN
 }__attribute__((__packed__)) t_struct_datanode;
 
@@ -222,5 +229,11 @@ typedef struct balanceoCargas{
 	int worker;
 	t_list* bloques;
 }__attribute__((__packed__)) balanceoCargas;
+
+typedef struct almacenarBloque{
+	char* contenidoBloque;
+	int bloqueArchivo;
+	int bytesOcupados;
+}__attribute__((__packed__)) t_almacenar_bloque;
 
 #endif /* ESTRUCTURAS_H_ */
