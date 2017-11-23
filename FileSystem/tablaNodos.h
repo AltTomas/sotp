@@ -14,15 +14,15 @@
 
 
 typedef struct {
-	char* nombreNodo;
-	int tamTotal;
-	int tamLibre;
+	int tamTotalNodo;
+	int tamLibreNodo;
 } nodo;
 
 typedef struct {
 	int tamanio_total;
 	int libre_total;
-	t_list* nodos; //struct nodo
+	char** nodos; //struct nodo
+	t_list* bloquesTotalesyLibres;
 } t_Nodos;
 
 

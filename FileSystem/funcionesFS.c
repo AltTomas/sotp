@@ -79,12 +79,9 @@ void crearEstructurasAdministrativas(){
 	char* crearTablaDirectorios = string_from_format("touch %s", tablaDirectorios);
 	system(crearTablaDirectorios);
 
-	infoNodos = malloc(sizeof(t_Nodos));
 	char* crearTablaNodos = string_from_format("touch %s", tablaNodos);
 	system(crearTablaNodos);
 	log_info(logger,"Se creo la tabla de nodos");
-
-	infoNodos->nodos = list_create();
 
 
 }
@@ -144,6 +141,16 @@ void commandHandler(){
 			}
 
 			int resultado = almacenarArchivo(pathArchivo, pathYAMAFS, tipo);// Faltan argumentos
+
+			if(resultado){
+				puts("Almacenamiento exitoso!");
+				log_info(logger,"Almacenamiento exitoso!");
+			}
+			else{
+				puts("No se pudo almacenar el archivo");
+				log_error(logger,"No se pudo almacenar el archivo");
+			}
+
 		}
 			break;
 		case 8:
@@ -299,8 +306,8 @@ void aceptarNuevaConexion(int socketEscucha, fd_set* set){
 
 			t_struct_numero* enviado = malloc(sizeof(t_struct_numero));
 			enviado->numero = FS_DATANODE_PEDIDO_INFO;
-			socket_enviar(socketNuevo,D_STRUCT_NUMERO,enviado); // Este send puede estar de mas, podria enviarlo el DN
-			free(enviado);
+			socket_enviar(socketNuevo,D_STRUCT_NUMERO,enviado);
+			free(enviado);// Este send puede estar de mas, podria enviarlo el DN directamente
 
 			void* estructuraRecibida;
 			t_tipoEstructura tipoEstructura;
@@ -320,6 +327,16 @@ void aceptarNuevaConexion(int socketEscucha, fd_set* set){
 			  }
 			  else{
 				  // Recibimos la info del nodo que se conecto
+				  // Guardamos esa info en nuestra lista de nodos conectados
+				  t_sockets_nodo* socketNodo = malloc(sizeof(t_sockets_nodo));
+
+				  list_add(info_DataNodes, (t_struct_datanode*)estructuraRecibida);
+
+				  socketNodo->socket = socketNuevo;
+				  socketNodo->nombreNodo = (char*)malloc(strlen(((t_struct_datanode*)estructuraRecibida)->nomDN)+1);
+				  strcpy(socketNodo->nombreNodo, ((t_struct_datanode*)estructuraRecibida)->nomDN);
+
+				  list_add(nodosConectados,socketNodo);
 			  }
 		}
 		else if(1){ // estado Estable
@@ -344,8 +361,9 @@ void trabajarSolicitudDataNode(int socketDataNode){
     close(socketDataNode);
     FD_CLR(socketDataNode, &datanode);
     FD_CLR(socketDataNode, &setDataNodes);
+    //Actualizar tabla de nodos
   }
-  else if(tipoEstructura != D_STRUCT_NUMERO){ // Aca puse D_STRUCT_NUMERO porque no se que iria realmente
+  else if(tipoEstructura != D_STRUCT_NUMERO){
     puts("Error en la serializacion");
     log_info(logger,"Error en la serializacion");
   }
@@ -463,9 +481,12 @@ int almacenarArchivo(char* ruta, char* nombreArchivo, char* tipo){// Faltan argu
 			if(tamanioFile > sizeBloque){
 				char* dataBloque = string_substring(data,offset,sizeBloque);
 				offset += sizeBloque;
-				enviarADataNode(dataBloque, numeroBloque, sizeBloque); // Considerando que los binarios no tiene basura
+				int resultadoEnvio = enviarADataNode(dataBloque, numeroBloque, sizeBloque); // Considerando que los binarios no tiene basura
+				if(!resultadoEnvio){ // Fallo el almacenamiento en nodos de algun bloque
+								return 0;
+							}
 			}
-			else{
+			else{ // Puede estar de mas esto
 				enviarADataNode(data, numeroBloque, tamanioFile);
 			}
 
@@ -478,59 +499,104 @@ int almacenarArchivo(char* ruta, char* nombreArchivo, char* tipo){// Faltan argu
 		int cantidadRegistros = obtenerCantidadElementos(registros);
 
 		for(numeroBloque = 0; numeroBloque< cantidadRegistros; numeroBloque++){
-			enviarADataNode(registros[numeroBloque],numeroBloque,strlen(registros[numeroBloque]));
+			int resultadoEnvio = enviarADataNode(registros[numeroBloque],numeroBloque,strlen(registros[numeroBloque]));
+			if(!resultadoEnvio){ // Fallo el almacenamiento en nodos de algun bloque
+				return 0;
+			}
 		}// habra que poner el +1 en el strlen?
 
 	}
-	return 0;
+	//Contemplar que no se pueda almacenar porque faltan bloques
+
+	return 1; // Exito
 }
 
-void enviarADataNode(char* data, int numeroBloque, int bytesOcupados){ // Aca distribuimos el envio a los datanodes
-	// Aca leemos la tabla de nodos para saber cual tiene mas nodos libres
-	t_Nodos* metadataNodos = leerMetadataNodos(tablaNodos);
+int enviarADataNode(char* data, int numeroBloque, int bytesOcupados){ // Aca distribuimos el envio a los datanodes
 
-	//Guardamos copia 0
+	t_Nodos* metadataNodos = leerMetadataNodos(tablaNodos); // Llamo la funcion para ver si hubo cambios en nodos.bin
 
-	//Guardamos copia 1
+	list_sort(bloquesLibresPorNodo, masBloquesLibres); // Tira warning pero funciona
 
+	t_bloquesLibres_nodo* nodoMasLibre = list_get(bloquesLibresPorNodo,0);
+	t_bloquesLibres_nodo* segundoNodoMasLibre = list_get(bloquesLibresPorNodo,1);
+
+	int socketNodoCopia0 = buscarSocketNodo(nodoMasLibre->nombreNodo);
+	int socketNodoCopia1 = buscarSocketNodo(segundoNodoMasLibre->nombreNodo);
+
+	t_almacenar_bloque* enviado = malloc(sizeof(t_almacenar_bloque));
+	enviado->contenidoBloque = (char*)malloc(strlen(data)+1);
+	enviado->bloqueArchivo = numeroBloque;
+	enviado->bytesOcupados = bytesOcupados;
+
+	int resultadoCopia0 = guardarCopia(socketNodoCopia0,enviado);
+	int resultadoCopia1 = guardarCopia(socketNodoCopia1,enviado);
+	free(enviado);
+
+	if(resultadoCopia0 || resultadoCopia1){ // Se pudo guardar en alguna de las 2 copias
+
+		return 1;
+	}
+	else{ // No se pudo guardar el archivo
+
+		return 0;
+	}
+	return 0;
 }
 
 t_Nodos* leerMetadataNodos(char* archivoNodos){
 
 	t_Nodos* metadata = malloc(sizeof(t_Nodos));
+	metadata->bloquesTotalesyLibres = list_create();
+
     t_config* metadataNodos;
 
-    if(!verificarMetadataNodos(metadataNodos))
-    log_error(logger,"TABLA DE NODOS NO VALIDA");
+    metadataNodos = config_create(archivoNodos);
+    if(metadataNodos == NULL)
+    	puts("ERROR - nodos.bin inexistente");
+
+
+    if(!verificarMetadataNodos(metadataNodos)){
+    	puts("Fallo en formato de tabla de nodos");
+    }
 
     metadata->tamanio_total =  config_get_int_value(metadataNodos, "TAMANIO");
     metadata->libre_total = config_get_int_value(metadataNodos, "LIBRE");
     metadata->nodos = config_get_array_value(metadataNodos,"NODOS");
 
-    nodo* infoNodo = malloc(sizeof(nodo));
+
 
     int i;
-    for(i = 0; i<metadata->nodos->elements_count; i++){ // list_get y asignar o hacer strcpy del get?
-    	 infoNodo->nombreNodo = list_get(metadata->nodos,i);
+    int cantidadNodos = obtenerCantidadElementos(metadata->nodos);
+    for(i = 0; i< cantidadNodos; i++){
 
-    	 char* bloquesTotalesNodo = string_new(); // Hacer de otra forma mas eficiente
-    	 string_append(&bloquesTotalesNodo,infoNodo->nombreNodo);
-    	 string_append(&bloquesTotalesNodo,"Total");
+    	t_bloquesLibres_nodo* bloquesLibresNodos = malloc(sizeof(t_bloquesLibres_nodo));
 
-    	 char* bloquesLibresNodo = string_new(); // Hacer de otra forma mas eficiente
-    	 string_append(&bloquesLibresNodo,infoNodo->nombreNodo);
-    	 string_append(&bloquesLibresNodo,"Libre");
+    	nodo* infoNodo = malloc(sizeof(nodo));
+    	char* bloquesTotalesNodo = string_new(); // Hacer de otra forma mas eficiente
+    	string_append(&bloquesTotalesNodo,metadata->nodos[i]);
+    	string_append(&bloquesTotalesNodo,"Total");
 
-    	 infoNodo->tamTotal = config_get_int_value(metadataNodos, bloquesTotalesNodo);
-    	 infoNodo->tamLibre = config_get_int_value(metadataNodos, bloquesLibresNodo);
+    	char* bloquesLibresNodo = string_new(); // Hacer de otra forma mas eficiente
+    	string_append(&bloquesLibresNodo,metadata->nodos[i]);
+    	string_append(&bloquesLibresNodo,"Libre");
 
-    	 list_add(metadata->nodos,infoNodo);
+    	infoNodo->tamTotalNodo = config_get_int_value(metadataNodos, bloquesTotalesNodo);
+    	infoNodo->tamLibreNodo = config_get_int_value(metadataNodos, bloquesLibresNodo);
+
+    	bloquesLibresNodos->nombreNodo = (char*)malloc(strlen(metadata->nodos[i])+1);
+    	strcpy(bloquesLibresNodos->nombreNodo, metadata->nodos[i]);
+
+    	bloquesLibresNodos->bloquesLibres = infoNodo->tamLibreNodo;
+
+    	list_add(bloquesLibresPorNodo, bloquesLibresNodos);
+
+    	list_add(metadata->bloquesTotalesyLibres,infoNodo);
     }
 
     return metadata;
 }
 
-bool verificarMetadataNodos(t_config* metadataNodos){
+bool verificarMetadataNodos(t_config* metadataNodos){ // Si o si tiene que tener estos
 	return config_has_property(metadataNodos,"TAMANIO") &&
 			config_has_property(metadataNodos,"LIBRE") &&
 			config_has_property(metadataNodos,"NODOS");
@@ -579,3 +645,55 @@ int obtenerCantidadElementos(char** array){
 bool esBinario(const void *data, size_t len){// revisar porque puede fallar
 	    return memchr(data, '\0', len) != NULL;
 	}
+
+int buscarSocketNodo(char* nombreNodo){ // Revisar
+
+	bool seEncuentraEnlista(void* element) {
+		return strcmp(element, nombreNodo)==0;
+	}
+	t_sockets_nodo * nodo = list_find(nodosConectados, (void*)seEncuentraEnlista);
+	return nodo->socket;
+}
+
+int guardarCopia(int socketNodo, t_almacenar_bloque* enviado){
+
+	socket_enviar(socketNodo, FS_DATANODE_ALMACENAR_BLOQUE,enviado);
+
+	void* estructuraRecibida;
+	t_tipoEstructura tipoEstructura;
+
+	int recepcion = socket_recibir(socketNodo, &tipoEstructura,&estructuraRecibida);
+
+	if(recepcion == -1){
+		printf("Se desconecto el Nodo en el socket %d\n", socketNodo);
+		log_info(logger,"Se desconecto el Nodo en el socket %d", socketNodo);
+		close(socketNodo);
+		FD_CLR(socketNodo, &datanode);
+		FD_CLR(socketNodo, &setDataNodes);
+
+		//Actualizar tabla de nodos - Sacar Nodo
+
+		return 0;
+	}
+	else if(tipoEstructura != D_STRUCT_NUMERO){
+		puts("Error en la serializacion");
+		log_error(logger,"Error en la serializacion");
+		return 0;
+	}
+	else{
+		if(((t_struct_numero*)estructuraRecibida)->numero){ // Se guardo bien
+
+	   		//Actualizar tabla de nodos - Reducir bloques libres del nodo y bloques libres totales
+
+	   		log_info(logger,"Se  almaceno el bloque %d en el DN de socket: %d", enviado->bloqueArchivo, socketNodo);
+	   		return 1;
+	  	}
+
+	}
+	puts("Llego a cualquier lado");
+	return 0;
+}
+
+bool masBloquesLibres(t_bloquesLibres_nodo* nodo1, t_bloquesLibres_nodo* nodo2){
+	return nodo1->bloquesLibres > nodo2->bloquesLibres;
+}

@@ -42,6 +42,16 @@ typedef struct {
 	char* punto_montaje;
 }t_config_fs;
 
+typedef struct{
+	int socket;
+	char* nombreNodo;
+}t_sockets_nodo;
+
+typedef struct{
+	char* nombreNodo;
+	int bloquesLibres;
+}t_bloquesLibres_nodo;
+
 t_list* filesAlmacenados; // una lista de t_directory?
 
 t_log* logger;
@@ -56,7 +66,10 @@ int max_fd;
 
 
 t_list* directorios;
+t_list* nodosConectados;
 t_Nodos* infoNodos;
+t_list* info_DataNodes;
+t_list* bloquesLibresPorNodo;
 
 char estado; //estable o no estable
 
@@ -73,10 +86,14 @@ void trabajarSolicitudDataNode(int);
 void buscarBloquesArchivo(char*, int);
 char* obtenerContenido(char*);
 int conseguirTamanioArchivo(char*);
-void enviarADataNode(char*, int, int);
+int enviarADataNode(char*, int, int);
 t_Nodos* leerMetadataNodos(char*);
 bool verificarMetadataNodos(t_config*);
 int obtenerCantidadElementos(char**);
 bool esBinario(const void *, size_t);
+int almacenarArchivo(char*, char*, char*);
+int buscarSocketNodo(char*);
+int guardarCopia(int, t_almacenar_bloque*);
+bool masBloquesLibres(t_bloquesLibres_nodo*, t_bloquesLibres_nodo*);
 
 #endif /* FUNCIONESFS_H_ */
