@@ -58,7 +58,9 @@ t_stream * serialize(int tipoEstructura, void * estructuraOrigen){
 			case D_STRUCT_BLOQUE_FS_YAMA:
 				paquete = serializeStruct_bloque_fs_yama((t_struct_bloques *) estructuraOrigen, D_STRUCT_BLOQUE_FS_YAMA);
 				break;
-
+			case FS_DATANODE_ALMACENAR_BLOQUE:
+				paquete = serializeStruct_fs_datanode_almacenar((t_almacenar_bloque *) estructuraOrigen, FS_DATANODE_ALMACENAR_BLOQUE);
+				break;
 		}
 
 	return paquete;
@@ -557,6 +559,31 @@ t_stream * serializeStruct_NodosEsclavos(t_struct_jobRG* estructuraOrigen, int h
 	return paquete;
 }
 
+t_stream * serializeStruct_fs_datanode_almacenar(t_almacenar_bloque* estructuraOrigen, int headerOperacion){
+
+	t_stream* paquete = malloc(sizeof(t_stream));
+
+	paquete->length = sizeof(t_header) + sizeof(int)*2 + strlen(estructuraOrigen->contenidoBloque) + 1;
+
+	char* data = crearDataConHeader(headerOperacion, paquete->length);
+
+	int tamDato = 0;
+	int tamTot = sizeof(t_header);
+
+	memcpy(data + tamTot, &estructuraOrigen->bloqueArchivo , tamDato = sizeof(int));
+	tamTot+=tamDato;
+
+	memcpy(data + tamTot, &estructuraOrigen->bytesOcupados , tamDato = sizeof(int));
+	tamTot+=tamDato;
+
+	memcpy(data + tamTot, estructuraOrigen->contenidoBloque , tamDato = strlen(estructuraOrigen->contenidoBloque)+1);
+	tamTot+=tamDato;
+
+	paquete->data = data;
+
+	return paquete;
+}
+
 
 t_header desempaquetarHeader(char * header){
 	t_header estructuraHeader;
@@ -603,6 +630,9 @@ void * deserialize(uint8_t tipoEstructura, char * dataPaquete, uint16_t length){
 				break;
 			case D_STRUCT_BLOQUE_FS_YAMA:
 				estructuraDestino = deserializeStruct_bloque_fs_yama(dataPaquete, length);
+				break;
+			case FS_DATANODE_ALMACENAR_BLOQUE:
+				estructuraDestino = deserializeStruct_fs_datanode_almacenar(dataPaquete, length);
 				break;
 	}
 
@@ -923,6 +953,26 @@ t_infoNodo_reduccionGlobal* deserializeStruct_Nodos_Reduccion_G(char * dataPaque
 	tamanoTotal+= tamanoDato;
 
 	memcpy(&estructuraDestino->idNodo,dataPaquete+tamanoTotal,tamanoDato=sizeof(uint32_t));
+	tamanoTotal+= tamanoDato;
+
+	return estructuraDestino;
+}
+
+t_almacenar_bloque* deserializeStruct_fs_datanode_almacenar(char * dataPaquete, uint16_t length){
+
+	t_almacenar_bloque* estructuraDestino = malloc(length);
+
+	int tamanoTotal = 0, tamanoDato = 0;
+
+	memcpy(&estructuraDestino->bloqueArchivo,dataPaquete+tamanoTotal,tamanoDato=sizeof(int));
+	tamanoTotal+= tamanoDato;
+
+	memcpy(&estructuraDestino->bytesOcupados,dataPaquete+tamanoTotal,tamanoDato=sizeof(int));
+	tamanoTotal+= tamanoDato;
+
+	for(tamanoDato = 1; (dataPaquete + tamanoTotal)[tamanoDato -1] != '\0';tamanoDato++); 	//incremento tamanoDato, hasta el tamaño del nombre.
+	estructuraDestino->contenidoBloque = (char*)malloc(tamanoDato);
+	memcpy(estructuraDestino->contenidoBloque, dataPaquete + tamanoTotal, tamanoDato); //copio el string a la estructura
 	tamanoTotal+= tamanoDato;
 
 	return estructuraDestino;

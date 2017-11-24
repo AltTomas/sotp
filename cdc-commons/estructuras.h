@@ -98,6 +98,7 @@ enum{
 
 	  /* OPERACIONES FS-DATANODE*/
 	  FS_DATANODE_PEDIDO_INFO=80,
+	  FS_DATANODE_ALMACENAR_BLOQUE=81,
 
 	  //Handshake
 	  ES_YAMA=100,
@@ -219,7 +220,7 @@ typedef struct bloqueDN{
 typedef struct dataNode{
 	char* ipDN;
 	int puertoDN;
-	int nomDN;
+	char* nomDN;
 	t_list* bloqueDN;//t_struct_bloqueDN
 }__attribute__((__packed__)) t_struct_datanode;
 
@@ -228,5 +229,11 @@ typedef struct balanceoCargas{
 	int worker;
 	t_list* bloques;
 }__attribute__((__packed__)) balanceoCargas;
+
+typedef struct almacenarBloque{
+	char* contenidoBloque;
+	int bloqueArchivo;
+	int bytesOcupados;
+}__attribute__((__packed__)) t_almacenar_bloque;
 
 #endif /* ESTRUCTURAS_H_ */
