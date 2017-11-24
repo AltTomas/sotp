@@ -95,5 +95,8 @@ int almacenarArchivo(char*, char*, char*);
 int buscarSocketNodo(char*);
 int guardarCopia(int, t_almacenar_bloque*);
 bool masBloquesLibres(t_bloquesLibres_nodo*, t_bloquesLibres_nodo*);
+void seDesconectaUnNodo(char*);
+int buscarPosicion(char**, char*);
+void actualizarTablaNodosBorrar(int);
 
 #endif /* FUNCIONESFS_H_ */

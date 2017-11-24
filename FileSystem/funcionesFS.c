@@ -328,6 +328,7 @@ void aceptarNuevaConexion(int socketEscucha, fd_set* set){
 			  else{
 				  // Recibimos la info del nodo que se conecto
 				  // Guardamos esa info en nuestra lista de nodos conectados
+				  // Actualizamos nodos.bin
 				  t_sockets_nodo* socketNodo = malloc(sizeof(t_sockets_nodo));
 
 				  list_add(info_DataNodes, (t_struct_datanode*)estructuraRecibida);
@@ -361,7 +362,9 @@ void trabajarSolicitudDataNode(int socketDataNode){
     close(socketDataNode);
     FD_CLR(socketDataNode, &datanode);
     FD_CLR(socketDataNode, &setDataNodes);
-    //Actualizar tabla de nodos
+
+    //Actualizar tabla de nodos - Borrar
+    actualizarTablaNodosBorrar(socketDataNode);
   }
   else if(tipoEstructura != D_STRUCT_NUMERO){
     puts("Error en la serializacion");
@@ -671,7 +674,8 @@ int guardarCopia(int socketNodo, t_almacenar_bloque* enviado){
 		FD_CLR(socketNodo, &datanode);
 		FD_CLR(socketNodo, &setDataNodes);
 
-		//Actualizar tabla de nodos - Sacar Nodo
+		//Actualizar tabla de nodos - Borrar
+		actualizarTablaNodosBorrar(socketNodo);
 
 		return 0;
 	}
@@ -696,4 +700,142 @@ int guardarCopia(int socketNodo, t_almacenar_bloque* enviado){
 
 bool masBloquesLibres(t_bloquesLibres_nodo* nodo1, t_bloquesLibres_nodo* nodo2){
 	return nodo1->bloquesLibres > nodo2->bloquesLibres;
+}
+
+void seDesconectaUnNodo(char* nombreNodo){
+
+	log_info(logger,"Se desconecto un nodo - Actualizando tabla de nodos");
+	t_Nodos* infoNodos = leerMetadataNodos(tablaNodos);
+
+	int indexNodo = buscarPosicion(infoNodos->nodos, nombreNodo);
+	if(indexNodo < 0){
+		log_error(logger,"AVISO: No se encontro el nodo %s en la tabla de nodos", nombreNodo);
+		log_info(logger,"Dejamos la tabla de nodos como estaba");
+	}
+	else{
+
+	nodo* nodoABorrar = list_get(infoNodos->bloquesTotalesyLibres, indexNodo);
+
+	if(nodoABorrar == NULL){
+		log_error(logger,"AVISO: No hay nodos en la posicion %d", indexNodo);
+		log_info(logger,"Dejamos la tabla de nodos como estaba");
+	}
+	else{
+		log_info(logger,"Bloques Nodo que se elimina: %d\n", nodoABorrar->tamTotalNodo);
+		log_info(logger,"Bloques Libres Nodo que se elimina: %d\n", nodoABorrar->tamLibreNodo);
+
+	char* bloquesNodoEliminado = strdup(infoNodos->nodos[indexNodo]);
+	char* bloquesLibresNodoEliminado = strdup(infoNodos->nodos[indexNodo]);
+	string_append(&bloquesNodoEliminado,"Total");
+	string_append(&bloquesLibresNodoEliminado,"Libre");
+
+	int i = 0;
+	int j = 0;
+	int cantidadNodos = obtenerCantidadElementos(infoNodos->nodos);
+
+	char** nuevoArray= (char*)malloc(sizeof(char*) * (cantidadNodos-1));
+
+	for(i = 0; i < cantidadNodos; i++){
+
+		if(i == indexNodo){
+
+		}
+		else{
+			nuevoArray[j]=(char*)malloc(strlen(infoNodos->nodos[i])+1);
+			strcpy(nuevoArray[j],infoNodos->nodos[i]);
+			j++;
+		}
+
+	}
+
+	t_config* archivoTablaNodos = config_create(tablaNodos);
+
+	if(archivoTablaNodos == NULL)
+		log_error(logger,"ERROR: No se pudo encontrar el archivo nodos.bin");
+		puts("ERROR: No se pudo encontrar el archivo nodos.bin");
+
+    if(!verificarMetadataNodos(archivoTablaNodos)){
+    	log_error(logger,"Fallo en formato de tabla de nodos");
+	   	puts("Fallo en formato de tabla de nodos");
+	}
+    else{
+
+    int sizeTotal = config_get_int_value(archivoTablaNodos, "TAMANIO"); //Obtengo la cantidad de Nodos totales del archivo
+    int sizeLibres = config_get_int_value(archivoTablaNodos, "LIBRE"); //Obtengo la cantidad de Nodos libres del archivo
+    char** nodos= config_get_array_value(archivoTablaNodos, "NODOS"); //Obtengo los Nodos que tiene el archivo (nombres)
+
+    sizeTotal -= nodoABorrar->tamTotalNodo;
+    sizeLibres -= nodoABorrar->tamLibreNodo;
+
+    char* string_sizeTotal = string_itoa(sizeTotal);
+    char* string_sizeLibre = string_itoa(sizeLibres);
+
+    int cantidadNodosArrayNuevo  = cantidadNodos - 1;
+
+    char* arrayNodos = string_new();
+    string_append(&arrayNodos,"[");
+
+    for(i = 0; i < cantidadNodosArrayNuevo; i++){
+    	if( i == cantidadNodosArrayNuevo -1){
+    	string_append(&arrayNodos,nuevoArray[i]);
+    	}
+    	else{
+    		string_append(&arrayNodos,nuevoArray[i]);
+    		string_append(&arrayNodos,",");
+    	}
+
+    }
+    string_append(&arrayNodos,"]");
+
+    //Actualizo los valores de las keys del config
+    config_set_value(archivoTablaNodos, "TAMANIO", string_sizeTotal);
+    config_set_value(archivoTablaNodos, "LIBRE", string_sizeLibre);
+    config_set_value(archivoTablaNodos, "NODOS", arrayNodos);
+
+    config_set_value(archivoTablaNodos, bloquesNodoEliminado, "-");
+    config_set_value(archivoTablaNodos, bloquesLibresNodoEliminado, "-");
+
+    config_save(archivoTablaNodos);
+    log_info(logger,"El archivo nodos.bin se actualizo exitosamente");
+    puts("El archivo nodos.bin se actualizo exitosamente");
+    }
+	}
+	}
+
+}
+
+int buscarPosicion(char** nodos, char* nombreNodo){
+
+	int i;
+	int cantidadNodos = obtenerCantidadElementos(nodos);
+
+	for(i = 0; i < cantidadNodos ; i++){
+		if(strcmp(nodos[i],nombreNodo)==0){
+			return i;
+		}
+	}
+	return -1;
+}
+
+
+void actualizarTablaNodosBorrar(int socketDataNode){
+int encontrarPosicionNodo(int socket){
+	int i;
+	for(i = 0; i < nodosConectados->elements_count; i++ ){
+		t_sockets_nodo* nodo = list_get(nodosConectados,i);
+		if(nodo->socket == socket){
+			return i;
+		}
+	}
+	return -1;
+}
+int posicion = encontrarPosicionNodo(socketDataNode);
+if(posicion < 0){
+	puts("No se encontro rastro del nodo eliminado en el sistema");
+	log_error(logger,"No se encontro rastro del nodo eliminado en el sistema");
+}
+else{
+	t_sockets_nodo* nodoDesconectado = list_remove(nodosConectados,posicion);
+	seDesconectaUnNodo(nodoDesconectado->nombreNodo);
+}
 }
