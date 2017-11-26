@@ -19,6 +19,7 @@ int main(int argc, char** argv){
 	info_DataNodes = list_create();
 	nodosConectados = list_create();
 	bloquesLibresPorNodo = list_create();
+	directorios = list_create();
 	void escucharConexiones();
 
 	commandHandler();

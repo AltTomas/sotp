@@ -839,3 +839,122 @@ else{
 	seDesconectaUnNodo(nodoDesconectado->nombreNodo);
 }
 }
+
+
+
+
+void leer(char* path,char* nombreArch){
+
+
+	char** pathDividido = string_split(path, "/"); //Me quedaria una lista de cada subdirectorio dividido por "/", termina con un valor NULL
+	int i=0;
+	char* ultimoSubdirectorio;
+	char* posicion;
+
+
+	while(pathDividido[i]!=NULL){
+
+		if(pathDividido[i+1]==NULL){ //Si la siguiente posicion es NULL entonces es el ultimo subdirectorio
+		ultimoSubdirectorio = malloc(strlen(pathDividido[i])+1);
+		strcpy(ultimoSubdirectorio, pathDividido[i]);  //obtengo subdirectorio donde estara el archivo
+		}else{
+			i++;
+		}
+	}
+
+
+	bool condition(void* element) {
+		t_directory* directorio = element;
+		return string_equals_ignore_case(directorio->nombre, ultimoSubdirectorio);
+	}
+	t_directory* directorioEncontrado = list_find(directorios, condition);
+	posicion = string_itoa(directorioEncontrado->index);
+
+
+	string_append (&tablaArchivos,posicion);
+	string_append (&tablaArchivos,"/");
+	string_append (&tablaArchivos,nombreArch);
+
+
+	t_config* archivoTablaArchivos = config_create(&tablaArchivos); // con o sin &&??
+
+	if(archivoTablaArchivos == NULL)
+			log_error(logger,"ERROR: No se pudo encontrar el archivo nombreArch.csv");
+			puts("ERROR: No se pudo encontrar el archivo nombreArch.csv");
+
+
+	int cantidadKeys = config_keys_amount(archivoTablaArchivos);
+
+
+	int cantidadBloques = (cantidadKeys-2)/3;
+
+	int j;
+
+	for (j=0;j<cantidadBloques;j++){
+
+		char* numero = string_itoa(j);
+
+		string_append("BLOQUE", &numero);
+
+		string_append (&numero,"COPIA0");
+
+		copiaLectura* bloqueLectura= config_get_array_value(archivoTablaArchivos,&numero); //verificar si va o no con &
+
+		//busco Nodo y su bloque interno que contiene a la copia0 del bloque del archivo
+		t_sockets_nodo* socketNodo = malloc(sizeof(t_sockets_nodo));
+
+		bool condition(void* element) {
+				t_sockets_nodo* nodo = element;
+				return string_equals_ignore_case(nodo->nombreNodo, bloqueLectura->numNodo);
+			}
+
+		t_sockets_nodo* nodoEncontrado = list_find(info_DataNodes,condition);
+
+		int socketNodoEncontrado = nodoEncontrado -> socket;
+
+		socket_enviar(socketNodoEncontrado, D_STRUCT_NUMERO,(bloqueLectura->bloqueNodo)); //[Nodo1, 33]
+
+		void* estructuraRecibida;
+		t_tipoEstructura tipoEstructura;
+
+		int recepcion = socket_recibir(socketNodoEncontrado, estructuraRecibida,tipoEstructura);
+
+		if (recepcion == -1){
+				log_info(logger,"No se recibio la copia0 del Nodo");
+
+				string_append (&numero,"COPIA0"); //corregir a COPIA1
+
+				copiaLectura* bloqueCopiaLectura= config_get_array_value(archivoTablaArchivos,&numero); //verificar si va o no con &
+
+				t_sockets_nodo* socketNodo = malloc(sizeof(t_sockets_nodo));
+
+				bool condition(void* element) {
+					t_sockets_nodo* nodo = element;
+					return string_equals_ignore_case(nodo->nombreNodo, bloqueCopiaLectura->numNodo);
+						}
+
+				t_sockets_nodo* nodocopia1Encontrado = list_find(info_DataNodes,condition);
+
+				int socketNodocopia1Encontrado = nodocopia1Encontrado -> socket;
+
+				socket_enviar(socketNodocopia1Encontrado,D_STRUCT_NUMERO,(bloqueCopiaLectura->bloqueNodo)); //[Nodo1, 33]
+
+				void* estructuraCopiaRecibida;
+				t_tipoEstructura tipoEstructuraCopia;
+
+				int recepcionCopia = socket_recibir(socketNodocopia1Encontrado, estructuraCopiaRecibida,tipoEstructuraCopia);
+
+				if (recepcionCopia == -1){
+					log_info(logger,"No se recibio ni la copia0 ni la copia1 del Nodo");
+				}
+
+
+
+		}
+
+		j++;
+
+	}
+}
+
+

@@ -30,6 +30,10 @@ typedef struct {
 	int puerto;
 } copia;
 
+typedef struct {
+	char numNodo;
+	int bloqueNodo;
+} copiaLectura;
 
 typedef struct {
 	int numBloque; //bloque individual del archivo (0,1,2,...)

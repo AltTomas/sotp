@@ -32,6 +32,8 @@
 #define configuracionFS "../../Configs/configFileSystem.config"
 #define tablaDirectorios "../../metadata/directorios.dat"
 #define tablaNodos "../../yamaFS/metadata/nodos.bin"
+#define tablaArchivos "../../metadata/archivos/"
+
 #define MAX_LEN_PUERTO 6
 #define PUNTO_MONTAJE 250
 
@@ -53,6 +55,7 @@ typedef struct{
 }t_bloquesLibres_nodo;
 
 t_list* filesAlmacenados; // una lista de t_directory?
+t_list* directorios; //repetido linea 70
 
 t_log* logger;
 t_config_fs* config;
