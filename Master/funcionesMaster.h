@@ -67,7 +67,8 @@ bool verificarExistenciaDeArchivo(char*);
 void destruirConfig(t_config_master*);
 void conectarConYAMA(void);
 char* obtenerContenido(char*);
-void ejecutarJob(char**);
+void ejecutarJob(t_argumentos argumentos);
+void consola();
 void ejecutarTransformacion (t_infoNodo_transformacion*);
 void ejecutarReduccionLocal (t_infoNodo_reduccionLocal*);
 void ejecutarReduccionGlobal(t_infoNodo_reduccionGlobal*, t_list*, char*);
@@ -75,5 +76,6 @@ bool esEncargado(t_infoNodo_reduccionGlobal* nodo);
 t_infoNodo_reduccionGlobal* buscarEncargado(t_list*);
 void ejecutarAlmacenamientoFinal(t_infoNodo_Final* );
 void mostrarMetricas();
+pthread_t hiloJob;
 
 #endif /* FUNCIONESMASTER_H_ */
