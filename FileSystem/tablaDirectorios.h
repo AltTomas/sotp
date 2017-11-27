@@ -16,7 +16,7 @@
 
 typedef struct {
 	int index;
-	char nombre[255];
+	char* nombre; // char [255]?
 	int padre;
 } t_directory;
 

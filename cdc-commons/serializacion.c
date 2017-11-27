@@ -559,7 +559,7 @@ t_stream * serializeStruct_NodosEsclavos(t_struct_jobRG* estructuraOrigen, int h
 	return paquete;
 }
 
-t_stream * serializeStruct_fs_datanode_almacenar(t_almacenar_bloque* estructuraOrigen, int headerOperacion){
+t_stream * serializeStruct_fs_datanode_pedido_almacenar(t_pedido_almacenar_bloque* estructuraOrigen, int headerOperacion){
 
 	t_stream* paquete = malloc(sizeof(t_stream));
 
@@ -584,6 +584,27 @@ t_stream * serializeStruct_fs_datanode_almacenar(t_almacenar_bloque* estructuraO
 	return paquete;
 }
 
+t_stream* serializeStruct_fs_datanode_almacenar(t_almacenar_bloque * estructuraOrigen, int headerOperacion){
+
+	t_stream* paquete = malloc(sizeof(t_stream));
+
+	paquete->length = sizeof(t_header) + sizeof(int) + strlen(estructuraOrigen->nombreNodo) + 1;
+
+	char* data = crearDataConHeader(headerOperacion, paquete->length);
+
+	int tamDato = 0;
+	int tamTot = sizeof(t_header);
+
+	memcpy(data + tamTot, &estructuraOrigen->bloqueNodo , tamDato = sizeof(int));
+	tamTot+=tamDato;
+
+	memcpy(data + tamTot, estructuraOrigen->nombreNodo , tamDato = strlen(estructuraOrigen->nombreNodo)+1);
+	tamTot+=tamDato;
+
+	paquete->data = data;
+
+	return paquete;
+}
 
 t_header desempaquetarHeader(char * header){
 	t_header estructuraHeader;
@@ -958,9 +979,9 @@ t_infoNodo_reduccionGlobal* deserializeStruct_Nodos_Reduccion_G(char * dataPaque
 	return estructuraDestino;
 }
 
-t_almacenar_bloque* deserializeStruct_fs_datanode_almacenar(char * dataPaquete, uint16_t length){
+t_pedido_almacenar_bloque* deserializeStruct_fs_datanode_pedido_almacenar(char * dataPaquete, uint16_t length){
 
-	t_almacenar_bloque* estructuraDestino = malloc(length);
+	t_pedido_almacenar_bloque* estructuraDestino = malloc(length);
 
 	int tamanoTotal = 0, tamanoDato = 0;
 
@@ -976,4 +997,22 @@ t_almacenar_bloque* deserializeStruct_fs_datanode_almacenar(char * dataPaquete, 
 	tamanoTotal+= tamanoDato;
 
 	return estructuraDestino;
+}
+
+
+t_almacenar_bloque* deserializeStruct_fs_datanode_almacenar(char * dataPaquete, uint16_t length){
+
+	t_almacenar_bloque* estructuraDestino = malloc(length);
+
+		int tamanoTotal = 0, tamanoDato = 0;
+
+		memcpy(&estructuraDestino->bloqueNodo,dataPaquete+tamanoTotal,tamanoDato=sizeof(int));
+		tamanoTotal+= tamanoDato;
+
+		for(tamanoDato = 1; (dataPaquete + tamanoTotal)[tamanoDato -1] != '\0';tamanoDato++);
+		estructuraDestino->nombreNodo = (char*)malloc(tamanoDato);
+		memcpy(estructuraDestino->nombreNodo, dataPaquete + tamanoTotal, tamanoDato);
+		tamanoTotal+= tamanoDato;
+
+		return estructuraDestino;
 }

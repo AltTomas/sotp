@@ -16,10 +16,6 @@ int main(int argc, char** argv){
 	crearEstructurasAdministrativas(); // Esto si se inicio con --clean
 	destruirConfig(config);
 
-	info_DataNodes = list_create();
-	nodosConectados = list_create();
-	bloquesLibresPorNodo = list_create();
-	directorios = list_create();
 	void escucharConexiones();
 
 	commandHandler();

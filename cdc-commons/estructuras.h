@@ -221,6 +221,8 @@ typedef struct dataNode{
 	char* ipDN;
 	int puertoDN;
 	char* nomDN;
+	int bloquesTotales;
+	int bloquesLibres;
 	t_list* bloqueDN;//t_struct_bloqueDN
 }__attribute__((__packed__)) t_struct_datanode;
 
@@ -230,10 +232,15 @@ typedef struct balanceoCargas{
 	t_list* bloques;
 }__attribute__((__packed__)) balanceoCargas;
 
-typedef struct almacenarBloque{
+typedef struct pedidoAlmacenarBloque{
 	char* contenidoBloque;
 	int bloqueArchivo;
 	int bytesOcupados;
-}__attribute__((__packed__)) t_almacenar_bloque;
+}__attribute__((__packed__)) t_pedido_almacenar_bloque;
+
+typedef struct almacenarBloque{
+	char* nombreNodo;
+	int bloqueNodo;
+}__attribute__((__packed__))t_almacenar_bloque;
 
 #endif /* ESTRUCTURAS_H_ */

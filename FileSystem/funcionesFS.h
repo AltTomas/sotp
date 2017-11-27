@@ -32,7 +32,7 @@
 #define configuracionFS "../../Configs/configFileSystem.config"
 #define tablaDirectorios "../../metadata/directorios.dat"
 #define tablaNodos "../../yamaFS/metadata/nodos.bin"
-#define tablaArchivos1 "../../metadata/archivos/" //rompe en leer porque necesita ser un char*
+#define tablaArchivos "../../yamaFS/metadata/archivos" //rompe en leer porque necesita ser un char*
 
 #define MAX_LEN_PUERTO 6
 #define PUNTO_MONTAJE 250
@@ -46,16 +46,34 @@ typedef struct {
 
 typedef struct{
 	int socket;
+	char* ip;
+	int puerto;
 	char* nombreNodo;
-}t_sockets_nodo;
+	int bloquesTotales;
+	int bloquesLibres;
+	t_list* bloqueDN;//t_struct_bloqueDN
+}t_info_nodo;
 
 typedef struct{
 	char* nombreNodo;
 	int bloquesLibres;
 }t_bloquesLibres_nodo;
 
-t_list* filesAlmacenados; // una lista de t_directory?
-t_list* directorios; //repetido linea 70
+typedef struct{
+	int bloqueArchivo;
+	char* copia0Nodo;
+	int copia0NodoBloque;
+	char* copia1Nodo;
+	int copia1NodoBloque;
+	int bytesOcupados;
+}t_info_bloque_archivo;
+
+typedef struct{
+	char* nombreArchivo;
+	t_list* infoBloques;
+}t_info_archivo;
+
+t_list* filesAlmacenados;
 
 t_log* logger;
 t_config_fs* config;
@@ -67,12 +85,11 @@ fd_set setyama;
 int socketEscuchaDataNodes;
 int max_fd;
 
-
-t_list* directorios;
-t_list* nodosConectados;
+t_list* directorios; // una lista de t_directory
 t_Nodos* infoNodos;
 t_list* info_DataNodes;
-t_list* bloquesLibresPorNodo;
+t_list* infoBloquesArchivo; // lista de t_info_bloque_archivo
+t_list* archivos; // lista de t_info_archivo
 
 char estado; //estable o no estable
 
@@ -88,19 +105,28 @@ void aceptarNuevaConexion(int, fd_set* );
 void trabajarSolicitudDataNode(int);
 void buscarBloquesArchivo(char*, int);
 char* obtenerContenido(char*);
-int conseguirTamanioArchivo(char*);
-int enviarADataNode(char*, int, int);
+long conseguirTamanioArchivo(char*);
+int enviarADataNode(char*, char*, int, int);
 t_Nodos* leerMetadataNodos(char*);
 bool verificarMetadataNodos(t_config*);
 int obtenerCantidadElementos(char**);
 bool esBinario(const void *, size_t);
 int almacenarArchivo(char*, char*, char*);
 int buscarSocketNodo(char*);
-int guardarCopia(int, t_almacenar_bloque*);
-bool masBloquesLibres(t_bloquesLibres_nodo*, t_bloquesLibres_nodo*);
+int guardarCopia(char*, int, t_pedido_almacenar_bloque*, int);
+bool masBloquesLibres(t_info_nodo*, t_info_nodo*);
 void seDesconectaUnNodo(char*);
 int buscarPosicion(char**, char*);
 void actualizarTablaNodosBorrar(int);
 void leer(char* path,char* nombreArch);
+void actualizarTablaNodosAgregar(char*, int, int);
+void actualizarTablaNodosAsignacion(int);
+char* buscarNombreNodo(int);
+void crearMetadataArchivo(int, char*, long, char*);
+int asignarPosicionEnTablaDirectorios(char*, char*);
+int existeEnTablaDirectorio(char*);
+t_directory* buscarDirectorio(char*);
+void actualizarMetadataArchivo(char*);
+void actualizarMetadataArchivoBloques(char*, char*, int, int);
 
 #endif /* FUNCIONESFS_H_ */

@@ -69,15 +69,29 @@ void destruirConfig(t_config_fs* config){
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void crearEstructurasAdministrativas(){
 
-	char* crearDirectorioArchivos = string_from_format("mkdir -p %s", "../../yamaFS/metadata/archivos");
+	info_DataNodes = list_create();
+	archivos = list_create();
+
+	char* crearDirectorioArchivos = string_from_format("mkdir -p %s", tablaArchivos);
 	system(crearDirectorioArchivos);
 
 	char* crearDirectorioBitmaps = string_from_format("mkdir -p %s", "../../yamaFS/metadata/bitmaps");
 	system(crearDirectorioBitmaps);
 
 	directorios = list_create();
+
+	t_directory* directorioRoot = malloc(sizeof(t_directory));
+	directorioRoot->index = 0;
+	directorioRoot->nombre = (char*)malloc(strlen("root")+1);
+	strcpy(directorioRoot->nombre ,"root");
+	directorioRoot->padre = -1;
+
+	list_add(directorios,directorioRoot);
+
 	char* crearTablaDirectorios = string_from_format("touch %s", tablaDirectorios);
 	system(crearTablaDirectorios);
+
+	// todo: Persistir root en archivo tabla de directorios
 
 	char* crearTablaNodos = string_from_format("touch %s", tablaNodos);
 	system(crearTablaNodos);
@@ -326,18 +340,16 @@ void aceptarNuevaConexion(int socketEscucha, fd_set* set){
 			    log_error(logger,"Se esperaba recibir una estructura D_STRUCT_INFO_NODO");
 			  }
 			  else{
-				  // Recibimos la info del nodo que se conecto
-				  // Guardamos esa info en nuestra lista de nodos conectados
-				  // Actualizamos nodos.bin
-				  t_sockets_nodo* socketNodo = malloc(sizeof(t_sockets_nodo));
 
+				  // Guardamos esa info en nuestra lista de nodos conectados
 				  list_add(info_DataNodes, (t_struct_datanode*)estructuraRecibida);
 
-				  socketNodo->socket = socketNuevo;
-				  socketNodo->nombreNodo = (char*)malloc(strlen(((t_struct_datanode*)estructuraRecibida)->nomDN)+1);
-				  strcpy(socketNodo->nombreNodo, ((t_struct_datanode*)estructuraRecibida)->nomDN);
+				  // Con la info recibida del nodo que se conecto  actualizamos nodos.bin
 
-				  list_add(nodosConectados,socketNodo);
+				  actualizarTablaNodosAgregar( ((t_struct_datanode*)estructuraRecibida)->nomDN,
+						  	  	  	  	  	   ((t_struct_datanode*)estructuraRecibida)->bloquesTotales,
+											   ((t_struct_datanode*)estructuraRecibida)->bloquesLibres
+				  	  	  	  	  	 	 	 );
 			  }
 		}
 		else if(1){ // estado Estable
@@ -468,12 +480,162 @@ int determinarEstado() {
 		//IF se cumple todo, esta en estado estable
 	}
 }
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+t_directory* buscarDirectorio(char* path){
+
+char** pathDividido = string_split(path, "/"); //Me quedaria una lista de cada subdirectorio dividido por "/", termina con un valor NULL
+int i=0;
+char* ultimoSubdirectorio;
+
+while(pathDividido[i]!=NULL){
+	if(pathDividido[i+1]==NULL){ //Si la siguiente posicion es NULL entonces es el ultimo subdirectorio
+	ultimoSubdirectorio = malloc(strlen(pathDividido[i])+1);
+	strcpy(ultimoSubdirectorio, pathDividido[i]);  //obtengo subdirectorio donde estara el archivo
+	}
+	else{
+		i++;
+	}
+}
+
+bool condition(void* element) {
+	t_directory* directorio = element;
+	return string_equals_ignore_case(directorio->nombre, ultimoSubdirectorio);
+}
+
+t_directory* directorioEncontrado = list_find(directorios, condition);
+return directorioEncontrado;
+}
+
+
+void leer(char* path,char* nombreArch){
+
+	char* posicion;
+
+	t_directory* directorioEncontrado = buscarDirectorio(path);
+
+	posicion = string_itoa(directorioEncontrado->index);
+
+	char* rutaArchivo = string_new();
+
+	string_append (&rutaArchivo,tablaArchivos);
+	string_append (&rutaArchivo,"/");
+	string_append (&rutaArchivo,posicion);
+	string_append (&rutaArchivo,"/");
+	string_append (&rutaArchivo,nombreArch);
+
+
+	t_config* archivoTablaArchivos = config_create(rutaArchivo); // con o sin &&??
+
+	if(archivoTablaArchivos == NULL)
+			log_error(logger,"ERROR: No se pudo encontrar el archivo nombreArch.csv");
+			puts("ERROR: No se pudo encontrar el archivo nombreArch.csv");
+
+
+	int cantidadKeys = config_keys_amount(archivoTablaArchivos);
+
+
+	int cantidadBloques = (cantidadKeys-2)/3;
+
+	int j;
+
+	for (j=0;j<cantidadBloques;j++){
+
+		char* numero = string_itoa(j);
+
+		char* bloque = "BLOQUE";
+
+		string_append(&bloque, numero);
+
+		string_append (&bloque,"COPIA0");
+
+		copiaLectura* bloqueLectura= config_get_array_value(archivoTablaArchivos,bloque); //TIENE QUE SER CHAR**
+
+		//busco Nodo y su bloque interno que contiene a la copia0 del bloque del archivo
+
+		bool condition(void* element) {
+			t_info_nodo* nodo = element;
+				return string_equals_ignore_case(nodo->nombreNodo, bloqueLectura->numNodo);
+			}
+
+		t_info_nodo* nodoEncontrado = list_find(info_DataNodes,condition);
+
+		int socketNodoEncontrado = nodoEncontrado -> socket;
+
+		// todo: Se envia todo por medio de estructuras!
+		// crear t_struct_numero* enviado, asignarle valor a enviado->numero
+		// Ejemeplo: socket_enviar(socketNodoEncontrado, D_STRUCT_NUMERO,enviado);
+		socket_enviar(socketNodoEncontrado, D_STRUCT_NUMERO,(bloqueLectura->bloqueNodo)); //[Nodo1, 33]
+
+		void* estructuraRecibida;
+		t_tipoEstructura tipoEstructura;
+
+		int recepcion = socket_recibir(socketNodoEncontrado, &tipoEstructura,&estructuraRecibida);
+
+		if (recepcion == -1){
+
+				log_info(logger,"No se recibio la copia0 del Nodo");
+
+				char* numeroBloqueSinNumCopia = string_substring_until(numero,12);//BLOQUE0COPIA faltaria el 1
+
+				string_append (&numeroBloqueSinNumCopia,"1"); //corregir a COPIA1
+
+				copiaLectura* bloqueCopiaLectura= config_get_array_value(archivoTablaArchivos,numeroBloqueSinNumCopia); //TIENE QUE SER CHAR**
+
+
+				bool condition(void* element) {
+					t_info_nodo* nodo = element;
+					return string_equals_ignore_case(nodo->nombreNodo, bloqueCopiaLectura->numNodo);
+						}
+
+				t_info_nodo* nodocopia1Encontrado = list_find(info_DataNodes,condition);
+
+				int socketNodocopia1Encontrado = nodocopia1Encontrado -> socket;
+
+				// Lo mismo que con el enviar de arriba
+				socket_enviar(socketNodocopia1Encontrado,D_STRUCT_NUMERO,(bloqueCopiaLectura->bloqueNodo)); //[Nodo1, 33]
+
+				void* estructuraCopiaRecibida;
+				t_tipoEstructura tipoEstructuraCopia;
+
+				int recepcionCopia = socket_recibir(socketNodoEncontrado, &tipoEstructuraCopia,&estructuraCopiaRecibida);
+
+				if (recepcionCopia == -1){
+					log_info(logger,"No se recibio ni la copia0 ni la copia1 del Nodo");
+				}
+
+
+
+		}
+
+		j++;
+
+	}
+}
+
+
 int almacenarArchivo(char* ruta, char* nombreArchivo, char* tipo){// Faltan argumentos
 
-	int tamanioFile = conseguirTamanioArchivo(ruta);
+	long tamanioFile = conseguirTamanioArchivo(ruta);
 	void* data = obtenerContenido(ruta);
 	int numeroBloque = 0;
+
+	// todo: Yo cuando quiero almacenar un archivo me fijo si tengo que crearle una ruta o puedo usar una existente?
+	int indexDirectorio;
+
+	if(existeEnTablaDirectorio(ruta)){
+		t_directory* directorio = buscarDirectorio(ruta);
+	}
+	else{ // Hay que crearle un directorio
+		indexDirectorio = asignarPosicionEnTablaDirectorios(ruta, nombreArchivo);
+
+		if(indexDirectorio < 0){ // Tabla llena
+				log_error(logger,"ERROR: Como la tabla de directorios tiene 100 entradas no se pueden agregar mas");
+				return 0; // No se pudo almacenar
+			}
+	}
+
+	crearMetadataArchivo(indexDirectorio, nombreArchivo, tamanioFile, tipo);
 
 	if(strcmp(tipo,"Binario") == 0){
 
@@ -484,13 +646,13 @@ int almacenarArchivo(char* ruta, char* nombreArchivo, char* tipo){// Faltan argu
 			if(tamanioFile > sizeBloque){
 				char* dataBloque = string_substring(data,offset,sizeBloque);
 				offset += sizeBloque;
-				int resultadoEnvio = enviarADataNode(dataBloque, numeroBloque, sizeBloque); // Considerando que los binarios no tiene basura
+				int resultadoEnvio = enviarADataNode(nombreArchivo, dataBloque, numeroBloque, sizeBloque); // Considerando que los binarios no tiene basura
 				if(!resultadoEnvio){ // Fallo el almacenamiento en nodos de algun bloque
 								return 0;
 							}
 			}
 			else{ // Puede estar de mas esto
-				enviarADataNode(data, numeroBloque, tamanioFile);
+				enviarADataNode(nombreArchivo, data, numeroBloque, tamanioFile);
 			}
 
 		}
@@ -502,7 +664,7 @@ int almacenarArchivo(char* ruta, char* nombreArchivo, char* tipo){// Faltan argu
 		int cantidadRegistros = obtenerCantidadElementos(registros);
 
 		for(numeroBloque = 0; numeroBloque< cantidadRegistros; numeroBloque++){
-			int resultadoEnvio = enviarADataNode(registros[numeroBloque],numeroBloque,strlen(registros[numeroBloque]));
+			int resultadoEnvio = enviarADataNode(nombreArchivo, registros[numeroBloque],numeroBloque,strlen(registros[numeroBloque]));
 			if(!resultadoEnvio){ // Fallo el almacenamiento en nodos de algun bloque
 				return 0;
 			}
@@ -514,25 +676,26 @@ int almacenarArchivo(char* ruta, char* nombreArchivo, char* tipo){// Faltan argu
 	return 1; // Exito
 }
 
-int enviarADataNode(char* data, int numeroBloque, int bytesOcupados){ // Aca distribuimos el envio a los datanodes
+int enviarADataNode(char* nombreArchivo, char* data, int numeroBloque, int bytesOcupados){ // Aca distribuimos el envio a los datanodes
 
-	t_Nodos* metadataNodos = leerMetadataNodos(tablaNodos); // Llamo la funcion para ver si hubo cambios en nodos.bin
+	//t_Nodos* metadataNodos = leerMetadataNodos(tablaNodos); // Llamo la funcion para ver si hubo cambios en nodos.bin
+	// Ya no se usaria, pero por las dudas la dejo
 
-	list_sort(bloquesLibresPorNodo, masBloquesLibres); // Tira warning pero funciona
+	list_sort(info_DataNodes, masBloquesLibres); // Tira warning pero funciona
 
-	t_bloquesLibres_nodo* nodoMasLibre = list_get(bloquesLibresPorNodo,0);
-	t_bloquesLibres_nodo* segundoNodoMasLibre = list_get(bloquesLibresPorNodo,1);
+	t_info_nodo* nodoMasLibre = list_get(info_DataNodes,0);
+	t_info_nodo* segundoNodoMasLibre = list_get(info_DataNodes,1);
 
 	int socketNodoCopia0 = buscarSocketNodo(nodoMasLibre->nombreNodo);
 	int socketNodoCopia1 = buscarSocketNodo(segundoNodoMasLibre->nombreNodo);
 
-	t_almacenar_bloque* enviado = malloc(sizeof(t_almacenar_bloque));
+	t_pedido_almacenar_bloque* enviado = malloc(sizeof(t_pedido_almacenar_bloque));
 	enviado->contenidoBloque = (char*)malloc(strlen(data)+1);
 	enviado->bloqueArchivo = numeroBloque;
 	enviado->bytesOcupados = bytesOcupados;
 
-	int resultadoCopia0 = guardarCopia(socketNodoCopia0,enviado);
-	int resultadoCopia1 = guardarCopia(socketNodoCopia1,enviado);
+	int resultadoCopia0 = guardarCopia(nombreArchivo, socketNodoCopia0,enviado,0);
+	int resultadoCopia1 = guardarCopia(nombreArchivo, socketNodoCopia1,enviado,1);
 	free(enviado);
 
 	if(resultadoCopia0 || resultadoCopia1){ // Se pudo guardar en alguna de las 2 copias
@@ -566,8 +729,6 @@ t_Nodos* leerMetadataNodos(char* archivoNodos){
     metadata->libre_total = config_get_int_value(metadataNodos, "LIBRE");
     metadata->nodos = config_get_array_value(metadataNodos,"NODOS");
 
-
-
     int i;
     int cantidadNodos = obtenerCantidadElementos(metadata->nodos);
     for(i = 0; i< cantidadNodos; i++){
@@ -590,11 +751,8 @@ t_Nodos* leerMetadataNodos(char* archivoNodos){
     	strcpy(bloquesLibresNodos->nombreNodo, metadata->nodos[i]);
 
     	bloquesLibresNodos->bloquesLibres = infoNodo->tamLibreNodo;
-
-    	list_add(bloquesLibresPorNodo, bloquesLibresNodos);
-
-    	list_add(metadata->bloquesTotalesyLibres,infoNodo);
     }
+
 
     return metadata;
 }
@@ -632,7 +790,7 @@ char* obtenerContenido(char* ruta){
 	return data;
 }
 
-int conseguirTamanioArchivo(char* ruta){
+long conseguirTamanioArchivo(char* ruta){
 
 	struct stat st;
 	stat(ruta, &st);
@@ -651,14 +809,49 @@ bool esBinario(const void *data, size_t len){// revisar porque puede fallar
 
 int buscarSocketNodo(char* nombreNodo){ // Revisar
 
-	bool seEncuentraEnlista(void* element) {
-		return strcmp(element, nombreNodo)==0;
+	bool seEncuentraEnlista(t_info_nodo* element) {
+		return strcmp(element->nombreNodo, nombreNodo)==0;
 	}
-	t_sockets_nodo * nodo = list_find(nodosConectados, (void*)seEncuentraEnlista);
+	t_info_nodo * nodo = list_find(info_DataNodes, (void*)seEncuentraEnlista);
 	return nodo->socket;
 }
 
-int guardarCopia(int socketNodo, t_almacenar_bloque* enviado){
+char* buscarNombreNodo(int socketNodo){ // Revisar
+
+	bool seEncuentraEnlista(t_info_nodo* element) {
+		return element->socket == socketNodo;
+	}
+	t_info_nodo * nodo = list_find(info_DataNodes, (void*)seEncuentraEnlista);
+	return nodo->nombreNodo;
+}
+
+int buscarArchivo(char* nombreArchivo){
+
+	int i;
+
+	for(i = 0; i < archivos->elements_count ; i++){
+		t_info_archivo* archivo = list_get(archivos,i);
+		if(strcmp(archivo->nombreArchivo,nombreArchivo)==0){
+			return i;
+		}
+	}
+	return -1;
+}
+
+int buscarBloqueDeArchivo(t_info_archivo* archivo, int bloqueArchivo){
+
+	int i;
+
+	for(i = 0; i < archivo->infoBloques->elements_count ; i++){
+		t_almacenar_bloque* bloque = list_get(archivo->infoBloques,i);
+		if(bloqueArchivo == bloque->bloqueNodo){
+			return i;
+		}
+	}
+	return -1;
+	}
+
+int guardarCopia(char* nombreArchivo, int socketNodo, t_pedido_almacenar_bloque* enviado, int copia){
 
 	socket_enviar(socketNodo, FS_DATANODE_ALMACENAR_BLOQUE,enviado);
 
@@ -685,9 +878,66 @@ int guardarCopia(int socketNodo, t_almacenar_bloque* enviado){
 		return 0;
 	}
 	else{
-		if(((t_struct_numero*)estructuraRecibida)->numero){ // Se guardo bien
+		if(((t_almacenar_bloque*)estructuraRecibida)->bloqueNodo >= 0){ // Se guardo bien, me enviaria el bloque donde se guardo
 
 	   		//Actualizar tabla de nodos - Reducir bloques libres del nodo y bloques libres totales
+		    actualizarTablaNodosAsignacion(socketNodo);
+
+		    // Actualizar metadata de archivo - Bloque en bloque nodo
+		   int posicion = buscarArchivo(nombreArchivo); // Verificamos si el archivo existe
+
+		   if(posicion < 0){ // No existia el archivo
+
+			   // todo: Crear el archivo (buscar index, hacer directorios, crear archivo usando nombre)
+
+			   t_info_archivo* infoArchivo = malloc(sizeof(t_info_archivo));
+
+			   infoArchivo->nombreArchivo = (char*)malloc(strlen(nombreArchivo)+1);
+			   infoArchivo->infoBloques = list_create();
+
+			   t_info_bloque_archivo* infoBloque = malloc(sizeof(t_info_bloque_archivo));
+
+			   infoBloque->bloqueArchivo = enviado->bloqueArchivo;
+			   infoBloque->bytesOcupados = enviado->bytesOcupados;
+
+			   if(copia == 0){
+				   infoBloque->copia0Nodo =((t_almacenar_bloque*)estructuraRecibida)->nombreNodo;
+				   infoBloque->copia0NodoBloque = ((t_almacenar_bloque*)estructuraRecibida)->bloqueNodo;
+			   }
+			   else{
+				   infoBloque->copia1Nodo =((t_almacenar_bloque*)estructuraRecibida)->nombreNodo;
+				   infoBloque->copia1NodoBloque = ((t_almacenar_bloque*)estructuraRecibida)->bloqueNodo;
+			   }
+
+			   // Actualizar archivo metadata
+			   actualizarMetadataArchivo(nombreArchivo);
+		   }
+		   else{ // Significa que ya existia el archivo, buscar por bloque en la lista
+			   t_info_archivo* archivo = list_get(archivos,posicion);
+
+
+			   int posicionBloque = buscarBloqueDeArchivo(archivo, enviado->bloqueArchivo);// Validacion < 0 ?
+
+			   t_info_bloque_archivo* bloque = list_get(archivo->infoBloques, posicionBloque);
+
+			   bloque->bloqueArchivo = enviado->bloqueArchivo;
+			   bloque->bytesOcupados = enviado->bytesOcupados;
+
+			   if(copia == 0){
+				   bloque->copia0Nodo =((t_almacenar_bloque*)estructuraRecibida)->nombreNodo;
+				   bloque->copia0NodoBloque = ((t_almacenar_bloque*)estructuraRecibida)->bloqueNodo;
+
+				   // Actualizar archivo metadata
+				   actualizarMetadataArchivoBloques(nombreArchivo,bloque->copia0Nodo,bloque->copia0NodoBloque, 0);
+			   }
+			   else{
+				   bloque->copia1Nodo =((t_almacenar_bloque*)estructuraRecibida)->nombreNodo;
+				   bloque->copia1NodoBloque = ((t_almacenar_bloque*)estructuraRecibida)->bloqueNodo;
+
+				   // Actualizar archivo metadata
+				   actualizarMetadataArchivoBloques(nombreArchivo,bloque->copia1Nodo,bloque->copia1NodoBloque, 1);
+			   }
+		   }
 
 	   		log_info(logger,"Se  almaceno el bloque %d en el DN de socket: %d", enviado->bloqueArchivo, socketNodo);
 	   		return 1;
@@ -698,9 +948,11 @@ int guardarCopia(int socketNodo, t_almacenar_bloque* enviado){
 	return 0;
 }
 
-bool masBloquesLibres(t_bloquesLibres_nodo* nodo1, t_bloquesLibres_nodo* nodo2){
+bool masBloquesLibres(t_info_nodo* nodo1, t_info_nodo* nodo2){
 	return nodo1->bloquesLibres > nodo2->bloquesLibres;
 }
+
+/////////////////////////////////////////// FUNCIONES TABLA NODOS /////////////////////////////////////////////////
 
 void seDesconectaUnNodo(char* nombreNodo){
 
@@ -733,7 +985,7 @@ void seDesconectaUnNodo(char* nombreNodo){
 	int j = 0;
 	int cantidadNodos = obtenerCantidadElementos(infoNodos->nodos);
 
-	char** nuevoArray= (char*)malloc(sizeof(char*) * (cantidadNodos-1));
+	char** nuevoArray= malloc(sizeof(char*) * (cantidadNodos-1));
 
 	for(i = 0; i < cantidadNodos; i++){
 
@@ -762,7 +1014,7 @@ void seDesconectaUnNodo(char* nombreNodo){
 
     int sizeTotal = config_get_int_value(archivoTablaNodos, "TAMANIO"); //Obtengo la cantidad de Nodos totales del archivo
     int sizeLibres = config_get_int_value(archivoTablaNodos, "LIBRE"); //Obtengo la cantidad de Nodos libres del archivo
-    char** nodos= config_get_array_value(archivoTablaNodos, "NODOS"); //Obtengo los Nodos que tiene el archivo (nombres)
+    //char** nodos= config_get_array_value(archivoTablaNodos, "NODOS"); //Por las duda lo comente porque no se usaba
 
     sizeTotal -= nodoABorrar->tamTotalNodo;
     sizeLibres -= nodoABorrar->tamLibreNodo;
@@ -819,10 +1071,11 @@ int buscarPosicion(char** nodos, char* nombreNodo){
 
 
 void actualizarTablaNodosBorrar(int socketDataNode){
-int encontrarPosicionNodo(int socket){
+
+	int encontrarPosicionNodo(int socket){
 	int i;
-	for(i = 0; i < nodosConectados->elements_count; i++ ){
-		t_sockets_nodo* nodo = list_get(nodosConectados,i);
+	for(i = 0; i < info_DataNodes->elements_count; i++ ){
+		t_info_nodo* nodo = list_get(info_DataNodes,i);
 		if(nodo->socket == socket){
 			return i;
 		}
@@ -835,139 +1088,201 @@ if(posicion < 0){
 	log_error(logger,"No se encontro rastro del nodo eliminado en el sistema");
 }
 else{
-	t_sockets_nodo* nodoDesconectado = list_remove(nodosConectados,posicion);
+	t_info_nodo* nodoDesconectado = list_remove(info_DataNodes,posicion);
 	seDesconectaUnNodo(nodoDesconectado->nombreNodo);
 }
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void actualizarTablaNodosAgregar(char* nombreNodo, int bloquesTotalesNodo, int bloquesLibresNodo){
 
+	// Habria que contemplar que se quieran agregar 2 nodos con el mismo nombre?
+	log_info(logger,"Se conecto %s, actualizando Tabla de Nodos",nombreNodo);
 
-t_directory* buscarDirectorio(char* path){
+	t_Nodos* infoNodos = leerMetadataNodos(tablaNodos);
 
-char** pathDividido = string_split(path, "/"); //Me quedaria una lista de cada subdirectorio dividido por "/", termina con un valor NULL
-int i=0;
-char* ultimoSubdirectorio;
+	int i = 0;
+	int cantidadNodos = obtenerCantidadElementos(infoNodos->nodos);
 
-while(pathDividido[i]!=NULL){
-	if(pathDividido[i+1]==NULL){ //Si la siguiente posicion es NULL entonces es el ultimo subdirectorio
-	ultimoSubdirectorio = malloc(strlen(pathDividido[i])+1);
-	strcpy(ultimoSubdirectorio, pathDividido[i]);  //obtengo subdirectorio donde estara el archivo
-	}else{
-		i++;
-	}
-}
+	char** nuevoArray= malloc(sizeof(char*) * (cantidadNodos+1));
 
-bool condition(void* element) {
-	t_directory* directorio = element;
-	return string_equals_ignore_case(directorio->nombre, ultimoSubdirectorio);
-}
+	for(i = 0; i < cantidadNodos; i++){
 
-t_directory* directorioEncontrado = list_find(directorios, condition);
-return directorioEncontrado;
-}
-
-
-
-void leer(char* path,char* nombreArch){
-
-	char* posicion;
-
-	t_directory* directorioEncontrado = buscarDirectorio(path);
-
-	posicion = string_itoa(directorioEncontrado->index);
-
-	char* tablaArchivos = "../../metadata/archivos/";
-
-	string_append (&tablaArchivos,posicion);
-	string_append (&tablaArchivos,"/");
-	string_append (&tablaArchivos,nombreArch);
-
-
-	t_config* archivoTablaArchivos = config_create(tablaArchivos); // con o sin &&??
-
-	if(archivoTablaArchivos == NULL)
-			log_error(logger,"ERROR: No se pudo encontrar el archivo nombreArch.csv");
-			puts("ERROR: No se pudo encontrar el archivo nombreArch.csv");
-
-
-	int cantidadKeys = config_keys_amount(archivoTablaArchivos);
-
-
-	int cantidadBloques = (cantidadKeys-2)/3;
-
-	int j;
-
-	for (j=0;j<cantidadBloques;j++){
-
-		char* numero = string_itoa(j);
-
-		char* bloque = "BLOQUE";
-
-		string_append(&bloque, numero);
-
-		string_append (&bloque,"COPIA0");
-
-		copiaLectura* bloqueLectura= config_get_array_value(archivoTablaArchivos,bloque); //TIENE QUE SER CHAR**
-
-		//busco Nodo y su bloque interno que contiene a la copia0 del bloque del archivo
-
-		bool condition(void* element) {
-				t_sockets_nodo* nodo = element;
-				return string_equals_ignore_case(nodo->nombreNodo, bloqueLectura->numNodo);
-			}
-
-		t_sockets_nodo* nodoEncontrado = list_find(info_DataNodes,condition);
-
-		int socketNodoEncontrado = nodoEncontrado -> socket;
-
-		socket_enviar(socketNodoEncontrado, D_STRUCT_NUMERO,(bloqueLectura->bloqueNodo)); //[Nodo1, 33]
-
-		void* estructuraRecibida;
-		t_tipoEstructura tipoEstructura;
-
-		int recepcion = socket_recibir(socketNodoEncontrado, estructuraRecibida,tipoEstructura);
-
-		if (recepcion == -1){
-
-				log_info(logger,"No se recibio la copia0 del Nodo");
-
-				char* numeroBloqueSinNumCopia = string_substring_until(numero,12);//BLOQUE0COPIA faltaria el 1
-
-				string_append (&numeroBloqueSinNumCopia,"1"); //corregir a COPIA1
-
-				copiaLectura* bloqueCopiaLectura= config_get_array_value(archivoTablaArchivos,numeroBloqueSinNumCopia); //TIENE QUE SER CHAR**
-
-
-				bool condition(void* element) {
-					t_sockets_nodo* nodo = element;
-					return string_equals_ignore_case(nodo->nombreNodo, bloqueCopiaLectura->numNodo);
-						}
-
-				t_sockets_nodo* nodocopia1Encontrado = list_find(info_DataNodes,condition);
-
-				int socketNodocopia1Encontrado = nodocopia1Encontrado -> socket;
-
-				socket_enviar(socketNodocopia1Encontrado,D_STRUCT_NUMERO,(bloqueCopiaLectura->bloqueNodo)); //[Nodo1, 33]
-
-				void* estructuraCopiaRecibida;
-				t_tipoEstructura tipoEstructuraCopia;
-
-				int recepcionCopia = socket_recibir(socketNodocopia1Encontrado, estructuraCopiaRecibida,tipoEstructuraCopia);
-
-				if (recepcionCopia == -1){
-					log_info(logger,"No se recibio ni la copia0 ni la copia1 del Nodo");
-				}
-
-
-
+			nuevoArray[i]=(char*)malloc(strlen(infoNodos->nodos[i])+1);
+			strcpy(nuevoArray[i],infoNodos->nodos[i]);
 		}
 
-		j++;
+	char* keybloquesTotalesNodo = strdup(nombreNodo);
+	char* keybloquesLibresNodo = strdup(nombreNodo);
+	string_append(&keybloquesTotalesNodo,"Total");
+	string_append(&keybloquesLibresNodo,"Libre");
 
+	t_config* archivoTablaNodos = config_create(tablaNodos);
+
+	if(archivoTablaNodos == NULL)
+		puts("ERROR: No se pudo encontrar el archivo nodos.bin");
+
+    if(!verificarMetadataNodos(archivoTablaNodos)){
+	   	puts("Fallo en formato de tabla de nodos");
 	}
+    else{
+
+    int sizeTotal = config_get_int_value(archivoTablaNodos, "TAMANIO"); //Obtengo la cantidad de Nodos totales del archivo
+    int sizeLibres = config_get_int_value(archivoTablaNodos, "LIBRE"); //Obtengo la cantidad de Nodos libres del archivo
+    //char** nodos= config_get_array_value(archivoTablaNodos, "NODOS"); //Por las dudas lo comente porque no se usaba
+
+    sizeTotal += bloquesTotalesNodo;
+    sizeLibres += bloquesLibresNodo;
+
+    char* string_sizeTotal = string_itoa(sizeTotal);
+    char* string_sizeLibre = string_itoa(sizeLibres);
+    char* string_NodoNuevoBloquesTotal = string_itoa(bloquesTotalesNodo);
+    char* string_NodoNuevoBloquesLibre = string_itoa(bloquesLibresNodo);
+
+    int cantidadNodosArrayNuevo  = cantidadNodos + 1;
+
+    char* arrayNodos = string_new();
+    string_append(&arrayNodos,"[");
+
+    for(i = 0; i < cantidadNodosArrayNuevo; i++){
+    	if( i == cantidadNodosArrayNuevo -1){
+    	string_append(&arrayNodos,nombreNodo);
+    	}
+    	else{
+    		string_append(&arrayNodos,nuevoArray[i]);
+    		string_append(&arrayNodos,",");
+    	}
+
+    }
+    string_append(&arrayNodos,"]");
+
+    //Actualizo los valores de las keys del config
+    config_set_value(archivoTablaNodos, "TAMANIO", string_sizeTotal);
+    config_set_value(archivoTablaNodos, "LIBRE", string_sizeLibre);
+    config_set_value(archivoTablaNodos, "NODOS", arrayNodos);
+
+    config_set_value(archivoTablaNodos, keybloquesTotalesNodo, string_NodoNuevoBloquesTotal);
+    config_set_value(archivoTablaNodos, keybloquesLibresNodo, string_NodoNuevoBloquesLibre);
+
+    config_save(archivoTablaNodos);
+    log_info(logger,"Se agrego el %s a la Tabla de Nodos",nombreNodo);
+    }
+
 }
 
+void actualizarTablaNodosAsignacion(int socketNodo){
+
+	t_Nodos* infoNodos = leerMetadataNodos(tablaNodos);
+
+	char* nombreNodo = buscarNombreNodo(socketNodo);
+
+
+	int indexNodo = buscarPosicion(infoNodos->nodos, nombreNodo);
+	if(indexNodo < 0){
+		printf("AVISO: No se encontro el nodo %s en la tabla de nodos\n", nombreNodo);
+		puts("Dejamos la tabla de nodos como estaba");
+		}
+	else{
+	char* keyBloquesLibresNodo = string_new();
+	string_append(&keyBloquesLibresNodo, nombreNodo);
+	string_append(&keyBloquesLibresNodo, "Libre");
+
+	t_config* archivoTablaNodos = config_create(tablaNodos);
+
+	if(archivoTablaNodos == NULL)
+		puts("ERROR: No se pudo encontrar el archivo nodos.bin");
+
+    if(!verificarMetadataNodos(archivoTablaNodos)){
+	   	puts("Fallo en formato de tabla de nodos");
+	}
+    else{
+
+    int sizeLibres = config_get_int_value(archivoTablaNodos, "LIBRE"); //Obtengo la cantidad de Nodos libres del archivo
+    int bloquesLibresNodo = config_get_int_value(archivoTablaNodos,keyBloquesLibresNodo);
+
+    sizeLibres -= 1;
+    bloquesLibresNodo -= 1;
+
+	int encontrarPosicionNodo(char* nombreNodo){
+		int i;
+		for(i = 0; i < info_DataNodes->elements_count; i++ ){
+			t_info_nodo* nodo = list_get(info_DataNodes,i);
+			if(strcmp(nodo->nombreNodo,nombreNodo) == 0){
+				return i;
+			}
+		}
+	return -1;
+	}
+
+	int posicion = encontrarPosicionNodo(nombreNodo);
+    t_struct_datanode* infoNodo = list_remove(info_DataNodes, posicion);
+    infoNodo->bloquesLibres = bloquesLibresNodo;
+    list_add(info_DataNodes,infoNodo);
+
+    char* string_sizeLibre = string_itoa(sizeLibres);
+    char* string_NodoNuevoBloquesLibre = string_itoa(bloquesLibresNodo);
+
+    //Actualizo los valores de las keys del config
+    config_set_value(archivoTablaNodos, "LIBRE", string_sizeLibre);
+    config_set_value(archivoTablaNodos, keyBloquesLibresNodo, string_NodoNuevoBloquesLibre);
+
+    config_save(archivoTablaNodos);
+    log_info(logger,"Se asigno un bloque  del %s\n",nombreNodo);
+    }
+	}
+}
+//////////////////////////////////// FUNCIONES TABLA DE DIRECTORIOS /////////////////////////////////////
+
+int asignarPosicionEnTablaDirectorios(char* rutaArchivo, char* nombreArchivo){
+
+}
+
+int existeEnTablaDirectorio(char* rutaArchivo){
+
+}
+
+//////////////////////////////////// FUNCIONES TABLA DE ARCHIVOS ///////////////////////////////////////
+
+void crearMetadataArchivo(int indexDirectorio, char* nombreArchivo, long tamanioArchivo,char* tipoArchivo){
+
+	char* string_index = string_itoa(indexDirectorio);
+
+	char* rutaArchivo = string_new();
+	string_append(&rutaArchivo,tablaArchivos);
+	string_append(&rutaArchivo,"/");
+	string_append(&rutaArchivo,string_index);
+	string_append(&rutaArchivo,"/");
+	string_append(&rutaArchivo,nombreArchivo);
+
+	char* crearMetadaArchivo = string_from_format("touch %s", rutaArchivo);
+
+	system(crearMetadaArchivo);
+
+	log_info(logger,"Se creo el archivo de metadata del archivo %s",nombreArchivo);
+
+
+		t_config* metadataArchivo = config_create(rutaArchivo);
+
+		if(metadataArchivo == NULL)
+			printf("ERROR: No se pudo encontrar el archivo %s", rutaArchivo);
+
+		char* string_tamanio = string_itoa(tamanioArchivo);
+
+	    //Actualizo los valores de las keys del config
+	    config_set_value(metadataArchivo, "TAMANIO", string_tamanio);
+	    config_set_value(metadataArchivo, "TIPO", tipoArchivo);
+
+	    config_save(metadataArchivo);
+	    log_info(logger,"Se creo exitosamente archivo de metada %s",rutaArchivo);
+	    }
+
+//todo: Implementar funciones
+void actualizarMetadataArchivo(char* nombreArchivo){
+
+}
+
+void actualizarMetadataArchivoBloques(char* nombreArchivo, char* nombreNodo, int bloqueNodo, int copia){
+
+}
 
 
 
