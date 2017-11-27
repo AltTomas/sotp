@@ -840,43 +840,51 @@ else{
 }
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+t_directory* buscarDirectorio(char* path){
+
+char** pathDividido = string_split(path, "/"); //Me quedaria una lista de cada subdirectorio dividido por "/", termina con un valor NULL
+int i=0;
+char* ultimoSubdirectorio;
+
+while(pathDividido[i]!=NULL){
+	if(pathDividido[i+1]==NULL){ //Si la siguiente posicion es NULL entonces es el ultimo subdirectorio
+	ultimoSubdirectorio = malloc(strlen(pathDividido[i])+1);
+	strcpy(ultimoSubdirectorio, pathDividido[i]);  //obtengo subdirectorio donde estara el archivo
+	}else{
+		i++;
+	}
+}
+
+bool condition(void* element) {
+	t_directory* directorio = element;
+	return string_equals_ignore_case(directorio->nombre, ultimoSubdirectorio);
+}
+
+t_directory* directorioEncontrado = list_find(directorios, condition);
+return directorioEncontrado;
+}
 
 
 
 void leer(char* path,char* nombreArch){
 
-
-	char** pathDividido = string_split(path, "/"); //Me quedaria una lista de cada subdirectorio dividido por "/", termina con un valor NULL
-	int i=0;
-	char* ultimoSubdirectorio;
 	char* posicion;
 
+	t_directory* directorioEncontrado = buscarDirectorio(path);
 
-	while(pathDividido[i]!=NULL){
-
-		if(pathDividido[i+1]==NULL){ //Si la siguiente posicion es NULL entonces es el ultimo subdirectorio
-		ultimoSubdirectorio = malloc(strlen(pathDividido[i])+1);
-		strcpy(ultimoSubdirectorio, pathDividido[i]);  //obtengo subdirectorio donde estara el archivo
-		}else{
-			i++;
-		}
-	}
-
-
-	bool condition(void* element) {
-		t_directory* directorio = element;
-		return string_equals_ignore_case(directorio->nombre, ultimoSubdirectorio);
-	}
-	t_directory* directorioEncontrado = list_find(directorios, condition);
 	posicion = string_itoa(directorioEncontrado->index);
 
+	char* tablaArchivos = "../../metadata/archivos/";
 
 	string_append (&tablaArchivos,posicion);
 	string_append (&tablaArchivos,"/");
 	string_append (&tablaArchivos,nombreArch);
 
 
-	t_config* archivoTablaArchivos = config_create(&tablaArchivos); // con o sin &&??
+	t_config* archivoTablaArchivos = config_create(tablaArchivos); // con o sin &&??
 
 	if(archivoTablaArchivos == NULL)
 			log_error(logger,"ERROR: No se pudo encontrar el archivo nombreArch.csv");
@@ -894,14 +902,15 @@ void leer(char* path,char* nombreArch){
 
 		char* numero = string_itoa(j);
 
-		string_append("BLOQUE", &numero);
+		char* bloque = "BLOQUE";
 
-		string_append (&numero,"COPIA0");
+		string_append(&bloque, numero);
 
-		copiaLectura* bloqueLectura= config_get_array_value(archivoTablaArchivos,&numero); //verificar si va o no con &
+		string_append (&bloque,"COPIA0");
+
+		copiaLectura* bloqueLectura= config_get_array_value(archivoTablaArchivos,bloque); //TIENE QUE SER CHAR**
 
 		//busco Nodo y su bloque interno que contiene a la copia0 del bloque del archivo
-		t_sockets_nodo* socketNodo = malloc(sizeof(t_sockets_nodo));
 
 		bool condition(void* element) {
 				t_sockets_nodo* nodo = element;
@@ -920,13 +929,15 @@ void leer(char* path,char* nombreArch){
 		int recepcion = socket_recibir(socketNodoEncontrado, estructuraRecibida,tipoEstructura);
 
 		if (recepcion == -1){
+
 				log_info(logger,"No se recibio la copia0 del Nodo");
 
-				string_append (&numero,"COPIA0"); //corregir a COPIA1
+				char* numeroBloqueSinNumCopia = string_substring_until(numero,12);//BLOQUE0COPIA faltaria el 1
 
-				copiaLectura* bloqueCopiaLectura= config_get_array_value(archivoTablaArchivos,&numero); //verificar si va o no con &
+				string_append (&numeroBloqueSinNumCopia,"1"); //corregir a COPIA1
 
-				t_sockets_nodo* socketNodo = malloc(sizeof(t_sockets_nodo));
+				copiaLectura* bloqueCopiaLectura= config_get_array_value(archivoTablaArchivos,numeroBloqueSinNumCopia); //TIENE QUE SER CHAR**
+
 
 				bool condition(void* element) {
 					t_sockets_nodo* nodo = element;
@@ -956,5 +967,7 @@ void leer(char* path,char* nombreArch){
 
 	}
 }
+
+
 
 

@@ -31,7 +31,7 @@ typedef struct {
 } copia;
 
 typedef struct {
-	char numNodo;
+	char* numNodo;
 	int bloqueNodo;
 } copiaLectura;
 

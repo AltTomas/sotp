@@ -32,7 +32,7 @@
 #define configuracionFS "../../Configs/configFileSystem.config"
 #define tablaDirectorios "../../metadata/directorios.dat"
 #define tablaNodos "../../yamaFS/metadata/nodos.bin"
-#define tablaArchivos "../../metadata/archivos/"
+#define tablaArchivos1 "../../metadata/archivos/" //rompe en leer porque necesita ser un char*
 
 #define MAX_LEN_PUERTO 6
 #define PUNTO_MONTAJE 250
@@ -101,5 +101,6 @@ bool masBloquesLibres(t_bloquesLibres_nodo*, t_bloquesLibres_nodo*);
 void seDesconectaUnNodo(char*);
 int buscarPosicion(char**, char*);
 void actualizarTablaNodosBorrar(int);
+void leer(char* path,char* nombreArch);
 
 #endif /* FUNCIONESFS_H_ */
