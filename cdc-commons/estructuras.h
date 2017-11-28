@@ -25,16 +25,6 @@ typedef struct{
 
 typedef uint8_t t_tipoEstructura;
 
-typedef struct controller{
-	u_int32_t job;
-	u_int32_t master;
-	char* nodo;
-	u_int32_t bloque;
-	char* etapa;
-	char* fileTemporal;
-	char* status;
-} t_controller;
-
 typedef struct Stream {
 	int length;
 	char* data;
@@ -217,6 +207,15 @@ typedef struct bloques{ // Elementos de la lista anterior
     int puertoNodoCopia;
 }__attribute__((__packed__)) t_struct_bloques;
 
+typedef struct t_tablaEstados{
+	u_int32_t job;
+	u_int32_t master;
+	u_int32_t nodo;
+	u_int32_t bloque;
+	u_int32_t etapa;
+	char* fileTemporal;
+	u_int32_t status;
+} t_tablaEstados;
 
 typedef struct listaUbicacionBloques{
 	int numeroBloqueOriginal;

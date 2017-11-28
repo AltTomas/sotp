@@ -19,9 +19,12 @@
 #define MAX_LEN_PUERTO 6
 #define MAX_ALGORITMO 6
 #define MAX_LEN_IP 20
-#define ESTADO_EN_PROCESO "En proceso"
-#define ESTADO_ERROR "Error"
-#define ESTADO_FINALIZADO_OK "Finalizado Ok"
+#define ESTADO_EN_PROCESO 800
+#define ESTADO_ERROR 801
+#define ESTADO_FINALIZADO_OK 802
+#define ETAPA_TRANSFORMACION 803
+#define ETAPA_REDUCCION_LOCAL 804
+#define ETAPA_REDUCCION_GLOBAL 805
 
 typedef struct {
 	char* FS_ip;

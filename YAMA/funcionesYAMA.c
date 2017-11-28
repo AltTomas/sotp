@@ -197,18 +197,12 @@ void trabajarSolicitudMaster(int socketMaster) {
 	} else {
 		switch (tipoEstructura) {
 		case D_STRUCT_STRING:
-			printf("Llego solicitud de tarea del Master en el socket %d\n",
-					socketMaster);
-			log_info(logger,
-					"Llego solicitud de tarea del Master en el socket %d",
-					socketMaster);
+			printf("Llego solicitud de tarea del Master en el socket %d\n",socketMaster);
+			log_info(logger,"Llego solicitud de tarea del Master en el socket %d",socketMaster);
 
-			printf("Archivo Objetivo: %s\n",
-					((t_struct_string*) estructuraRecibida)->string);
-			log_info(logger, "Archivo Objetivo: %s",
-					((t_struct_string*) estructuraRecibida)->string);
-			getNodoByFile(((t_struct_string*) estructuraRecibida)->string,
-					socketMaster);
+			printf("Archivo Objetivo: %s\n",((t_struct_string*) estructuraRecibida)->string);
+			log_info(logger, "Archivo Objetivo: %s",((t_struct_string*) estructuraRecibida)->string);
+			getNodoByFile(((t_struct_string*) estructuraRecibida)->string,socketMaster);
 			FD_SET(socketMaster, &setMasters);
 
 			break;
@@ -228,8 +222,7 @@ void getNodoByFile(char* nombreFile, int socketConexionMaster) {
 	socket_enviar(socketConexionFS, D_STRUCT_STRING, stringFile);
 	free(stringFile);
 
-	int recepcion = socket_recibir(socketConexionFS, &tipoEstructura,
-			&estructuraRecibida);
+	int recepcion = socket_recibir(socketConexionFS, &tipoEstructura, &estructuraRecibida);
 	if (recepcion == -1) {
 		printf("Se desconecto el FS en el socket %d\n", socketConexionFS);
 		log_info(logger, "Se desconecto el Master en el socket %d",
@@ -269,6 +262,11 @@ void getNodoByFile(char* nombreFile, int socketConexionMaster) {
 
 						agregarBloqueALaLista(bloqueEnviar);
 					}
+					// modificar la lista de Balanceo de cargas si hace falta
+
+
+
+					iniciarPlanificacion();
 				break;
 				}
 			}
@@ -319,4 +317,28 @@ void agregarBloqueALaLista(t_struct_bloques* bloqueAgregar){
 	list_add(listaInfoBloques,nuevoBloque); /* lista var global */
 
 	free(nuevoBloque);free(datosNodoDelBloque);
+}
+
+void iniciarPlanificacion(){
+
+	/* Cuando inicias planificacion modificas Tabla de Estados que seria el controller */
+
+	/* ****************************************************************************** */
+
+	/* Obtengo el primer bloque a planificar fijandome en la listaInfoBloque */
+
+	/* ****************************************************************************** */
+
+	/* Me fijo en la lista de balanceo de cargas en que worker esta */
+
+	/* ****************************************************************************** */
+
+	/* Me fijo en la lista de estados si hay algo y sino agrego el estado en ejecucion */
+
+	/* ****************************************************************************** */
+
+	/* Mando a Ejecutar el bloque */
+
+	/* ****************************************************************************** */
+
 }
