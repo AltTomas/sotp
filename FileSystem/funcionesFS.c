@@ -482,31 +482,6 @@ int determinarEstado() {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-t_directory* buscarDirectorio(char* path){
-
-char** pathDividido = string_split(path, "/"); //Me quedaria una lista de cada subdirectorio dividido por "/", termina con un valor NULL
-int i=0;
-char* ultimoSubdirectorio;
-
-while(pathDividido[i]!=NULL){
-	if(pathDividido[i+1]==NULL){ //Si la siguiente posicion es NULL entonces es el ultimo subdirectorio
-	ultimoSubdirectorio = malloc(strlen(pathDividido[i])+1);
-	strcpy(ultimoSubdirectorio, pathDividido[i]);  //obtengo subdirectorio donde estara el archivo
-	}
-	else{
-		i++;
-	}
-}
-
-bool condition(void* element) {
-	t_directory* directorio = element;
-	return string_equals_ignore_case(directorio->nombre, ultimoSubdirectorio);
-}
-
-t_directory* directorioEncontrado = list_find(directorios, condition);
-return directorioEncontrado;
-}
-
 
 void leer(char* path,char* nombreArch){
 
@@ -562,10 +537,10 @@ void leer(char* path,char* nombreArch){
 
 		int socketNodoEncontrado = nodoEncontrado -> socket;
 
-		// todo: Se envia todo por medio de estructuras!
-		// crear t_struct_numero* enviado, asignarle valor a enviado->numero
+		// crear t_struct_numero* enviado, asignarle valor a enviado->numero (bloqueLectura->bloqueNodo)
+		t_struct_numero* enviado = bloqueLectura->bloqueNodo;
 		// Ejemeplo: socket_enviar(socketNodoEncontrado, D_STRUCT_NUMERO,enviado);
-		socket_enviar(socketNodoEncontrado, D_STRUCT_NUMERO,(bloqueLectura->bloqueNodo)); //[Nodo1, 33]
+		socket_enviar(socketNodoEncontrado, D_STRUCT_NUMERO,enviado); //[Nodo1, 33]
 
 		void* estructuraRecibida;
 		t_tipoEstructura tipoEstructura;
@@ -592,8 +567,10 @@ void leer(char* path,char* nombreArch){
 
 				int socketNodocopia1Encontrado = nodocopia1Encontrado -> socket;
 
+				t_struct_numero* enviado = bloqueLectura->bloqueNodo;
+
 				// Lo mismo que con el enviar de arriba
-				socket_enviar(socketNodocopia1Encontrado,D_STRUCT_NUMERO,(bloqueCopiaLectura->bloqueNodo)); //[Nodo1, 33]
+				socket_enviar(socketNodocopia1Encontrado,D_STRUCT_NUMERO,enviado); //[Nodo1, 33]
 
 				void* estructuraCopiaRecibida;
 				t_tipoEstructura tipoEstructuraCopia;
@@ -612,6 +589,37 @@ void leer(char* path,char* nombreArch){
 
 	}
 }
+
+
+t_directory* buscarDirectorio(char* path){
+
+char** pathDividido = string_split(path, "/"); //Me quedaria una lista de cada subdirectorio dividido por "/", termina con un valor NULL
+int i=0;
+char* ultimoSubdirectorio;
+
+while(pathDividido[i]!=NULL){
+	if(pathDividido[i+1]==NULL){ //Si la siguiente posicion es NULL entonces es el ultimo subdirectorio
+	ultimoSubdirectorio = malloc(strlen(pathDividido[i])+1);
+	strcpy(ultimoSubdirectorio, pathDividido[i]);  //obtengo subdirectorio donde estara el archivo
+	}
+	else{
+		i++;
+	}
+}
+
+bool condition(void* element) {
+	t_directory* directorio = element;
+	return string_equals_ignore_case(directorio->nombre, ultimoSubdirectorio);
+}
+
+t_directory* directorioEncontrado = list_find(directorios, condition); //seria directorios o habria que abrir el metadata directorios.dat
+return directorioEncontrado;
+}
+
+
+
+
+
 
 
 int almacenarArchivo(char* ruta, char* nombreArchivo, char* tipo){// Faltan argumentos
@@ -1284,5 +1292,85 @@ void actualizarMetadataArchivoBloques(char* nombreArchivo, char* nombreNodo, int
 
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+void renombrar(char* path_original, char* path_final){//ejemplo renombrar(lalala/so/2/tp.txt, op.txt)
+
+	t_directory* ultimoSubdirectorio = buscarDirectorio(path_original);
+
+	if(verificarSiEsArchivoODirectorio(path_original)!=0){
+
+		int posicion = ultimoSubdirectorio->index;
+		char* indiceChar = string_itoa (posicion);
+		char* rutaArchivo = string_new();
+		string_append (&rutaArchivo,tablaArchivos);
+		string_append (&rutaArchivo,"/");
+		string_append (&rutaArchivo,indiceChar);
+		string_append (&rutaArchivo,"/");
+		string_append (&rutaArchivo, path_final);
+
+				if(verificarExistenciaNombreArchivo(path_final)!=0){
+					path_original = rutaArchivo;//CHEQUEAR
+				}else{
+					log_error(logger,"Ya existe ese nombre de Archivo");
+				}
+
+	}else{
+	char* nombreUltimoSubdirectorio = ultimoSubdirectorio -> nombre;
+	int padreUltimoSubdirectorio = ultimoSubdirectorio -> padre;
+
+	if (verificarExistenciaNombreDirectorio(nombreUltimoSubdirectorio,padreUltimoSubdirectorio)==1){
+		(ultimoSubdirectorio -> nombre) = path_final; //CHEQUEAR
+	}else{
+		log_error(logger,"Ya existe ese nombre de Directorio");
+	}
+	}
+}
+
+
+
+int verificarSiEsArchivoODirectorio(char* path){
+    struct stat path_stat;
+    stat(path, &path_stat);
+    return S_ISREG(path_stat.st_mode);// si es !=0 es un archivo
+} //podria usarse un fopen, si abre es archivo y sino directorio, o con string_contains que se fijaria el "." para que sea archivo
+
+
+
+int verificarExistenciaNombreDirectorio(char* nombre, int padre){ //podria usar un strcmp
+
+	int respuesta;
+	char* padreChar = string_itoa(padre);
+
+	bool condition(void* element) {
+		t_directory* directorio = element;
+		return string_equals_ignore_case(string_itoa(directorio->padre), padreChar) && string_equals_ignore_case(directorio->nombre, nombre) ;
+	}
+	t_directory* directorioConMismoPadreYNombre = list_find(directorios, condition);//seria directorios o habria que abrir el metadata directorios.dat
+
+	if (directorioConMismoPadreYNombre == NULL){
+		respuesta=1;
+	}else{
+		respuesta=0;
+	}
+	return respuesta; //    =0 ya existe el directorio con ese nombre en el mismo padre
+}
+
+
+
+int verificarExistenciaNombreArchivo(char* rutaArchivo){
+	int respuesta;
+
+	FILE* archivo = fopen(rutaArchivo, "r");
+
+	if (archivo) {
+	fclose(archivo);
+	 respuesta = 0; //    =0 ya existe archivo con ese nombre en el mismo index
+	} else {
+	 respuesta=1;
+	}
+
+	return respuesta;
+	}
 

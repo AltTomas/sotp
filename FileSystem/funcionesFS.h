@@ -128,5 +128,8 @@ int existeEnTablaDirectorio(char*);
 t_directory* buscarDirectorio(char*);
 void actualizarMetadataArchivo(char*);
 void actualizarMetadataArchivoBloques(char*, char*, int, int);
+int verificarSiEsArchivoODirectorio(char* path);
+int verificarExistenciaNombreDirectorio(char* nombre, int padre);
+int verificarExistenciaNombreArchivo(char* rutaArchivo);
 
 #endif /* FUNCIONESFS_H_ */
