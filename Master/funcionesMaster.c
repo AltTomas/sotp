@@ -93,12 +93,50 @@ void conectarConYAMA(void){
 }
 
 ///////////////////////////////////////////////////// EJECUTAR UN JOB ////////////////////////////////////////////////////////
+void consola(){
+	t_argumentos * argumentos = malloc(sizeof(t_argumentos));
 
-void ejecutarJob(char** argumentos){
+	puts("Ingrese el path del script de TRANSFORMACIÓN...");
+					char * pathT = malloc(200);
+					scanf("%s", pathT);
+					argumentos->script_transformacion = string_new();
+					string_append(&(argumentos->script_transformacion), pathT);
+
+
+	puts("Ingrese el path del script de REDUCCIÓN...");
+					char * pathR = malloc(200);
+					scanf("%s", pathR);
+					argumentos->script_reduccion = string_new();
+					string_append(&(argumentos->script_reduccion), pathR);
+					free(pathR);
+
+	puts("Ingrese el path del archivo ORIGINAL...");
+					char * pathAG = malloc(200);
+					scanf("%s", pathAG);
+					argumentos->archivo = string_new();
+					string_append(&(argumentos->archivo), pathAG);
+					free(pathAG);
+
+	puts("Ingrese el path del archivo FINAL...");
+					char * pathAF = malloc(200);
+					scanf("%s", pathAF);
+					argumentos->archivo_resultado = string_new();
+					string_append(&(argumentos->archivo_resultado), pathAF);
+					free(pathAF);
+
+	puts("El job será ejecutado...");
+
+	pthread_create(&hiloJob, NULL, (void*)ejecutarJob, argumentos);
+
+
+
+}
+
+void ejecutarJob(t_argumentos argumentos){
 
 	// Obtenemos el codigo de los scripts
-	scriptTransformacion = obtenerContenido(argumentos[1]);
-	scriptReduccion = obtenerContenido(argumentos[2]);
+	scriptTransformacion = obtenerContenido(argumentos.script_transformacion);
+	scriptReduccion = obtenerContenido(argumentos.script_reduccion);
 
 	argumentosMaster = malloc(sizeof(t_argumentos));
 
@@ -108,11 +146,11 @@ void ejecutarJob(char** argumentos){
 	argumentosMaster->script_reduccion = (char*)malloc(strlen(scriptReduccion)+1);
 	strcpy(argumentosMaster->script_reduccion, scriptReduccion);
 
-	argumentosMaster->archivo = (char*)malloc(strlen(argumentos[3])+1);
-	strcpy(argumentosMaster->archivo, argumentos[3]);
+	argumentosMaster->archivo = (char*)malloc(strlen(argumentos.archivo)+1);
+	strcpy(argumentosMaster->archivo, argumentos.archivo);
 
-	argumentosMaster->archivo_resultado = (char*)malloc(strlen(argumentos[4])+1);
-	strcpy(argumentosMaster->archivo_resultado, argumentos[4]);
+	argumentosMaster->archivo_resultado = (char*)malloc(strlen(argumentos.archivo_resultado)+1);
+	strcpy(argumentosMaster->archivo_resultado, argumentos.archivo_resultado);
 
 	t_struct_string* enviado = malloc(sizeof(t_struct_string));
 
@@ -505,6 +543,7 @@ void ejecutarAlmacenamientoFinal (t_infoNodo_Final* workerEncargado){
 					close(socketConexionWorker);
 					free(confirmacion);
 					free(idNodo);
+					mostrarMetricas();
 				break;
 
 				case WORKER_MASTER_ALMACENAMIENTO_FINAL_FALLO:
@@ -549,4 +588,5 @@ char* obtenerContenido(char* ruta){
 
 void mostrarMetricas(){
 	puts("Metricas");
+	consola();
 }

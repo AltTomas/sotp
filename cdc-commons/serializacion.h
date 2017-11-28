@@ -19,6 +19,8 @@
 	t_stream * serializeStruct_Nodos_Reduccion_L(t_infoNodo_reduccionLocal* estructuraOrigen, int headerOperacion);
 	t_stream * serializeStruct_Nodos_Reduccion_G(t_infoNodo_reduccionGlobal* estructuraOrigen, int headerOperacion);
 	t_stream * serializeStruct_bloque_fs_yama(t_struct_bloques* estructuraOrigen, int headerOperacion);
+	t_stream * serializeStruct_datanode(t_struct_datanode* estructuraOrigen, int headerOperacion);
+	t_stream * serializeStruct_fs_datanode_almacenar(t_almacenar_bloque* estructuraOrigen, int headerOperacion);
 
 	t_header desempaquetarHeader(char * header);
 	void * deserialize(uint8_t tipoEstructura, char * dataPaquete, uint16_t length);
@@ -33,5 +35,7 @@
 	t_infoNodo_reduccionLocal* deserializeStruct_Nodos_Reduccion_L(char * dataPaquete, uint16_t length);
 	t_infoNodo_reduccionGlobal* deserializeStruct_Nodos_Reduccion_G(char * dataPaquete, uint16_t length);
 	t_struct_bloques * deserializeStruct_bloque_fs_yama(char * dataPaquete, uint16_t length);
+	t_struct_datanode * deserializeStruct_datanode(char * dataPaquete, uint16_t length);
+	t_almacenar_bloque * deserializeStruct_fs_datanode_almacenar(char * dataPaquete, uint16_t length);
 
 #endif /* SERIALIZACION_H_ */

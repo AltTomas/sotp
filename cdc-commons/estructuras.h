@@ -13,15 +13,6 @@
 #include <commons/collections/queue.h>
 #include <commons/string.h>
 
-//Estructura definida para Archivo de Configuracion del DataNode.
-typedef struct{
-  char*   IP_FILESYSTEM;
-	int   PUERTO_FILESYSTEM;
-  char*   NOMBRE_NODO;
-	int   PUERTO_WORKER;
-	int   PUERTO_DATANODE;
-  char*   RUTA_DATABIN;
-} t_DataNode;
 
 typedef uint8_t t_tipoEstructura;
 
@@ -47,20 +38,19 @@ enum{
 	D_STRUCT_NODOS_REDUCCION_LOCAL=7,
 	D_STRUCT_NODOS_REDUCCION_GLOBAL=8,
 	D_STRUCT_INFO_BLOQUE=9,
+	D_STRUCT_DATA_NODE= 111,
+	D_STRUCT_INFO_NODO= 112,
 
-	D_STRUCT_CANTIDAD_WORKERS=70,
 	D_STRUCT_NODO_TRANSFORMACION= 71,
 	D_STRUCT_NODO_ESCLAVO= 61,
 
 	  /*OPERACIONES YAMA-FS*/
 	  YAMA_FS_GET_DATA_BY_FILE = 00,
-	  YAMA_FS_SOLICITAR_LISTABLOQUES = 01,
+	  YAMA_FS_SOLICITAR_LISTABLOQUES = 12,
 
 	  /*OPERACIONES FS-YAMA*/
 	  FS_YAMA_NOT_LOAD = 10,
-	  FS_YAMA_CANTIDAD_BLOQUES = 11,
-	  FS_YAMA_UBICACION_BLOQUES = 12,
-	  FS_YAMA_LISTABLOQUES = 13,
+	  FS_YAMA_LISTABLOQUES = 11,
 
 	  /*OPERACIONES YAMA-MASTER*/
 	  YAMA_MASTER_FS_NOT_LOAD = 21,
@@ -96,6 +86,10 @@ enum{
 	  WORKER_MASTER_ALMACENAMIENTO_FINAL_FALLO=57,
 	  JOB_OK=58,
 
+	  /* OPERACIONES FS-DATANODE*/
+	  FS_DATANODE_PEDIDO_INFO=80,
+	  FS_DATANODE_ALMACENAR_BLOQUE=81,
+
 	  //Handshake
 	  ES_YAMA=100,
 	  ES_MASTER=101,
@@ -104,7 +98,6 @@ enum{
 	  ES_DATANODE=104,
 
 	  //Errores
-	  D_STRUCT_ERR=90,
 	  ERR_RCV=91
 
 } t_operaciones;
@@ -217,22 +210,29 @@ typedef struct t_tablaEstados{
 	u_int32_t status;
 } t_tablaEstados;
 
-typedef struct listaUbicacionBloques{
-	int numeroBloqueOriginal;
-	int idNodoOriginal;
-	char* ipOriginal;
-	int puertoOriginal;
-	int numeroBloqueCopia;
-	int idNodoCopia;
-	char* ipCopia;
-	int puertoCopia;
-	int finalBloque;
-}__attribute__((__packed__)) listaUbicacionBloques;
+typedef struct bloqueDN{
+	int numBloque;
+	int estado; //ocupado o libre
+}__attribute__((__packed__)) t_struct_bloqueDN;
+
+
+typedef struct dataNode{
+	char* ipDN;
+	int puertoDN;
+	char* nomDN;
+	t_list* bloqueDN;//t_struct_bloqueDN
+}__attribute__((__packed__)) t_struct_datanode;
 
 typedef struct balanceoCargas{
 	int availability;
 	int worker;
 	t_list* bloques;
 }__attribute__((__packed__)) balanceoCargas;
+
+typedef struct almacenarBloque{
+	char* contenidoBloque;
+	int bloqueArchivo;
+	int bytesOcupados;
+}__attribute__((__packed__)) t_almacenar_bloque;
 
 #endif /* ESTRUCTURAS_H_ */

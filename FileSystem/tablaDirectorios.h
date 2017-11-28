@@ -20,6 +20,7 @@ typedef struct {
 	int padre;
 } t_directory;
 
-static_assert( (t_directory.index) < 100, "debe haber menos de 100 directorios");
+//static_assert( (t_directory.index) < 100, "debe haber menos de 100 directorios");
+
 
 #endif /* TABLADIRECTORIOS_H_ */
