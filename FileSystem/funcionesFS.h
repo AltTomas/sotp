@@ -131,5 +131,9 @@ void actualizarMetadataArchivoBloques(char*, char*, int, int);
 int verificarSiEsArchivoODirectorio(char* path);
 int verificarExistenciaNombreDirectorio(char* nombre, int padre);
 int verificarExistenciaNombreArchivo(char* rutaArchivo);
+void MD5(char* path_archivo);
+void cat(char* path_archivo);
+void ls(char* path_archivo);
+void info(char* path_archivo);
 
 #endif /* FUNCIONESFS_H_ */

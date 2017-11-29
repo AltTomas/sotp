@@ -1374,3 +1374,103 @@ int verificarExistenciaNombreArchivo(char* rutaArchivo){
 	return respuesta;
 	}
 
+/////////////////////////////////////////////////////////
+
+
+void MD5(char* path_archivo) { //chequear si es char* o void (por system)
+
+	bool condition(void* element) {
+			file* archivo = element;
+			return string_equals_ignore_case(archivo->path, path_archivo);
+		}
+	 file* archivoEncontrado = list_find(filesAlmacenados, condition);
+
+	 if (archivoEncontrado!=NULL){
+		 	char* md5Char = "md5sum ";
+		 	string_append (&md5Char,path_archivo);
+			system(md5Char); //para que me quede md5sum utn/hola.txt
+	 } else {
+		 log_error(logger,"error al realizar el md5");
+	 }
+
+}
+
+void cat(char* path_archivo) { //chequear si es char* o void (por system)
+
+	bool condition(void* element) {
+			file* archivo = element;
+			return string_equals_ignore_case(archivo->path, path_archivo);
+		}
+	 file* archivoEncontrado = list_find(filesAlmacenados, condition);
+
+	 if (archivoEncontrado!=NULL){
+		 	char* catChar = "cat ";
+		 	string_append (&catChar,path_archivo);
+			system(catChar); //para que me quede cat utn/hola.txt, me devolveria el contenido ejemplo: adsasdasd
+	 } else {
+		 log_error(logger,"error al realizar el cat");
+	 }
+
+}
+
+void ls(char* path_archivo) { //chequear si es char* o void (por system)
+
+	bool condition(void* element) {
+			file* archivo = element;
+			return string_equals_ignore_case(archivo->path, path_archivo);
+		}
+	 file* archivoEncontrado = list_find(filesAlmacenados, condition);
+
+	 if (archivoEncontrado!=NULL){
+		 	char* lsChar = "ls ";
+		 	string_append (&lsChar,path_archivo);
+			system(lsChar); //para que me quede ls utn/hola.txt
+	 } else {
+		 log_error(logger,"error al realizar el ls");
+	 }
+
+}
+
+void info(char* path_archivo) { //chequear si es char* o void (por system)
+
+	bool condition(void* element) {
+			file* archivo = element;
+			return string_equals_ignore_case(archivo->path, path_archivo);
+		}
+	 file* archivoEncontrado = list_find(filesAlmacenados, condition);
+
+	 if (archivoEncontrado!=NULL){
+		 	int tamanioDelArchivo = archivoEncontrado->tamanio;
+		 	char* tipoDelArchivo = archivoEncontrado->tipo;
+		 	int cantidadBloques = list_size(archivoEncontrado -> bloques);
+
+		 	 printf("El tamanio Del Archivo es %d\n", tamanioDelArchivo);
+		 	 printf("El tipo Del Archivo del archivo es %s\n", tipoDelArchivo);
+		 	 printf("La cantidad de bloques es %d\n", cantidadBloques);
+
+
+		 	int i;
+		 	for(i=0;i<cantidadBloques;i++){
+		 	  bloque* bloque = list_get(archivoEncontrado->bloques,i);
+		 	  int numeroBloque = bloque -> numBloque;
+		 	  int fin = bloque -> finBloque;
+		 	  int nodoOriginal = bloque -> copia0-> numNodo;
+		 	  int bloqueNodoOriginal = bloque -> copia0-> bloqueNodo;
+		 	  int nodoCopia = bloque -> copia1 -> numNodo;
+		 	  int bloqueNodoCopia = bloque -> copia1-> bloqueNodo;
+
+		 	 printf("Contiene al bloque numero %d\n", numeroBloque);
+		 	 printf("Finaliza en %d\n", fin);
+		 	 printf("La copia original se ubica en el nodo %d\n", nodoOriginal);
+		 	 printf("En el bloque %d\n", bloqueNodoOriginal);
+		 	 printf("La copia1 se ubica en el nodo %d\n", nodoCopia);
+		 	 printf("En el bloque %d\n", bloqueNodoCopia);
+
+		 	}
+
+
+	 }
+}
+
+
+
