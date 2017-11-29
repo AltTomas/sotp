@@ -17,7 +17,7 @@
 typedef struct {
 	int index;
 	char* nombre; // char [255]?
-	int padre;
+	int indexPadre;
 } t_directory;
 
 //static_assert( (t_directory.index) < 100, "debe haber menos de 100 directorios");

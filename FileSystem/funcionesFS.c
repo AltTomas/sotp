@@ -80,18 +80,10 @@ void crearEstructurasAdministrativas(){
 
 	directorios = list_create();
 
-	t_directory* directorioRoot = malloc(sizeof(t_directory));
-	directorioRoot->index = 0;
-	directorioRoot->nombre = (char*)malloc(strlen("root")+1);
-	strcpy(directorioRoot->nombre ,"root");
-	directorioRoot->padre = -1;
-
-	list_add(directorios,directorioRoot);
-
 	char* crearTablaDirectorios = string_from_format("touch %s", tablaDirectorios);
 	system(crearTablaDirectorios);
 
-	// todo: Persistir root en archivo tabla de directorios
+	crearRoot();
 
 	char* crearTablaNodos = string_from_format("touch %s", tablaNodos);
 	system(crearTablaNodos);
@@ -436,7 +428,10 @@ void buscarBloquesArchivo(char* nombreFile, int socketConexionYAMA) {
 
   int cantidadBloques = list_size(archivoEncontrado -> bloques);
 
-  socket_enviar(socketConexionYAMA,D_STRUCT_NUMERO,cantidadBloques); //FS_YAMA_CANTIDAD_BLOQUES ya estaba definido del lado de funcionesYama
+  t_struct_numero* enviado = malloc(sizeof(t_struct_numero));
+  enviado->numero = cantidadBloques;
+
+  socket_enviar(socketConexionYAMA,D_STRUCT_NUMERO,enviado); //FS_YAMA_CANTIDAD_BLOQUES ya estaba definido del lado de funcionesYama
 
   int i;
 
@@ -481,7 +476,7 @@ int determinarEstado() {
 	}
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void leer(char* path,char* nombreArch){
 
@@ -537,9 +532,9 @@ void leer(char* path,char* nombreArch){
 
 		int socketNodoEncontrado = nodoEncontrado -> socket;
 
-		// crear t_struct_numero* enviado, asignarle valor a enviado->numero (bloqueLectura->bloqueNodo)
-		t_struct_numero* enviado = bloqueLectura->bloqueNodo;
-		// Ejemeplo: socket_enviar(socketNodoEncontrado, D_STRUCT_NUMERO,enviado);
+		t_struct_numero* enviado = malloc(sizeof(t_struct_numero));
+		enviado->numero = bloqueLectura->bloqueNodo;
+
 		socket_enviar(socketNodoEncontrado, D_STRUCT_NUMERO,enviado); //[Nodo1, 33]
 
 		void* estructuraRecibida;
@@ -567,7 +562,8 @@ void leer(char* path,char* nombreArch){
 
 				int socketNodocopia1Encontrado = nodocopia1Encontrado -> socket;
 
-				t_struct_numero* enviado = bloqueLectura->bloqueNodo;
+				t_struct_numero* enviado = malloc(sizeof(t_struct_numero));
+				enviado ->numero = bloqueLectura->bloqueNodo;
 
 				// Lo mismo que con el enviar de arriba
 				socket_enviar(socketNodocopia1Encontrado,D_STRUCT_NUMERO,enviado); //[Nodo1, 33]
@@ -590,6 +586,7 @@ void leer(char* path,char* nombreArch){
 	}
 }
 
+//////////////////// todo: Fijarse si esta funcion sigue siendo necesaria ////////////////////////////////////////
 
 t_directory* buscarDirectorio(char* path){
 
@@ -616,34 +613,21 @@ t_directory* directorioEncontrado = list_find(directorios, condition); //seria d
 return directorioEncontrado;
 }
 
-
-
-
-
-
-
 int almacenarArchivo(char* ruta, char* nombreArchivo, char* tipo){// Faltan argumentos
 
 	long tamanioFile = conseguirTamanioArchivo(ruta);
 	void* data = obtenerContenido(ruta);
 	int numeroBloque = 0;
 
-	// todo: Yo cuando quiero almacenar un archivo me fijo si tengo que crearle una ruta o puedo usar una existente?
-	int indexDirectorio;
+	int indiceDirectorio = pedidoRuta(ruta);
 
-	if(existeEnTablaDirectorio(ruta)){
-		t_directory* directorio = buscarDirectorio(ruta);
+	if(indiceDirectorio < 0){
+		log_error(logger,"No se pudo obtener el indice de la ruta");
+		return 0;
 	}
-	else{ // Hay que crearle un directorio
-		indexDirectorio = asignarPosicionEnTablaDirectorios(ruta, nombreArchivo);
-
-		if(indexDirectorio < 0){ // Tabla llena
-				log_error(logger,"ERROR: Como la tabla de directorios tiene 100 entradas no se pueden agregar mas");
-				return 0; // No se pudo almacenar
-			}
-	}
-
-	crearMetadataArchivo(indexDirectorio, nombreArchivo, tamanioFile, tipo);
+	else{
+		crearMetadataArchivo(indiceDirectorio, nombreArchivo, tamanioFile, tipo);
+		}
 
 	if(strcmp(tipo,"Binario") == 0){
 
@@ -654,13 +638,13 @@ int almacenarArchivo(char* ruta, char* nombreArchivo, char* tipo){// Faltan argu
 			if(tamanioFile > sizeBloque){
 				char* dataBloque = string_substring(data,offset,sizeBloque);
 				offset += sizeBloque;
-				int resultadoEnvio = enviarADataNode(nombreArchivo, dataBloque, numeroBloque, sizeBloque); // Considerando que los binarios no tiene basura
+				int resultadoEnvio = enviarADataNode(ruta, nombreArchivo, dataBloque, numeroBloque, sizeBloque); // Considerando que los binarios no tiene basura
 				if(!resultadoEnvio){ // Fallo el almacenamiento en nodos de algun bloque
 								return 0;
 							}
 			}
 			else{ // Puede estar de mas esto
-				enviarADataNode(nombreArchivo, data, numeroBloque, tamanioFile);
+				enviarADataNode(ruta, nombreArchivo, data, numeroBloque, tamanioFile);
 			}
 
 		}
@@ -672,7 +656,7 @@ int almacenarArchivo(char* ruta, char* nombreArchivo, char* tipo){// Faltan argu
 		int cantidadRegistros = obtenerCantidadElementos(registros);
 
 		for(numeroBloque = 0; numeroBloque< cantidadRegistros; numeroBloque++){
-			int resultadoEnvio = enviarADataNode(nombreArchivo, registros[numeroBloque],numeroBloque,strlen(registros[numeroBloque]));
+			int resultadoEnvio = enviarADataNode(ruta, nombreArchivo, registros[numeroBloque],numeroBloque,strlen(registros[numeroBloque]));
 			if(!resultadoEnvio){ // Fallo el almacenamiento en nodos de algun bloque
 				return 0;
 			}
@@ -684,7 +668,7 @@ int almacenarArchivo(char* ruta, char* nombreArchivo, char* tipo){// Faltan argu
 	return 1; // Exito
 }
 
-int enviarADataNode(char* nombreArchivo, char* data, int numeroBloque, int bytesOcupados){ // Aca distribuimos el envio a los datanodes
+int enviarADataNode(char* ruta, char* nombreArchivo, char* data, int numeroBloque, int bytesOcupados){ // Aca distribuimos el envio a los datanodes
 
 	//t_Nodos* metadataNodos = leerMetadataNodos(tablaNodos); // Llamo la funcion para ver si hubo cambios en nodos.bin
 	// Ya no se usaria, pero por las dudas la dejo
@@ -702,8 +686,8 @@ int enviarADataNode(char* nombreArchivo, char* data, int numeroBloque, int bytes
 	enviado->bloqueArchivo = numeroBloque;
 	enviado->bytesOcupados = bytesOcupados;
 
-	int resultadoCopia0 = guardarCopia(nombreArchivo, socketNodoCopia0,enviado,0);
-	int resultadoCopia1 = guardarCopia(nombreArchivo, socketNodoCopia1,enviado,1);
+	int resultadoCopia0 = guardarCopia(ruta, nombreArchivo, socketNodoCopia0,enviado,0);
+	int resultadoCopia1 = guardarCopia(ruta, nombreArchivo, socketNodoCopia1,enviado,1);
 	free(enviado);
 
 	if(resultadoCopia0 || resultadoCopia1){ // Se pudo guardar en alguna de las 2 copias
@@ -716,6 +700,135 @@ int enviarADataNode(char* nombreArchivo, char* data, int numeroBloque, int bytes
 	}
 	return 0;
 }
+
+int guardarCopia(char* ruta, char* nombreArchivo, int socketNodo, t_pedido_almacenar_bloque* enviado, int copia){
+
+	socket_enviar(socketNodo, FS_DATANODE_ALMACENAR_BLOQUE,enviado);
+
+	void* estructuraRecibida;
+	t_tipoEstructura tipoEstructura;
+
+	int recepcion = socket_recibir(socketNodo, &tipoEstructura,&estructuraRecibida);
+
+	if(recepcion == -1){
+		printf("Se desconecto el Nodo en el socket %d\n", socketNodo);
+		log_info(logger,"Se desconecto el Nodo en el socket %d", socketNodo);
+		close(socketNodo);
+		FD_CLR(socketNodo, &datanode);
+		FD_CLR(socketNodo, &setDataNodes);
+
+		//Actualizar tabla de nodos - Borrar
+		actualizarTablaNodosBorrar(socketNodo);
+
+		return 0;
+	}
+	else if(tipoEstructura != D_STRUCT_NUMERO){
+		puts("Error en la serializacion");
+		log_error(logger,"Error en la serializacion");
+		return 0;
+	}
+	else{
+		if(((t_almacenar_bloque*)estructuraRecibida)->bloqueNodo >= 0){ // Se guardo bien, me enviaria el bloque donde se guardo
+
+	   		//Actualizar tabla de nodos - Reducir bloques libres del nodo y bloques libres totales
+		    actualizarTablaNodosAsignacion(socketNodo);
+
+		    // Actualizar metadata de archivo - Bloque en bloque nodo
+
+			int indexDirectorio = pedidoRuta(ruta);
+
+			char* string_index = string_itoa(indexDirectorio);
+
+			char* rutaMetadata = string_new();
+			string_append(&rutaMetadata,tablaArchivos);
+			string_append(&rutaMetadata,"/");
+			string_append(&rutaMetadata,string_index);
+			string_append(&rutaMetadata,"/");
+			string_append(&rutaMetadata,nombreArchivo);
+
+			t_config* metadataArchivo = config_create(rutaMetadata);
+
+			if(metadataArchivo == NULL)
+					log_error(logger,"ERROR: No se pudo encontrar el la metadata de archivo %s", rutaMetadata);
+					printf("ERROR: No se pudo encontrar el la metadata de archivo %s", rutaMetadata);
+
+			    if(!verificarMetadataNodos(metadataArchivo)){ // verificarMetadataArchivo
+			    	log_error(logger,"Fallo en formato de metadata del archivo %s",rutaMetadata);
+				   	printf("Fallo en formato de metadata del archivo %s",rutaMetadata);
+				}
+			    else{
+
+			    }
+			    //Agrego los valores de las keys del metadata
+
+
+			  t_info_archivo* infoArchivo = malloc(sizeof(t_info_archivo));
+
+			   infoArchivo->nombreArchivo = (char*)malloc(strlen(nombreArchivo)+1);
+			   infoArchivo->infoBloques = list_create();
+
+			   t_info_bloque_archivo* infoBloque = malloc(sizeof(t_info_bloque_archivo));
+
+			   infoBloque->bloqueArchivo = enviado->bloqueArchivo;
+			   infoBloque->bytesOcupados = enviado->bytesOcupados;
+
+			   char* string_bloque = string_itoa(enviado->bloqueArchivo);
+
+			   char* keyBloqueCopia0 = strdup("BLOQUE");
+			   string_append(&keyBloqueCopia0,string_bloque);
+			   char* keyBloqueCopia1 = strdup(keyBloqueCopia0);
+			   char* keyBytesOcupadosBloque = strdup(keyBloqueCopia0);
+			   string_append(&keyBloqueCopia0,"COPIA0");
+			   string_append(&keyBloqueCopia1,"COPIA1");
+			   string_append(&keyBytesOcupadosBloque,"BYTES");
+
+			   char* string_bytesOcupados = string_itoa(enviado->bytesOcupados);
+
+			   //Actualizo los valores de las keys del config
+			   config_set_value(metadataArchivo,keyBytesOcupadosBloque , string_bytesOcupados);
+
+			   if(copia == 0){
+				   infoBloque->copia0Nodo =((t_almacenar_bloque*)estructuraRecibida)->nombreNodo;
+				   infoBloque->copia0NodoBloque = ((t_almacenar_bloque*)estructuraRecibida)->bloqueNodo;
+
+				   char* string_nodo_bloque = string_itoa(infoBloque->copia0NodoBloque);
+
+				   char* arrayBloques = string_new();
+				   string_append(&arrayBloques,"[");
+				   string_append(&arrayBloques, infoBloque->copia0Nodo);
+				   string_append(&arrayBloques,",");
+				   string_append(&arrayBloques, string_nodo_bloque);
+				   string_append(&arrayBloques,"]");
+
+				 config_set_value(metadataArchivo, keyBloqueCopia0, arrayBloques);
+			   }
+			   else{
+				   infoBloque->copia1Nodo =((t_almacenar_bloque*)estructuraRecibida)->nombreNodo;
+				   infoBloque->copia1NodoBloque = ((t_almacenar_bloque*)estructuraRecibida)->bloqueNodo;
+
+				   char* string_nodo_bloque = string_itoa(infoBloque->copia1NodoBloque);
+
+				   char* arrayBloques = string_new();
+				   string_append(&arrayBloques,"[");
+				   string_append(&arrayBloques, infoBloque->copia1Nodo);
+				   string_append(&arrayBloques,",");
+				   string_append(&arrayBloques, string_nodo_bloque);
+				   string_append(&arrayBloques,"]");
+
+				  config_set_value(metadataArchivo, keyBloqueCopia1, arrayBloques);
+			   }
+
+			    config_save(metadataArchivo);
+			    log_info(logger,"La metadata del archivo %s se actualizo exitosamente", nombreArchivo);
+		   }
+
+	   		log_info(logger,"Se  almaceno el bloque %d en el DN de socket: %d", enviado->bloqueArchivo, socketNodo);
+	   		return 1;
+	  	}
+
+	puts("Llego a cualquier lado");
+	return 0;
+	}
 
 t_Nodos* leerMetadataNodos(char* archivoNodos){
 
@@ -763,12 +876,6 @@ t_Nodos* leerMetadataNodos(char* archivoNodos){
 
 
     return metadata;
-}
-
-bool verificarMetadataNodos(t_config* metadataNodos){ // Si o si tiene que tener estos
-	return config_has_property(metadataNodos,"TAMANIO") &&
-			config_has_property(metadataNodos,"LIBRE") &&
-			config_has_property(metadataNodos,"NODOS");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -859,108 +966,17 @@ int buscarBloqueDeArchivo(t_info_archivo* archivo, int bloqueArchivo){
 	return -1;
 	}
 
-int guardarCopia(char* nombreArchivo, int socketNodo, t_pedido_almacenar_bloque* enviado, int copia){
-
-	socket_enviar(socketNodo, FS_DATANODE_ALMACENAR_BLOQUE,enviado);
-
-	void* estructuraRecibida;
-	t_tipoEstructura tipoEstructura;
-
-	int recepcion = socket_recibir(socketNodo, &tipoEstructura,&estructuraRecibida);
-
-	if(recepcion == -1){
-		printf("Se desconecto el Nodo en el socket %d\n", socketNodo);
-		log_info(logger,"Se desconecto el Nodo en el socket %d", socketNodo);
-		close(socketNodo);
-		FD_CLR(socketNodo, &datanode);
-		FD_CLR(socketNodo, &setDataNodes);
-
-		//Actualizar tabla de nodos - Borrar
-		actualizarTablaNodosBorrar(socketNodo);
-
-		return 0;
-	}
-	else if(tipoEstructura != D_STRUCT_NUMERO){
-		puts("Error en la serializacion");
-		log_error(logger,"Error en la serializacion");
-		return 0;
-	}
-	else{
-		if(((t_almacenar_bloque*)estructuraRecibida)->bloqueNodo >= 0){ // Se guardo bien, me enviaria el bloque donde se guardo
-
-	   		//Actualizar tabla de nodos - Reducir bloques libres del nodo y bloques libres totales
-		    actualizarTablaNodosAsignacion(socketNodo);
-
-		    // Actualizar metadata de archivo - Bloque en bloque nodo
-		   int posicion = buscarArchivo(nombreArchivo); // Verificamos si el archivo existe
-
-		   if(posicion < 0){ // No existia el archivo
-
-			   // todo: Crear el archivo (buscar index, hacer directorios, crear archivo usando nombre)
-
-			   t_info_archivo* infoArchivo = malloc(sizeof(t_info_archivo));
-
-			   infoArchivo->nombreArchivo = (char*)malloc(strlen(nombreArchivo)+1);
-			   infoArchivo->infoBloques = list_create();
-
-			   t_info_bloque_archivo* infoBloque = malloc(sizeof(t_info_bloque_archivo));
-
-			   infoBloque->bloqueArchivo = enviado->bloqueArchivo;
-			   infoBloque->bytesOcupados = enviado->bytesOcupados;
-
-			   if(copia == 0){
-				   infoBloque->copia0Nodo =((t_almacenar_bloque*)estructuraRecibida)->nombreNodo;
-				   infoBloque->copia0NodoBloque = ((t_almacenar_bloque*)estructuraRecibida)->bloqueNodo;
-			   }
-			   else{
-				   infoBloque->copia1Nodo =((t_almacenar_bloque*)estructuraRecibida)->nombreNodo;
-				   infoBloque->copia1NodoBloque = ((t_almacenar_bloque*)estructuraRecibida)->bloqueNodo;
-			   }
-
-			   // Actualizar archivo metadata
-			   actualizarMetadataArchivo(nombreArchivo);
-		   }
-		   else{ // Significa que ya existia el archivo, buscar por bloque en la lista
-			   t_info_archivo* archivo = list_get(archivos,posicion);
-
-
-			   int posicionBloque = buscarBloqueDeArchivo(archivo, enviado->bloqueArchivo);// Validacion < 0 ?
-
-			   t_info_bloque_archivo* bloque = list_get(archivo->infoBloques, posicionBloque);
-
-			   bloque->bloqueArchivo = enviado->bloqueArchivo;
-			   bloque->bytesOcupados = enviado->bytesOcupados;
-
-			   if(copia == 0){
-				   bloque->copia0Nodo =((t_almacenar_bloque*)estructuraRecibida)->nombreNodo;
-				   bloque->copia0NodoBloque = ((t_almacenar_bloque*)estructuraRecibida)->bloqueNodo;
-
-				   // Actualizar archivo metadata
-				   actualizarMetadataArchivoBloques(nombreArchivo,bloque->copia0Nodo,bloque->copia0NodoBloque, 0);
-			   }
-			   else{
-				   bloque->copia1Nodo =((t_almacenar_bloque*)estructuraRecibida)->nombreNodo;
-				   bloque->copia1NodoBloque = ((t_almacenar_bloque*)estructuraRecibida)->bloqueNodo;
-
-				   // Actualizar archivo metadata
-				   actualizarMetadataArchivoBloques(nombreArchivo,bloque->copia1Nodo,bloque->copia1NodoBloque, 1);
-			   }
-		   }
-
-	   		log_info(logger,"Se  almaceno el bloque %d en el DN de socket: %d", enviado->bloqueArchivo, socketNodo);
-	   		return 1;
-	  	}
-
-	}
-	puts("Llego a cualquier lado");
-	return 0;
-}
-
 bool masBloquesLibres(t_info_nodo* nodo1, t_info_nodo* nodo2){
 	return nodo1->bloquesLibres > nodo2->bloquesLibres;
 }
 
 /////////////////////////////////////////// FUNCIONES TABLA NODOS /////////////////////////////////////////////////
+
+bool verificarMetadataNodos(t_config* metadataNodos){ // Si o si tiene que tener estos
+	return config_has_property(metadataNodos,"TAMANIO") &&
+			config_has_property(metadataNodos,"LIBRE") &&
+			config_has_property(metadataNodos,"NODOS");
+}
 
 void seDesconectaUnNodo(char* nombreNodo){
 
@@ -1240,12 +1256,129 @@ void actualizarTablaNodosAsignacion(int socketNodo){
 }
 //////////////////////////////////// FUNCIONES TABLA DE DIRECTORIOS /////////////////////////////////////
 
-int asignarPosicionEnTablaDirectorios(char* rutaArchivo, char* nombreArchivo){
+//todo: VER COMO HACER LA PERSISTENCIA EN LA TABLA DE DIRECTORIOS
+
+void crearRoot(){
+
+	t_directory* root = malloc(sizeof(t_directory));
+
+	root->index = 0;
+	root->nombre = malloc(strlen("root")+1);
+	strcpy(root->nombre, "root");
+	root->indexPadre = -1;
+
+	list_add(directorios,root);
+
+	// Persistir en directorios.dat
 
 }
 
-int existeEnTablaDirectorio(char* rutaArchivo){
+t_directory* verificarExistenciaDirectorio(char* directorio, int indicePadre){
 
+	log_info(logger,"Verificando existencia de: %s\n", directorio);
+	log_info(logger,"Indice del padre: %d\n", indicePadre);
+
+	bool estaEnLista(t_directory* elemento){
+		return (strcmp(elemento->nombre,directorio) == 0 && (elemento->indexPadre == indicePadre) );
+	}
+
+	t_directory* directorioEncontrado = list_find(directorios,(void*)estaEnLista);
+
+	if(directorioEncontrado == NULL){
+		log_error(logger,"No existe, habra que crearlo");
+	}
+	else{
+		log_info(logger,"El directorio %s con padre en indice %d existe!\n", directorio, indicePadre);
+		log_info(logger,"Indice directorio: %d\n", directorioEncontrado->index);
+		log_info(logger,"Nombre directorio: %s\n", directorioEncontrado->nombre);
+		log_info(logger,"Indice Padre: %d\n", directorioEncontrado->indexPadre);
+	}
+
+	return directorioEncontrado;
+}
+
+t_directory* crearDirectorio(char* directorio, int indicePadre){
+
+	t_directory* directorioNuevo = malloc(sizeof(t_directory));
+
+	if(directorios->elements_count <=100){
+
+	directorioNuevo->index = directorios->elements_count;
+	directorioNuevo->nombre = malloc(strlen(directorio)+1);
+	strcpy(directorioNuevo->nombre, directorio);
+	directorioNuevo->indexPadre = indicePadre;
+
+	list_add(directorios, directorioNuevo);
+
+	return directorioNuevo;
+	}
+	return NULL;
+}
+
+int buscarIndices(char* ruta){
+
+	log_info(logger,"Obteniendo indice de la  ruta: %s\n",ruta);
+
+	char** subdirectorios = string_split(ruta, "/");
+	int i;
+
+	int cantidadSubdirectorios = obtenerCantidadElementos(subdirectorios);
+
+	log_info(logger,"Cantidad Directorios: %d\n", cantidadSubdirectorios);
+
+	t_directory* directorioExistente;
+	int indicePadre;
+
+	for(i = 0; i < cantidadSubdirectorios; i++){
+
+		if(i == 0){ // Directorio con root como padre
+
+			log_info(logger,"Vamos con el directorio inicial: %s \n",subdirectorios[i]);
+			log_info(logger,"Indice Padre: %d\n", 0);
+			t_directory* directorioPadre = verificarExistenciaDirectorio(subdirectorios[i], 0); // Tiene a root como padre
+
+			if(directorioPadre == NULL){ // No lo encontro
+				directorioPadre = crearDirectorio(subdirectorios[i], 0);
+			}
+
+			indicePadre = directorioPadre->index;
+		}
+		else{
+
+			log_info(logger,"Vamos con el directorio: %s\n", subdirectorios[i]);
+			log_info(logger,"Indice Padre: %d\n", indicePadre);
+
+			directorioExistente = verificarExistenciaDirectorio(subdirectorios[i], indicePadre);
+
+			if(directorioExistente == NULL){ // No lo encontro
+				directorioExistente = crearDirectorio(subdirectorios[i], indicePadre);
+				if(directorioExistente == NULL){ // No se pudo crear
+					return -1;
+				}
+			}
+
+			indicePadre = directorioExistente->index;
+		}
+	}
+	return directorioExistente->index;
+}
+
+
+
+int pedidoRuta(char* ruta){
+
+	log_info(logger, "Trabajando pedido de ruta %s", ruta);
+
+	int indice = buscarIndices(ruta);
+
+	if(indice >= 0){
+		log_info(logger, "Se pudieron crear los directorios");
+		return indice;
+	}
+	else{
+		log_error(logger, "No se pudo realizar el pedido porque ya existen 100 directorios");
+		return -1;
+	}
 }
 
 //////////////////////////////////// FUNCIONES TABLA DE ARCHIVOS ///////////////////////////////////////
@@ -1283,7 +1416,7 @@ void crearMetadataArchivo(int indexDirectorio, char* nombreArchivo, long tamanio
 	    log_info(logger,"Se creo exitosamente archivo de metada %s",rutaArchivo);
 	    }
 
-//todo: Implementar funciones
+//todo: Implementar funciones, ya esta hecho?
 void actualizarMetadataArchivo(char* nombreArchivo){
 
 }
@@ -1318,7 +1451,7 @@ void renombrar(char* path_original, char* path_final){//ejemplo renombrar(lalala
 
 	}else{
 	char* nombreUltimoSubdirectorio = ultimoSubdirectorio -> nombre;
-	int padreUltimoSubdirectorio = ultimoSubdirectorio -> padre;
+	int padreUltimoSubdirectorio = ultimoSubdirectorio -> indexPadre;
 
 	if (verificarExistenciaNombreDirectorio(nombreUltimoSubdirectorio,padreUltimoSubdirectorio)==1){
 		(ultimoSubdirectorio -> nombre) = path_final; //CHEQUEAR
@@ -1345,7 +1478,7 @@ int verificarExistenciaNombreDirectorio(char* nombre, int padre){ //podria usar 
 
 	bool condition(void* element) {
 		t_directory* directorio = element;
-		return string_equals_ignore_case(string_itoa(directorio->padre), padreChar) && string_equals_ignore_case(directorio->nombre, nombre) ;
+		return string_equals_ignore_case(string_itoa(directorio->indexPadre), padreChar) && string_equals_ignore_case(directorio->nombre, nombre) ;
 	}
 	t_directory* directorioConMismoPadreYNombre = list_find(directorios, condition);//seria directorios o habria que abrir el metadata directorios.dat
 
