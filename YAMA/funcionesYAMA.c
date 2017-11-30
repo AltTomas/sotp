@@ -260,12 +260,14 @@ void getNodoByFile(char* nombreFile, int socketConexionMaster) {
 						bloqueEnviar->puertoNodoCopia= ((t_struct_bloques*) estructuraRecibida)->puertoNodoCopia;
 						bloqueEnviar->finalBloque= ((t_struct_bloques*) estructuraRecibida)->finalBloque;
 
-						agregarBloqueALaLista(bloqueEnviar);
+						//agregarBloqueALaLista(bloqueEnviar);
+
+						agregarNodoAlDiccionario(bloqueEnviar->numBloqueOriginal,bloqueEnviar->numNodoOriginal);
+						agregarNodoAlDiccionario(bloqueEnviar->numBloqueCopia,bloqueEnviar->numNodoCopia);
+
+						agregarALaListaBalanceoCarga(bloqueEnviar->numNodoOriginal);
+						agregarALaListaBalanceoCarga(bloqueEnviar->numNodoCopia);
 					}
-					// modificar la lista de Balanceo de cargas si hace falta
-
-
-
 					iniciarPlanificacion();
 				break;
 				}
@@ -284,7 +286,7 @@ void init() {
 
 int getAvailability() {
 	int pwl;
-	if (strcmp(config->Retardo_Planificacion, "CLOCK")) {
+	if(!strcmp(config->Retardo_Planificacion, "CLOCK")){
 		pwl = 0;
 	} else {
 		//pwl =
@@ -298,9 +300,19 @@ char* generarNombreTemporal(int socketMaster, int nroBloque) {
 	string_append(&nombre, bloque);
 	return nombre;
 }
+
+void agregarNodoAlDiccionario(int idWorker, int numBloque){
+
+	if(!dictionary_has_key(ubicacionBloques, idWorker)){
+		dictionary_put(ubicacionBloques,idWorker,list_create());
+	}
+
+	t_list* listaBloques = dictionary_get(ubicacionBloques, idWorker);
+	list_add(listaBloques, numBloque);
+}
+
 void agregarBloqueALaLista(t_struct_bloques* bloqueAgregar){
 	listaUbicacionBloques* nuevoBloque = malloc(sizeof(listaUbicacionBloques));
-	t_struct_bloques* datosNodoDelBloque = malloc(sizeof(t_struct_bloques));
 
 	/* Datos del nodo Original*/
 	nuevoBloque->idNodoOriginal = bloqueAgregar->numNodoOriginal;
@@ -315,19 +327,68 @@ void agregarBloqueALaLista(t_struct_bloques* bloqueAgregar){
 	nuevoBloque->finalBloque = bloqueAgregar->finalBloque;
 
 	list_add(listaInfoBloques,nuevoBloque); /* lista var global */
+}
 
-	free(nuevoBloque);free(datosNodoDelBloque);
+void asignarBloquesALosWorkers(){
+
+	int cantBloques = dictionary_size(ubicacionBloques);
+	int indexCursor = 0;
+	int indexWorkerActual = 0;
+	int pasos = 1;
+	int numBloque = 0;
+	for(numBloque; numBloque < cantBloques; numBloque++){
+		while(!workerTieneBloque(indexWorkerActual, numBloque)){
+			indexWorkerActual++;
+			pasos++;
+
+			if(pasos == cantBloques){
+				pasos = 1;
+				aumentarAvaibility();
+			}
+			if(indexWorkerActual >= cantBloques) indexWorkerActual = 0;
+		}
+		indexCursor++;
+		indexWorkerActual = indexCursor;
+	}
+}
+
+bool workerTieneBloque(int indexWorkerActual, int numBloque){
+
+	balanceoCargas* infoWorker = list_get(listaBalanceoCargas, indexWorkerActual);
+	t_list* bloquesDelWorker = dictionary_get(ubicacionBloques, infoWorker->worker);
+
+	bool tieneBloque(int bloque){
+		return numBloque == bloque ? 1 : 0;
+	}
+
+	bool resultado =  list_any_satisfy(bloquesDelWorker, tieneBloque);
+
+	if(resultado){
+		if(infoWorker->availability == 0) return 0;
+		infoWorker->availability--;
+		list_add(bloquesDelWorker, numBloque);
+	}
+
+	return resultado;
+}
+
+void aumentarAvaibility(){
+	void aumentar(balanceoCargas* elemento){
+		elemento->availability += getAvailability();
+	}
+	list_iterate(listaBalanceoCargas, aumentar);
 }
 
 void iniciarPlanificacion(){
+	/* Asigno los bloques a la lista de Balanceo Cargas*/
+	asignarBloquesALosWorkers();
+
+	/* ****************************************************************************** */
 
 	/* Cuando inicias planificacion modificas Tabla de Estados que seria el controller */
 
 	/* ****************************************************************************** */
 
-	/* Obtengo el primer bloque a planificar fijandome en la listaInfoBloque */
-
-	/* ****************************************************************************** */
 
 	/* Me fijo en la lista de balanceo de cargas en que worker esta */
 
@@ -340,5 +401,20 @@ void iniciarPlanificacion(){
 	/* Mando a Ejecutar el bloque */
 
 	/* ****************************************************************************** */
+
+}
+
+void agregarALaListaBalanceoCarga(int idWorker){
+
+	bool existeWorker(balanceoCargas* elemento){
+		return elemento->worker == idWorker ? 1 : 0;
+	}
+	if(!list_any_satisfy(listaBalanceoCargas,existeWorker)){
+		balanceoCargas* elementoAgregar = malloc(sizeof(balanceoCargas));
+		elementoAgregar->availability = getAvailability();
+		elementoAgregar->worker = idWorker;
+		elementoAgregar->bloques = list_create();
+		list_add(listaBalanceoCargas,elementoAgregar);
+	}
 
 }

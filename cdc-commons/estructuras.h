@@ -229,6 +229,18 @@ typedef struct balanceoCargas{
 	t_list* bloques;
 }__attribute__((__packed__)) balanceoCargas;
 
+typedef struct listaUbicacionBloques{
+	int finalBloque;
+	int idNodoOriginal;
+	int numeroBloqueOriginal;
+	char* ipOriginal;
+	int puertoOriginal;
+	int idNodoCopia;
+	int numeroBloqueCopia;
+	char* ipCopia;
+	int puertoCopia;
+}__attribute__((__packed__)) listaUbicacionBloques;
+
 typedef struct almacenarBloque{
 	char* contenidoBloque;
 	int bloqueArchivo;

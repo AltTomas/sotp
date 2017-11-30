@@ -56,6 +56,8 @@ void aceptarNuevaConexion(int, fd_set* );
 void trabajarSolicitudMaster(int);
 char* generarNombreTemporal(int, int);
 void getNodoByFile(char*, int);
+bool workerTieneBloque(int indexWorkerActual, int numBloque);
+void asignarBloquesALosWorkers();
 
 /* Variables Globales */
 int socketConexionFS;
@@ -63,5 +65,6 @@ int socketConexionFS;
 t_list * tablaEstados;
 t_list* listaInfoBloques;
 t_list* listaBalanceoCargas;
+t_dictionary* ubicacionBloques;
 
 #endif /* FUNCIONESYAMA_H_ */
