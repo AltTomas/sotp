@@ -383,8 +383,6 @@ void iniciarPlanificacion(){
 	/* Asigno los bloques a la lista de Balanceo Cargas*/
 	asignarBloquesALosWorkers();
 
-	/* ****************************************************************************** */
-
 	/* Cuando inicias planificacion modificas Tabla de Estados que seria el controller */
 
 	/* ****************************************************************************** */
