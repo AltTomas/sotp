@@ -139,5 +139,7 @@ t_directory* verificarExistenciaDirectorio(char*, int);
 t_directory* crearDirectorio(char*, int);
 int buscarIndices(char*);
 int pedidoRuta(char*);
+t_list* leerTablaDeDirectorios(char* ruta);
+void actualizarMetadataDirectorios(t_directory*);
 
 #endif /* FUNCIONESFS_H_ */

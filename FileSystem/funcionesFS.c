@@ -1310,6 +1310,8 @@ t_directory* crearDirectorio(char* directorio, int indicePadre){
 
 	list_add(directorios, directorioNuevo);
 
+	actualizarMetadataDirectorios(directorioNuevo);
+
 	return directorioNuevo;
 	}
 	return NULL;
@@ -1380,6 +1382,175 @@ int pedidoRuta(char* ruta){
 		return -1;
 	}
 }
+
+bool verificarMetadataDirectorios(t_config* metadataDirectorios){
+	return config_has_property(metadataDirectorios,"INDEX") &&
+			config_has_property(metadataDirectorios,"DIRECTORIO") &&
+			config_has_property(metadataDirectorios,"PADRE");
+}
+
+
+t_list* leerTablaDeDirectorios(char* ruta){ // Esta funcion se usa para leer diretorios.dat y cargar su info en una lista
+
+	t_list* directorios = list_create();
+
+	 t_config* metadataDirectorios = config_create(ruta);
+
+	 if(metadataDirectorios == NULL)
+	    	puts("ERROR");
+
+
+	    if(!verificarMetadataDirectorios(metadataDirectorios)){
+	    	puts("Fallo en formato de tabla de nodos");
+	    }
+
+	   char** indices =  config_get_array_value(metadataDirectorios, "INDEX");
+	   char** nombres = config_get_array_value(metadataDirectorios, "DIRECTORIO");
+	   char** padres = config_get_array_value(metadataDirectorios,"PADRE");
+
+	   int i;
+	   int cantidadDirectorios = obtenerCantidadElementos(indices);
+
+	   for(i = 0; i < cantidadDirectorios; i ++){
+
+		   t_directory* directorio = malloc(sizeof(t_directory));
+
+		   directorio->index = atoi(indices[i]);
+		   directorio->nombre = malloc(strlen(nombres[i])+1);
+		   strcpy(directorio->nombre, nombres[i]);
+		   directorio->indexPadre = atoi(padres[i]);
+
+		   list_add(directorios,directorio);
+	   }
+
+	   return directorios;
+}
+
+void actualizarMetadataDirectorios(t_directory* directorio){
+
+	t_config* metadataDirectorios = config_create(tablaDirectorios);
+
+		if(metadataDirectorios == NULL)
+			puts("ERROR: No se pudo encontrar el archivo directorios.dat");
+
+	    if(!verificarMetadataDirectorios(metadataDirectorios)){
+		   	puts("Fallo en formato de tabla de directorios");
+		}
+	    else{
+
+	    	char** indices =  config_get_array_value(metadataDirectorios, "INDEX");
+	    	char** nombres = config_get_array_value(metadataDirectorios, "DIRECTORIO");
+	    	char** padres = config_get_array_value(metadataDirectorios,"PADRE");
+
+	    	int i;
+	    	int cantidadDirectorios = obtenerCantidadElementos(indices);
+
+	    	char** nuevoArrayIndices = (char*)malloc(sizeof(char*) * (cantidadDirectorios+1));
+
+	    	for(i = 0; i < cantidadDirectorios; i++){
+
+	    		nuevoArrayIndices[i]=(char*)malloc(strlen(indices[i])+1);
+	    		strcpy(nuevoArrayIndices[i],indices[i]);
+	    		printf("ArrayNuevo[%d]: %s\n", i, nuevoArrayIndices[i]);
+	    	}
+
+	    	char** nuevoArrayNombres = (char*)malloc(sizeof(char*) * (cantidadDirectorios+1));
+
+	    	for(i = 0; i < cantidadDirectorios; i++){
+
+	    		nuevoArrayNombres[i]=(char*)malloc(strlen(nombres[i])+1);
+	    		 strcpy(nuevoArrayNombres[i],nombres[i]);
+	    		 printf("ArrayNuevo[%d]: %s\n", i, nuevoArrayNombres[i]);
+	    	}
+
+	    	char** nuevoArrayPadres = (char*)malloc(sizeof(char*) * (cantidadDirectorios+1));
+
+	    	for(i = 0; i < cantidadDirectorios; i++){
+
+	    		nuevoArrayPadres[i]=(char*)malloc(strlen(padres[i])+1);
+	    		 strcpy(nuevoArrayPadres[i],padres[i]);
+	    		 printf("ArrayNuevo[%d]: %s\n", i, nuevoArrayPadres[i]);
+	    	}
+
+	    char* string_indice = string_itoa(directorio->index);
+	    char* string_indicePadre = string_itoa(directorio->indexPadre);
+
+	    int cantidadDirectoriosArrayNuevo  = cantidadDirectorios + 1;
+
+	    /////////////////////////////////////////////// INDICES ///////////////////////////////////////////////
+	    char* arrayIndices = string_new();
+	    string_append(&arrayIndices,"[");
+
+	    for(i = 0; i < cantidadDirectoriosArrayNuevo; i++){
+	    	if( i == cantidadDirectoriosArrayNuevo -1){
+	    	string_append(&arrayIndices,string_indice);
+	    	 printf("Array indices: %s\n", arrayIndices);
+	    	}
+	    	else{
+	    		string_append(&arrayIndices,nuevoArrayIndices[i]);
+	    		 printf("Array indices: %s\n", arrayIndices);
+	    		string_append(&arrayIndices,",");
+	    		 printf("Array indices: %s\n", arrayIndices);
+	    	}
+
+	    }
+	    string_append(&arrayIndices,"]");
+
+	    printf("Array Indices: %s\n", arrayIndices);
+
+	    /////////////////////////////////////////////// NOMBRES ///////////////////////////////////////////////
+
+	    char* arrayNombres = string_new();
+	    string_append(&arrayNombres,"[");
+
+	    for(i = 0; i < cantidadDirectoriosArrayNuevo; i++){
+	    	if( i == cantidadDirectoriosArrayNuevo -1){
+	    	string_append(&arrayNombres, directorio->nombre);
+	    	 printf("Array nombres: %s\n", arrayNombres);
+	    	}
+	    	else{
+	    		string_append(&arrayNombres,nuevoArrayNombres[i]);
+	    		 printf("Array nombres: %s\n", arrayNombres);
+	    		string_append(&arrayNombres,",");
+	    		 printf("Array nombres: %s\n", arrayNombres);
+	    	}
+
+	    }
+	    string_append(&arrayNombres,"]");
+
+
+	    /////////////////////////////////////////////// PADRES ///////////////////////////////////////////////
+
+	    char* arrayPadres = string_new();
+	    string_append(&arrayPadres,"[");
+
+	    for(i = 0; i < cantidadDirectoriosArrayNuevo; i++){
+	    	if( i == cantidadDirectoriosArrayNuevo -1){
+	    	string_append(&arrayPadres,string_indicePadre);
+	    	 printf("Array indices: %s\n", arrayPadres);
+	    	}
+	    	else{
+	    		string_append(&arrayPadres,nuevoArrayPadres[i]);
+	    		 printf("Array indices: %s\n", arrayPadres);
+	    		string_append(&arrayPadres,",");
+	    		 printf("Array indices: %s\n", arrayPadres);
+	    	}
+
+	    }
+	    string_append(&arrayPadres,"]");
+
+	    config_set_value(metadataDirectorios, "INDEX", arrayIndices);
+	    config_set_value(metadataDirectorios, "DIRECTORIO", arrayNombres);
+	    config_set_value(metadataDirectorios, "PADRE", arrayPadres);
+
+
+	      config_save(metadataDirectorios);
+	      puts("El archivo directorios.dat se actualizo exitosamente");
+
+	    }
+}
+
+//todo: Hacer cambios en directorios.dat si se borra un directorio
 
 //////////////////////////////////// FUNCIONES TABLA DE ARCHIVOS ///////////////////////////////////////
 
