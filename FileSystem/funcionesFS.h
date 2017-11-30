@@ -73,8 +73,6 @@ typedef struct{
 	t_list* infoBloques;
 }t_info_archivo;
 
-t_list* filesAlmacenados;
-
 t_log* logger;
 t_config_fs* config;
 
@@ -134,6 +132,12 @@ void MD5(char* path_archivo);
 void cat(char* path_archivo);
 void ls(char* path_archivo);
 void info(char* path_archivo);
+void formatear();
+void liberarDirectorio(t_directory* unDirectorio);
+void liberarBloqueArch(bloque* bloqueArch);
+void liberarArchivo(file* unArchivo);
+void liberarinfoDataNodo(t_Nodos *unNodo);
+void liberarBloqueEnNodo(copia* bloqueEnNodo);
 void crearRoot();
 t_directory* verificarExistenciaDirectorio(char*, int);
 t_directory* crearDirectorio(char*, int);
@@ -141,5 +145,6 @@ int buscarIndices(char*);
 int pedidoRuta(char*);
 t_list* leerTablaDeDirectorios(char* ruta);
 void actualizarMetadataDirectorios(t_directory*);
+
 
 #endif /* FUNCIONESFS_H_ */

@@ -263,6 +263,7 @@ void escucharConexiones(void){
 	fd_set read_fd;
 	int iterador_sockets, resultadoHilo;
 
+
 	while(1){
 		read_fd = datanode;
 
@@ -424,7 +425,7 @@ void buscarBloquesArchivo(char* nombreFile, int socketConexionYAMA) {
 		file* archivo = element;
 		return string_equals_ignore_case(archivo->path, nombreFile);
 	}
-  file* archivoEncontrado = list_find(filesAlmacenados, condition); //me devuelve el archivo, verificar si esta bien hecha
+  file* archivoEncontrado = list_find(archivos, condition); //me devuelve el archivo, verificar si esta bien hecha
 
   int cantidadBloques = list_size(archivoEncontrado -> bloques);
 
@@ -457,13 +458,13 @@ void buscarBloquesArchivo(char* nombreFile, int socketConexionYAMA) {
 
 int determinarEstado() {
 
-	int cantidadArchivosAlmacenados = list_size(filesAlmacenados);
+	int cantidadArchivosAlmacenados = list_size(archivos);
 
 	int i;
 
 	for(i=0;i<cantidadArchivosAlmacenados;i++){
 
-		file* archivoAlmacenado1 = list_get(filesAlmacenados,i);
+		file* archivoAlmacenado1 = list_get(archivos,i);
 
 		int cantidadBloquesArchivosAlmacenados = list_size(archivoAlmacenado1->bloques);
 
@@ -1382,7 +1383,6 @@ int pedidoRuta(char* ruta){
 		return -1;
 	}
 }
-
 bool verificarMetadataDirectorios(t_config* metadataDirectorios){
 	return config_has_property(metadataDirectorios,"INDEX") &&
 			config_has_property(metadataDirectorios,"DIRECTORIO") &&
@@ -1599,9 +1599,13 @@ void actualizarMetadataArchivoBloques(char* nombreArchivo, char* nombreNodo, int
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-void renombrar(char* path_original, char* path_final){//ejemplo renombrar(lalala/so/2/tp.txt, op.txt)
+void renombrar(char* path_original, char* path_finalCompleto){//ejemplo renombrar(lalala/so/2/tp.txt, lalala/so/2/op.txt)
 
 	t_directory* ultimoSubdirectorio = buscarDirectorio(path_original);
+	t_directory* ultimoSubdirectorioFinal = buscarDirectorio(path_finalCompleto);
+
+	char* path_final = ultimoSubdirectorioFinal->nombre; //deberia ser op.txt
+
 
 	if(verificarSiEsArchivoODirectorio(path_original)!=0){
 
@@ -1615,7 +1619,11 @@ void renombrar(char* path_original, char* path_final){//ejemplo renombrar(lalala
 		string_append (&rutaArchivo, path_final);
 
 				if(verificarExistenciaNombreArchivo(path_final)!=0){
-					path_original = rutaArchivo;//CHEQUEAR
+					char* mvChar = "mv "; //necesita directorio completo original y directorio completo final
+					string_append (&mvChar,path_original);
+					string_append (&mvChar," "); //espacio para separar ambos paths
+					string_append (&mvChar,path_finalCompleto);
+					system(mvChar);
 				}else{
 					log_error(logger,"Ya existe ese nombre de Archivo");
 				}
@@ -1625,7 +1633,10 @@ void renombrar(char* path_original, char* path_final){//ejemplo renombrar(lalala
 	int padreUltimoSubdirectorio = ultimoSubdirectorio -> indexPadre;
 
 	if (verificarExistenciaNombreDirectorio(nombreUltimoSubdirectorio,padreUltimoSubdirectorio)==1){
-		(ultimoSubdirectorio -> nombre) = path_final; //CHEQUEAR
+		free(ultimoSubdirectorio->nombre);
+		ultimoSubdirectorio->nombre = malloc(strlen(path_final) + 1);
+		strcpy(ultimoSubdirectorio->nombre, path_final);
+		printf("Directorio fue renombrado correctamente\n");
 	}else{
 		log_error(logger,"Ya existe ese nombre de Directorio");
 	}
@@ -1687,7 +1698,7 @@ void MD5(char* path_archivo) { //chequear si es char* o void (por system)
 			file* archivo = element;
 			return string_equals_ignore_case(archivo->path, path_archivo);
 		}
-	 file* archivoEncontrado = list_find(filesAlmacenados, condition);
+	 file* archivoEncontrado = list_find(archivos, condition);
 
 	 if (archivoEncontrado!=NULL){
 		 	char* md5Char = "md5sum ";
@@ -1705,7 +1716,7 @@ void cat(char* path_archivo) { //chequear si es char* o void (por system)
 			file* archivo = element;
 			return string_equals_ignore_case(archivo->path, path_archivo);
 		}
-	 file* archivoEncontrado = list_find(filesAlmacenados, condition);
+	 file* archivoEncontrado = list_find(archivos, condition);
 
 	 if (archivoEncontrado!=NULL){
 		 	char* catChar = "cat ";
@@ -1723,7 +1734,7 @@ void ls(char* path_archivo) { //chequear si es char* o void (por system)
 			file* archivo = element;
 			return string_equals_ignore_case(archivo->path, path_archivo);
 		}
-	 file* archivoEncontrado = list_find(filesAlmacenados, condition);
+	 file* archivoEncontrado = list_find(archivos, condition);
 
 	 if (archivoEncontrado!=NULL){
 		 	char* lsChar = "ls ";
@@ -1741,7 +1752,7 @@ void info(char* path_archivo) { //chequear si es char* o void (por system)
 			file* archivo = element;
 			return string_equals_ignore_case(archivo->path, path_archivo);
 		}
-	 file* archivoEncontrado = list_find(filesAlmacenados, condition);
+	 file* archivoEncontrado = list_find(archivos, condition);
 
 	 if (archivoEncontrado!=NULL){
 		 	int tamanioDelArchivo = archivoEncontrado->tamanio;
@@ -1776,5 +1787,42 @@ void info(char* path_archivo) { //chequear si es char* o void (por system)
 	 }
 }
 
+/////////////////////////////////////////////////////
 
+void formatear() {
+
+		list_destroy_and_destroy_elements(archivos, (void*) liberarArchivo);
+		list_destroy_and_destroy_elements(info_DataNodes, (void*) liberarinfoDataNodo);
+		list_destroy_and_destroy_elements(directorios,(void*) liberarDirectorio);
+		info_DataNodes = list_create();
+		archivos = list_create();
+		directorios = list_create(); //elimina el root
+
+		crearRoot(); //lo vuelvo a crear
+
+	printf("El file system ha sido formateado.\n");
+}
+
+void liberarBloqueEnNodo(copia* bloqueEnNodo) {
+	free(bloqueEnNodo);
+}
+
+void liberarBloqueArch(bloque* bloqueArch) { //verificar si elimina copias
+	free(bloqueArch);
+}
+
+void liberarArchivo(file* unArchivo) {
+	list_destroy_and_destroy_elements((unArchivo->bloques),(void*) liberarBloqueArch);
+	free(unArchivo);
+}
+
+void liberarinfoDataNodo(t_Nodos *unNodo) {
+	list_destroy_and_destroy_elements(unNodo->bloquesTotalesyLibres, (void*) free); //eliminar char**Nodos?
+	free(unNodo);
+}
+
+void liberarDirectorio(t_directory* unDirectorio) {
+	free(unDirectorio->nombre);
+	free(unDirectorio);
+}
 
