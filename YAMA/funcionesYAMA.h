@@ -58,6 +58,7 @@ char* generarNombreTemporal(int, int);
 void getNodoByFile(char*, int);
 bool workerTieneBloque(int indexWorkerActual, int numBloque);
 void asignarBloquesALosWorkers();
+void aumentarAvaibility();
 
 /* Variables Globales */
 int socketConexionFS;
