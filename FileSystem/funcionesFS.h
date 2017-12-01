@@ -155,5 +155,7 @@ void liberarDirectorio(t_directory*);
 bool estaVacio(t_directory*);
 t_directory* buscarPorIndice(int);
 bool verificarMetadataDirectorios(t_config*);
+char* sacarNombreArchivoDelPath(char* path);
+void mover (char* path_original, char* path_finalCompleto);
 
 #endif /* FUNCIONESFS_H_ */

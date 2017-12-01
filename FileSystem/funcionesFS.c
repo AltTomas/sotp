@@ -596,14 +596,21 @@ int i=0;
 char* ultimoSubdirectorio;
 
 while(pathDividido[i]!=NULL){
-	if(pathDividido[i+1]==NULL){ //Si la siguiente posicion es NULL entonces es el ultimo subdirectorio
-	ultimoSubdirectorio = malloc(strlen(pathDividido[i])+1);
-	strcpy(ultimoSubdirectorio, pathDividido[i]);  //obtengo subdirectorio donde estara el archivo
+		if(pathDividido[i+1]==NULL){ //Si la siguiente posicion es NULL entonces es el ultimo subdirectorio
+		int verificacion = verificarSiEsArchivoODirectorio(pathDividido[i]); //agrego esta linea para que no tire el error de integer without cast
+		if(verificacion==0){ //me fijo si es archivo o directorio, si es archivo que me devuelva la la posicion anterior(carpeta donde se encuentra), si es una carpeta que me devuelva esa
+		ultimoSubdirectorio = malloc(strlen(pathDividido[i])+1);
+		strcpy(ultimoSubdirectorio, pathDividido[i]);  //obtengo subdirectorio donde estara el archivo
+		}
+		else{
+		ultimoSubdirectorio = malloc(strlen(pathDividido[i-1])+1);
+		strcpy(ultimoSubdirectorio, pathDividido[i-1]);
+		}
+		}
+		else{
+			i++;
+		}
 	}
-	else{
-		i++;
-	}
-}
 
 bool condition(void* element) {
 	t_directory* directorio = element;
@@ -2052,5 +2059,80 @@ void liberarinfoDataNodo(t_Nodos *unNodo) {
 void liberarDirectorio(t_directory* unDirectorio) {
 	free(unDirectorio->nombre);
 	free(unDirectorio);
+}
+
+////////////////////////////////////////////////////////////////
+
+char* sacarNombreArchivoDelPath(char* path){
+
+	char** pathDividido = string_split(path, "/"); //Me quedaria una lista de cada subdirectorio dividido por "/", termina con un valor NULL
+	int i=0;
+	char* nombreArchivo;
+
+	while(pathDividido[i]!=NULL){
+		if(pathDividido[i+1]==NULL){ //Si la siguiente posicion es NULL entonces es el archivo
+		nombreArchivo = malloc(strlen(pathDividido[i])+1);
+		strcpy(nombreArchivo, pathDividido[i]);
+		}
+		else{
+			i++;
+		}
+		}
+
+	return nombreArchivo;
+}
+
+
+
+void mover (char* path_original, char* path_finalCompleto){ //deberia ser user/juan/datos user/marcelo
+
+	if(verificarSiEsArchivoODirectorio(path_original)!=0){ //si es !=0 es un archivo
+
+			bool condition(void* element) {
+						file* archivo = element;
+						return string_equals_ignore_case(archivo->path, path_original);
+				}
+
+			file* archivoOriginal = list_find(archivos, condition);
+
+	if(verificarExistenciaNombreArchivo(path_original)==1) { // ==0 ya existe archivo con ese nombre en el mismo index
+
+		char* nombreNuevoSoloArchivo = sacarNombreArchivoDelPath(path_finalCompleto); // si
+
+		char* nombreNuevoCompleto;
+
+		string_append(&nombreNuevoCompleto, path_finalCompleto);
+
+		string_append(&nombreNuevoCompleto, nombreNuevoSoloArchivo);
+
+		(archivoOriginal ->path) = nombreNuevoCompleto;
+
+
+	}else{
+		printf("Ya existe el mismo nombre de archivo en ese directorio\n");
+	}
+
+	}else{ //es directorio
+
+	t_directory* ultimoSubdirectorio = buscarDirectorio(path_original);
+
+	t_directory* ultimoSubdirectorioFinal = buscarDirectorio(path_finalCompleto);
+
+
+	int padreOriginal = ultimoSubdirectorio -> indexPadre;
+
+	int indiceFinal = ultimoSubdirectorioFinal -> index;
+
+
+	if (padreOriginal != -1){ //verifico que no sea el root
+
+		if (indiceFinal != padreOriginal){ //verifico que no esten en el mismo lugar, seria al pedo moverlo
+
+			padreOriginal = indiceFinal; //el padre del original tendria que pasar a ser = al indice del nuevo directorio donde se va a mover
+
+		} else printf("No se puede mover un Directorio adentro de si mismo\n");
+
+	} else printf("No se puede mover el root\n");
+	}
 }
 
