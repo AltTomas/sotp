@@ -620,7 +620,7 @@ int almacenarArchivo(char* ruta, char* nombreArchivo, char* tipo){// Faltan argu
 	void* data = obtenerContenido(ruta);
 	int numeroBloque = 0;
 
-	int indiceDirectorio = pedidoRuta(ruta);
+	int indiceDirectorio = pedidoLecturaRuta(ruta);
 
 	if(indiceDirectorio < 0){
 		log_error(logger,"No se pudo obtener el indice de la ruta");
@@ -736,7 +736,7 @@ int guardarCopia(char* ruta, char* nombreArchivo, int socketNodo, t_pedido_almac
 
 		    // Actualizar metadata de archivo - Bloque en bloque nodo
 
-			int indexDirectorio = pedidoRuta(ruta);
+			int indexDirectorio = pedidoLecturaRuta(ruta);
 
 			char* string_index = string_itoa(indexDirectorio);
 
@@ -1257,9 +1257,7 @@ void actualizarTablaNodosAsignacion(int socketNodo){
 }
 //////////////////////////////////// FUNCIONES TABLA DE DIRECTORIOS /////////////////////////////////////
 
-//todo: VER COMO HACER LA PERSISTENCIA EN LA TABLA DE DIRECTORIOS
-
-void crearRoot(){
+void crearRoot(){ //Si yo formateo el FS deberia ejecutarse esta funcion
 
 	t_directory* root = malloc(sizeof(t_directory));
 
@@ -1270,14 +1268,61 @@ void crearRoot(){
 
 	list_add(directorios,root);
 
-	// Persistir en directorios.dat
+	//Se persiste en directorios.dat
+	actualizarMetadataDirectorios(root);
 
+}
+
+bool verificarMetadataDirectorios(t_config* metadataDirectorios){
+	return config_has_property(metadataDirectorios,"INDEX") &&
+			config_has_property(metadataDirectorios,"DIRECTORIO") &&
+			config_has_property(metadataDirectorios,"PADRE");
+}
+
+t_list* leerTablaDeDirectorios(char* ruta){
+
+	t_list* directorios = list_create();
+
+	 t_config* metadataDirectorios = config_create(ruta);
+
+	 if(metadataDirectorios == NULL)
+	    	puts("ERROR");
+
+
+	    if(!verificarMetadataDirectorios(metadataDirectorios)){
+	    	puts("Fallo en formato de tabla de directorios");
+	    }
+
+	   char** indices =  config_get_array_value(metadataDirectorios, "INDEX");
+	   char** nombres = config_get_array_value(metadataDirectorios, "DIRECTORIO");
+	   char** padres = config_get_array_value(metadataDirectorios,"PADRE");
+
+	   int i;
+	   int cantidadDirectorios = obtenerCantidadElementos(indices);
+
+	   if(cantidadDirectorios > 0){
+
+		   for(i = 0; i < cantidadDirectorios; i ++){
+
+			   t_directory* directorio = malloc(sizeof(t_directory));
+
+			   directorio->index = atoi(indices[i]);
+			   directorio->nombre = malloc(strlen(nombres[i])+1);
+			   strcpy(directorio->nombre, nombres[i]);
+			   directorio->indexPadre = atoi(padres[i]);
+
+			   list_add(directorios,directorio);
+		   }
+	   }
+
+	   return directorios;
 }
 
 t_directory* verificarExistenciaDirectorio(char* directorio, int indicePadre){
 
 	log_info(logger,"Verificando existencia de: %s\n", directorio);
-	log_info(logger,"Indice del padre: %d\n", indicePadre);
+
+	directorios = leerTablaDeDirectorios(tablaDirectorios);
 
 	bool estaEnLista(t_directory* elemento){
 		return (strcmp(elemento->nombre,directorio) == 0 && (elemento->indexPadre == indicePadre) );
@@ -1286,7 +1331,8 @@ t_directory* verificarExistenciaDirectorio(char* directorio, int indicePadre){
 	t_directory* directorioEncontrado = list_find(directorios,(void*)estaEnLista);
 
 	if(directorioEncontrado == NULL){
-		log_error(logger,"No existe, habra que crearlo");
+		printf("El directorio %s no existe, se procede a crearlo\n", directorio);
+		log_info(logger,"El directorio %s no existe, se procede a crearlo", directorio);
 	}
 	else{
 		log_info(logger,"El directorio %s con padre en indice %d existe!\n", directorio, indicePadre);
@@ -1298,132 +1344,235 @@ t_directory* verificarExistenciaDirectorio(char* directorio, int indicePadre){
 	return directorioEncontrado;
 }
 
-t_directory* crearDirectorio(char* directorio, int indicePadre){
+t_directory* buscarPorIndice(int indice){
 
-	t_directory* directorioNuevo = malloc(sizeof(t_directory));
-
-	if(directorios->elements_count <=100){
-
-	directorioNuevo->index = directorios->elements_count;
-	directorioNuevo->nombre = malloc(strlen(directorio)+1);
-	strcpy(directorioNuevo->nombre, directorio);
-	directorioNuevo->indexPadre = indicePadre;
-
-	list_add(directorios, directorioNuevo);
-
-	actualizarMetadataDirectorios(directorioNuevo);
-
-	return directorioNuevo;
+	bool esIndice(t_directory* elemento){
+		return elemento->index == indice;
 	}
-	return NULL;
+
+	t_directory* directorioBuscado = list_find(directorios,(void*)esIndice);
+
+	return directorioBuscado;
 }
 
-int buscarIndices(char* ruta){
+bool estaVacio(t_directory* directorioPadre){
 
-	log_info(logger,"Obteniendo indice de la  ruta: %s\n",ruta);
+	bool tieneHijos(t_directory* directorio){
+		return (directorio->indexPadre == directorioPadre->index);
+	}
+
+	bool cumple = list_any_satisfy(directorios, (void*)tieneHijos);
+
+	return(!cumple);
+}
+
+void eliminarDirectorioVacio(t_directory* directorioAEliminar) {
+
+	bool indiceBuscado(t_directory* directorio) {
+		return directorioAEliminar->index == directorio->index;
+	}
+	list_remove_and_destroy_by_condition(directorios,(void*) indiceBuscado, (void*) liberarDirectorio);
+}
+
+t_directory* buscarPorPadre(int indicePadre){
+
+	bool esHijo(t_directory* elemento){
+		return elemento->indexPadre == indicePadre;
+	}
+
+	t_directory* directorioHijo = list_find(directorios,(void*)esHijo);
+
+	return directorioHijo;
+}
+
+t_directory* traerSubdirectorio(t_directory* directorio) {
+	return buscarPorPadre(directorio->index);
+}
+
+bool tieneSubdirectorio(t_directory* directorio) {
+	return traerSubdirectorio(directorio) != NULL;
+}
+
+void eliminarDirectorio(t_directory* directorioAEliminar) {
+
+	t_directory* directorio = directorioAEliminar;
+
+	void eliminarDirRecursivamente(t_directory* directorio) {
+
+		if (estaVacio(directorio) && directorio != directorioAEliminar) {
+
+			t_directory *directorioPadre = buscarPorIndice(directorio->indexPadre);
+
+			eliminarDirectorioVacio(directorio);
+
+			eliminarDirRecursivamente(directorioPadre);
+
+		}
+		 else if (tieneSubdirectorio(directorio)) {
+
+			 t_directory* subdirectorio = traerSubdirectorio(directorio);
+
+			eliminarDirRecursivamente(subdirectorio);
+
+		}
+		else {	//esta vacio y es el directorio a eliminar
+
+			eliminarDirectorioVacio(directorioAEliminar);
+
+			printf("Se elimino todo el directorio con su contenido\n");
+		}
+
+	}
+	eliminarDirRecursivamente(directorio);
+}
+
+int borrarDirectorio(char* ruta){ // todo: Se deberia poder borrar el root?
 
 	char** subdirectorios = string_split(ruta, "/");
-	int i;
 
+	int i;
 	int cantidadSubdirectorios = obtenerCantidadElementos(subdirectorios);
 
-	log_info(logger,"Cantidad Directorios: %d\n", cantidadSubdirectorios);
-
-	t_directory* directorioExistente;
 	int indicePadre;
+
+	t_directory* directorioABorrar;
 
 	for(i = 0; i < cantidadSubdirectorios; i++){
 
-		if(i == 0){ // Directorio con root como padre
+		if(cantidadSubdirectorios == 1){ // Directorio con root como padre
 
-			log_info(logger,"Vamos con el directorio inicial: %s \n",subdirectorios[i]);
-			log_info(logger,"Indice Padre: %d\n", 0);
-			t_directory* directorioPadre = verificarExistenciaDirectorio(subdirectorios[i], 0); // Tiene a root como padre
+			log_info(logger,"La ruta a eliminar (%s) es hijo de root y no tiene hijos", ruta);
 
-			if(directorioPadre == NULL){ // No lo encontro
-				directorioPadre = crearDirectorio(subdirectorios[i], 0);
+			directorioABorrar = verificarExistenciaDirectorio(subdirectorios[i], 0);
+		}
+		else{ // Es un directorio mas alla de algun hijo de root
+
+			if(i == 0){ // Directorio con root como padre
+
+				t_directory* directorioPadre = verificarExistenciaDirectorio(subdirectorios[i], 0); // Tiene a root como padre
+
+				indicePadre = directorioPadre->index;
 			}
+			else{ // Directorios que le siguen
 
-			indicePadre = directorioPadre->index;
+				directorioABorrar = verificarExistenciaDirectorio(subdirectorios[i], indicePadre);
+
+				indicePadre = directorioABorrar->index;
+			}
+		}
+	}
+
+	eliminarDirectorio(directorioABorrar);
+
+	// Borramos del metadata todos los que estan en la lista
+
+	t_config* metadataDirectorios = config_create(tablaDirectorios);
+
+	if(metadataDirectorios == NULL)
+		puts("ERROR");
+
+	if(!verificarMetadataDirectorios(metadataDirectorios)){
+		puts("Fallo en formato de tabla de directorios");
+	}
+
+	int cantidadFinalDirectorios = directorios->elements_count;
+
+	////////////////////////////// INDICES ///////////////////////////////////////////////
+	char** copiaArrayIndices = (char*)malloc(sizeof(char*) * (cantidadFinalDirectorios));
+
+	for(i = 0; i < cantidadFinalDirectorios; i++){
+
+		t_directory* directorio = list_get(directorios,i);
+
+		char* string_indice = string_itoa(directorio->index);
+
+		copiaArrayIndices[i]=(char*)malloc(strlen(string_indice)+1);
+		strcpy(copiaArrayIndices[i],string_indice);
+
+	}
+
+	// Le damos formato al array asi modificamos el archivo de metadata
+
+	char* arrayIndices = string_new();
+	string_append(&arrayIndices,"[");
+
+	for(i = 0; i < cantidadFinalDirectorios; i++){
+		if( i == cantidadFinalDirectorios -1){
+			string_append(&arrayIndices,copiaArrayIndices[i]);
 		}
 		else{
-
-			log_info(logger,"Vamos con el directorio: %s\n", subdirectorios[i]);
-			log_info(logger,"Indice Padre: %d\n", indicePadre);
-
-			directorioExistente = verificarExistenciaDirectorio(subdirectorios[i], indicePadre);
-
-			if(directorioExistente == NULL){ // No lo encontro
-				directorioExistente = crearDirectorio(subdirectorios[i], indicePadre);
-				if(directorioExistente == NULL){ // No se pudo crear
-					return -1;
-				}
-			}
-
-			indicePadre = directorioExistente->index;
+			string_append(&arrayIndices,copiaArrayIndices[i]);
+			string_append(&arrayIndices,",");
 		}
+
 	}
-	return directorioExistente->index;
-}
+	string_append(&arrayIndices,"]");
 
+	////////////////////////////// DIRECTORIOS ///////////////////////////////////////////////
+	char** copiaArrayNombres = (char*)malloc(sizeof(char*) * (cantidadFinalDirectorios));
 
+	for(i = 0; i < cantidadFinalDirectorios; i++){
 
-int pedidoRuta(char* ruta){
+		t_directory* directorio = list_get(directorios,i);
 
-	log_info(logger, "Trabajando pedido de ruta %s", ruta);
+		copiaArrayNombres[i]=(char*)malloc(strlen(directorio->nombre)+1);
+		strcpy(copiaArrayNombres[i],directorio->nombre);
 
-	int indice = buscarIndices(ruta);
-
-	if(indice >= 0){
-		log_info(logger, "Se pudieron crear los directorios");
-		return indice;
 	}
-	else{
-		log_error(logger, "No se pudo realizar el pedido porque ya existen 100 directorios");
-		return -1;
+
+	char* arrayNombres = string_new();
+	string_append(&arrayNombres,"[");
+
+	for(i = 0; i < cantidadFinalDirectorios; i++){
+		if( i == cantidadFinalDirectorios -1){
+			string_append(&arrayNombres,copiaArrayNombres[i]);
+		}
+		else{
+			string_append(&arrayNombres,copiaArrayNombres[i]);
+			string_append(&arrayNombres,",");
+		}
+
 	}
-}
-bool verificarMetadataDirectorios(t_config* metadataDirectorios){
-	return config_has_property(metadataDirectorios,"INDEX") &&
-			config_has_property(metadataDirectorios,"DIRECTORIO") &&
-			config_has_property(metadataDirectorios,"PADRE");
-}
+	string_append(&arrayNombres,"]");
 
+	////////////////////////////// PADRES ///////////////////////////////////////////////
+	char** copiaArrayPadres = (char*)malloc(sizeof(char*) * (cantidadFinalDirectorios));
 
-t_list* leerTablaDeDirectorios(char* ruta){ // Esta funcion se usa para leer diretorios.dat y cargar su info en una lista
+	for(i = 0; i < cantidadFinalDirectorios; i++){
 
-	t_list* directorios = list_create();
+		t_directory* directorio = list_get(directorios,i);
 
-	 t_config* metadataDirectorios = config_create(ruta);
+		char* string_padre = string_itoa(directorio->indexPadre);
 
-	 if(metadataDirectorios == NULL)
-	    	puts("ERROR");
+		copiaArrayPadres[i]=(char*)malloc(strlen(string_padre)+1);
+		strcpy(copiaArrayPadres[i],string_padre);
+	}
 
+	char* arrayPadres = string_new();
+	string_append(&arrayPadres,"[");
 
-	    if(!verificarMetadataDirectorios(metadataDirectorios)){
-	    	puts("Fallo en formato de tabla de nodos");
-	    }
+	for(i = 0; i < cantidadFinalDirectorios; i++){
+		if( i == cantidadFinalDirectorios -1){
+			string_append(&arrayPadres,copiaArrayPadres[i]);
+		}
+		else{
+			string_append(&arrayPadres,copiaArrayPadres[i]);
+			string_append(&arrayPadres,",");
+		}
 
-	   char** indices =  config_get_array_value(metadataDirectorios, "INDEX");
-	   char** nombres = config_get_array_value(metadataDirectorios, "DIRECTORIO");
-	   char** padres = config_get_array_value(metadataDirectorios,"PADRE");
+	}
 
-	   int i;
-	   int cantidadDirectorios = obtenerCantidadElementos(indices);
+	string_append(&arrayPadres,"]");
 
-	   for(i = 0; i < cantidadDirectorios; i ++){
+	//Actualizo los valores de las keys del config
+	config_set_value(metadataDirectorios, "INDEX", arrayIndices);
+	config_set_value(metadataDirectorios, "DIRECTORIO", arrayNombres);
+	config_set_value(metadataDirectorios, "PADRE", arrayPadres);
 
-		   t_directory* directorio = malloc(sizeof(t_directory));
+	config_save(metadataDirectorios);
+	log_info(logger,"Guardamos cambios en tabla de directorios - BORRADO");
 
-		   directorio->index = atoi(indices[i]);
-		   directorio->nombre = malloc(strlen(nombres[i])+1);
-		   strcpy(directorio->nombre, nombres[i]);
-		   directorio->indexPadre = atoi(padres[i]);
-
-		   list_add(directorios,directorio);
-	   }
-
-	   return directorios;
+	return 1;
 }
 
 void actualizarMetadataDirectorios(t_directory* directorio){
@@ -1451,7 +1600,6 @@ void actualizarMetadataDirectorios(t_directory* directorio){
 
 	    		nuevoArrayIndices[i]=(char*)malloc(strlen(indices[i])+1);
 	    		strcpy(nuevoArrayIndices[i],indices[i]);
-	    		printf("ArrayNuevo[%d]: %s\n", i, nuevoArrayIndices[i]);
 	    	}
 
 	    	char** nuevoArrayNombres = (char*)malloc(sizeof(char*) * (cantidadDirectorios+1));
@@ -1460,7 +1608,6 @@ void actualizarMetadataDirectorios(t_directory* directorio){
 
 	    		nuevoArrayNombres[i]=(char*)malloc(strlen(nombres[i])+1);
 	    		 strcpy(nuevoArrayNombres[i],nombres[i]);
-	    		 printf("ArrayNuevo[%d]: %s\n", i, nuevoArrayNombres[i]);
 	    	}
 
 	    	char** nuevoArrayPadres = (char*)malloc(sizeof(char*) * (cantidadDirectorios+1));
@@ -1469,7 +1616,6 @@ void actualizarMetadataDirectorios(t_directory* directorio){
 
 	    		nuevoArrayPadres[i]=(char*)malloc(strlen(padres[i])+1);
 	    		 strcpy(nuevoArrayPadres[i],padres[i]);
-	    		 printf("ArrayNuevo[%d]: %s\n", i, nuevoArrayPadres[i]);
 	    	}
 
 	    char* string_indice = string_itoa(directorio->index);
@@ -1484,19 +1630,13 @@ void actualizarMetadataDirectorios(t_directory* directorio){
 	    for(i = 0; i < cantidadDirectoriosArrayNuevo; i++){
 	    	if( i == cantidadDirectoriosArrayNuevo -1){
 	    	string_append(&arrayIndices,string_indice);
-	    	 printf("Array indices: %s\n", arrayIndices);
 	    	}
 	    	else{
 	    		string_append(&arrayIndices,nuevoArrayIndices[i]);
-	    		 printf("Array indices: %s\n", arrayIndices);
 	    		string_append(&arrayIndices,",");
-	    		 printf("Array indices: %s\n", arrayIndices);
 	    	}
-
 	    }
 	    string_append(&arrayIndices,"]");
-
-	    printf("Array Indices: %s\n", arrayIndices);
 
 	    /////////////////////////////////////////////// NOMBRES ///////////////////////////////////////////////
 
@@ -1506,18 +1646,13 @@ void actualizarMetadataDirectorios(t_directory* directorio){
 	    for(i = 0; i < cantidadDirectoriosArrayNuevo; i++){
 	    	if( i == cantidadDirectoriosArrayNuevo -1){
 	    	string_append(&arrayNombres, directorio->nombre);
-	    	 printf("Array nombres: %s\n", arrayNombres);
 	    	}
 	    	else{
 	    		string_append(&arrayNombres,nuevoArrayNombres[i]);
-	    		 printf("Array nombres: %s\n", arrayNombres);
 	    		string_append(&arrayNombres,",");
-	    		 printf("Array nombres: %s\n", arrayNombres);
 	    	}
-
 	    }
 	    string_append(&arrayNombres,"]");
-
 
 	    /////////////////////////////////////////////// PADRES ///////////////////////////////////////////////
 
@@ -1527,15 +1662,11 @@ void actualizarMetadataDirectorios(t_directory* directorio){
 	    for(i = 0; i < cantidadDirectoriosArrayNuevo; i++){
 	    	if( i == cantidadDirectoriosArrayNuevo -1){
 	    	string_append(&arrayPadres,string_indicePadre);
-	    	 printf("Array indices: %s\n", arrayPadres);
 	    	}
 	    	else{
 	    		string_append(&arrayPadres,nuevoArrayPadres[i]);
-	    		 printf("Array indices: %s\n", arrayPadres);
 	    		string_append(&arrayPadres,",");
-	    		 printf("Array indices: %s\n", arrayPadres);
 	    	}
-
 	    }
 	    string_append(&arrayPadres,"]");
 
@@ -1545,12 +1676,109 @@ void actualizarMetadataDirectorios(t_directory* directorio){
 
 
 	      config_save(metadataDirectorios);
-	      puts("El archivo directorios.dat se actualizo exitosamente");
+	      log_info(logger,"Guardamos cambios en tabla de directorios - ACTUALIZACION");
 
 	    }
 }
 
-//todo: Hacer cambios en directorios.dat si se borra un directorio
+t_directory* crearDirectorio(char* directorio, int indicePadre){
+
+	log_info(logger,"Se quiere crear el directorio %s", directorio);
+
+	t_directory* directorioNuevo = malloc(sizeof(t_directory));
+
+	if(directorios->elements_count <=100){
+
+		bool mayorIndice(t_directory* directorio1, t_directory* directorio2){
+			return directorio1->index > directorio2->index;
+		}
+
+		t_list* directoriosOrdenadosPorIndice = list_create();
+		list_add_all(directoriosOrdenadosPorIndice,directorios);
+		list_sort(directoriosOrdenadosPorIndice, mayorIndice); // Tira warning pero funciona
+
+		int i;
+
+		t_directory* directorioMayorIndice = list_get(directoriosOrdenadosPorIndice,0);
+
+		directorioNuevo->index = directorioMayorIndice->index + 1;
+
+		free(directorioMayorIndice);
+
+		for(i = 0; i > directoriosOrdenadosPorIndice->elements_count; i++){
+			t_directory* directorioCopia = list_remove(directoriosOrdenadosPorIndice, i);
+			free(directorioCopia);
+		}
+
+		free(directoriosOrdenadosPorIndice);
+
+		directorioNuevo->nombre = malloc(strlen(directorio)+1);
+		strcpy(directorioNuevo->nombre, directorio);
+		directorioNuevo->indexPadre = indicePadre;
+
+		list_add(directorios, directorioNuevo);
+
+		actualizarMetadataDirectorios(directorioNuevo);
+
+		return directorioNuevo;
+	}
+	return NULL;
+}
+
+int buscarIndices(char* ruta){
+
+	log_info(logger,"Obteniendo indice de la  ruta: %s",ruta);
+
+	char** subdirectorios = string_split(ruta, "/");
+	int i;
+
+	int cantidadSubdirectorios = obtenerCantidadElementos(subdirectorios);
+
+	int indicePadre;
+
+	for(i = 0; i < cantidadSubdirectorios; i++){
+
+		if(i == 0){ // Directorio con root como padre
+
+			t_directory* directorioPadre = verificarExistenciaDirectorio(subdirectorios[i], 0); // Tiene a root como padre
+
+			if(directorioPadre == NULL){ // No lo encontro
+				directorioPadre = crearDirectorio(subdirectorios[i], 0);
+			}
+
+			indicePadre = directorioPadre->index;
+		}
+		else{
+			t_directory* directorioExistente = verificarExistenciaDirectorio(subdirectorios[i], indicePadre);
+
+			if(directorioExistente == NULL){ // No lo encontro
+				directorioExistente = crearDirectorio(subdirectorios[i], indicePadre);
+				if(directorioExistente == NULL){ // No se pudo crear
+					return 0;
+				}
+			}
+
+			indicePadre = directorioExistente->index;
+		}
+	}
+	return 1;
+}
+
+int pedidoLecturaRuta(char* ruta){
+
+	log_info(logger, "Trabajando pedido de la ruta %s",ruta);
+
+	int resultado = buscarIndices(ruta);
+
+	if(resultado){
+		log_info(logger, "Se pudieron crear los directorios de la ruta %s", ruta);
+		return 1;
+	}
+	else{
+		log_error(logger, "Hubo un problema creando los directorios de la ruta %s", ruta);
+		return 0;
+	}
+}
 
 //////////////////////////////////// FUNCIONES TABLA DE ARCHIVOS ///////////////////////////////////////
 

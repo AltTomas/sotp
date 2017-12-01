@@ -142,9 +142,18 @@ void crearRoot();
 t_directory* verificarExistenciaDirectorio(char*, int);
 t_directory* crearDirectorio(char*, int);
 int buscarIndices(char*);
-int pedidoRuta(char*);
+int pedidoLecturaRuta(char*);
 t_list* leerTablaDeDirectorios(char* ruta);
 void actualizarMetadataDirectorios(t_directory*);
-
+int borrarDirectorio(char*);
+void eliminarDirectorio(t_directory*);
+bool tieneSubdirectorio(t_directory*);
+t_directory* traerSubdirectorio(t_directory*);
+t_directory* buscarPorPadre(int);
+void eliminarDirectorioVacio(t_directory*);
+void liberarDirectorio(t_directory*);
+bool estaVacio(t_directory*);
+t_directory* buscarPorIndice(int);
+bool verificarMetadataDirectorios(t_config*);
 
 #endif /* FUNCIONESFS_H_ */
