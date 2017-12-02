@@ -94,6 +94,8 @@ void crearEstructurasAdministrativas(){
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void commandHandler(){
 
+	//todo: Tener cuidado con autocompletar, porque inserta un " " al final por lo que no tomaria bien los path
+
 	char * linea;
 
 	puts("Bienvenido a YAMAFS. Si no conoce los comandos, ingrese HELP para más información.");
@@ -127,9 +129,65 @@ void commandHandler(){
 		case 5:
 			puts("Ingrese path el archivo");
 			break;
-		case 6:
-			puts("Ingre el path del directorio a crear");
-			break;
+
+		case 6:{ //MKDIR
+
+			char* directorioACrear = readline("Ingrese el path del directorio a crear: ");
+
+			log_info(logger,"Obteniendo indice de la  ruta: %s",directorioACrear);
+
+			char** subdirectorios = string_split(directorioACrear, "/");
+			int i;
+			int resultado = 0;
+
+			int cantidadSubdirectorios = obtenerCantidadElementos(subdirectorios);
+
+			int indicePadre;
+
+			for(i = 0; i < cantidadSubdirectorios; i++){
+
+				if(i == 0){ // Directorio con root como padre
+
+					t_directory* directorioPadre = verificarExistenciaDirectorio(subdirectorios[i], 0); // Tiene a root como padre
+
+					if(directorioPadre == NULL){ // No lo encontro
+						directorioPadre = crearDirectorio(subdirectorios[i], 0);
+					}
+
+					indicePadre = directorioPadre->index;
+				}
+				else{
+					t_directory* directorioExistente = verificarExistenciaDirectorio(subdirectorios[i], indicePadre);
+
+					if( (directorioExistente != NULL) && (i == cantidadSubdirectorios - 1)){ // Encontro al ultimo -> siempre existio
+						resultado = 1;
+					}
+					else{
+					if(directorioExistente == NULL){ // No lo encontro
+						directorioExistente = crearDirectorio(subdirectorios[i], indicePadre);
+
+						if(directorioExistente == NULL){ // No se pudo crear
+							resultado = 0;
+						}
+					}
+
+					indicePadre = directorioExistente->index;
+					}
+				}
+			}
+
+			if(resultado == 1){
+				puts("El directorio a crear ya existia");
+			}
+			else if (resultado == 2){
+				puts("El directorio se creo exitosamente");
+			}
+			else{
+				puts("No se puedo crear el directorio");
+			}
+		}
+
+		break;
 		case 7:{ // CPFROM
 
 			char* pathArchivo = readline("Ingrese path del archivo en FS local: ");
@@ -146,7 +204,7 @@ void commandHandler(){
 				tipo = strdup("Texto");
 			}
 
-			int resultado = almacenarArchivo(pathArchivo, pathYAMAFS, tipo);// Faltan argumentos
+			int resultado = almacenarArchivo(pathArchivo, pathYAMAFS, tipo);// Faltan argumentos?
 
 			if(resultado){
 				puts("Almacenamiento exitoso!");
@@ -159,22 +217,137 @@ void commandHandler(){
 
 		}
 			break;
-		case 8:
-			puts("Ingrese el path del archivo en el YAMAFS y el directorio del FS final");
+
+		case 8:{ // CPTO
+			char* pathYAMAFS = readline("Ingrese el path del archivo en yamaFS: ");
+			char* pathLocal = readline("Ingrese el path que tendria el archivo en el FS local: ");
+
+			//todo
+
+			// Leer deberia devovler un char*
+
+			//Con el path de yamaFS leemos el archivo (obtenemos todo su contenido)
+
+			//char* contenidoArchivo = leer(pathYAMAFS);
+			char* contenidoArchivo;
+
+			char* comandoCopiar = string_from_format ("echo %s", contenidoArchivo);
+
+			string_append(&comandoCopiar, " >");
+			string_append(&comandoCopiar, pathLocal);
+
+
+			//Creamos un archivo en la ruta desginada del FS local con el contenido
+			system(comandoCopiar);
+
+
+		}
+		break;
+
+		case 9:{ // CPBLOCK
+
+			char* pathArchivo = readline("Ingrese path del archivo en yamaFS: ");
+			char* numeroBloque = readline("Ingrese el bloque a ser copiado: ");
+			char* idNodo = readline("Ingrese el nombre del nodo en el que se va a copiar el bloque: ");
+
+			t_info_bloque_archivo* bloque;
+
+			// Buscar el archivo
+
+			char* nombreArchivo = sacarNombreArchivoDelPath(pathArchivo);
+
+			int posicion = buscarArchivo(nombreArchivo);
+
+			t_info_archivo* archivo = list_get(archivos,posicion);
+
+			// Ver si existe el bloque en cuestion
+
+			bool confirmarBloque(t_info_bloque_archivo* bloquePedido){
+				return bloquePedido->bloqueArchivo == atoi(numeroBloque);
+			}
+
+			bloque = list_find(archivo->infoBloques, (void*)confirmarBloque);
+
+
+			if (bloque == NULL){ // NO existe el bloque
+				puts("No se encontro el bloque pedido - No se puede realizar el CPBLOCK");
+			}
+			else{
+
+				//Pedimos contenido a nodo
+
+				int socketNodoAlmacenando = buscarSocketNodo(bloque->copia0Nodo);
+
+				t_struct_numero* enviado = malloc(sizeof(t_struct_numero));
+
+				enviado->numero = FS_DATANODE_PEDIDO_CONTENIDO_BLOQUE;
+
+				socket_enviar(socketNodoAlmacenando,D_STRUCT_NUMERO,enviado);
+
+				enviado->numero = atoi(numeroBloque);
+
+				socket_enviar(socketNodoAlmacenando,D_STRUCT_NUMERO,enviado);
+
+				// Obtener contenido del bloque (habaria que pedirselo al nodo que lo tenga)
+
+				void* estructuraRecibida;
+				t_tipoEstructura tipoEstructura;
+
+				int recepcion = socket_recibir(socketNodoAlmacenando, &tipoEstructura,&estructuraRecibida);
+
+				 if(recepcion == -1){
+				    printf("Se desconecto el Nodo en el socket %d\n", socketNodoAlmacenando);
+				    log_info(logger,"Se desconecto el Nodo en el socket %d", socketNodoAlmacenando);
+				    close(socketNodoAlmacenando);
+				    FD_CLR(socketNodoAlmacenando, &datanode);
+				    FD_CLR(socketNodoAlmacenando, &setDataNodes);
+
+				    //Actualizar tabla de nodos - Borrar
+				    actualizarTablaNodosBorrar(socketNodoAlmacenando);
+				  }
+				  else if(tipoEstructura != D_STRUCT_STRING){
+				    puts("Error en la serializacion");
+				    log_info(logger,"Error en la serializacion");
+				  }
+				  else{
+				    log_info(logger,"El nodo en el socket %d mando el contenido del bloque pedido", socketNodoAlmacenando);
+
+				    ((t_struct_string*)estructuraRecibida)->string;
+
+				    // Enviarle contenido a nodo nuevo para guardar
+
+				    int socketNodoCopiar = buscarSocketNodo(idNodo);
+
+				    t_pedido_almacenar_bloque* datosBloque = malloc(sizeof(t_pedido_almacenar_bloque));
+
+				    datosBloque->contenidoBloque = malloc(strlen(((t_struct_string*)estructuraRecibida)->string)+1);
+				    strcpy(datosBloque->contenidoBloque, ((t_struct_string*)estructuraRecibida)->string);
+				    datosBloque->bloqueArchivo = atoi(numeroBloque);
+				    datosBloque->bytesOcupados = bloque->bytesOcupados;
+
+				    // todo: Ver que onda esto, podemos hacer que se ingrese por parametro si se lo quiere meter de copia 0/1
+				    int resultado = guardarCopia(pathArchivo, nombreArchivo, socketNodoCopiar, datosBloque, 0);
+				    if(resultado){
+				    	printf("Se guardo el bloque %s del archivo %s en el nodo de nombre: %s\n", numeroBloque, pathArchivo, idNodo);
+				    }
+				    else{
+				    	printf("ERROR: No se pudo guardar el bloque %s del archivo %s en el nodo de nombre: %s\n", numeroBloque, pathArchivo, idNodo);
+				    }
+				  }
+			}
+
+		}
 			break;
-		case 9:
-			puts("Ingrese el path del archivo, nro de bloque e ID del nodo");
-			break;
-		case 10:
+		case 10: // MD5
 			puts("Ingrese el path del archivo en el YAMAFS");
 			break;
-		case 11:
+		case 11:// LS
 			puts("Ingrese el path de un directorio");
 			break;
-		case 12:
+		case 12:// INFO
 			puts("Ingrese el path de un archivo");
 			break;
-		case 13:
+		case 13: // HELP
 			puts("format - Formatear el Filesystem.");
 			puts("rm [path_archivo] - Eliminar un Archivo.");
 			puts("rm -d [path_directorio] - Eliminar un directorio.");
@@ -191,10 +364,16 @@ void commandHandler(){
 			puts("info [path_archivo] - Muestra toda la información del archivo, incluyendo tamaño, bloques, ubicación de los bloques, etc.");
 			break;
 
-		case 14:
-			puts("ingrese el path del directorio");
-			break;
-		case 15:
+		case 14:{ // RM -D
+
+			char* pathDirectorio = readline("Ingrese path del directorio a borrar en yamaFS: ");
+
+			borrarDirectorio(pathDirectorio);
+
+		}
+		break;
+
+		case 15:// RM - B
 			puts("ingrese path del archivo, nro bloque y nro copia");
 			break;
 
@@ -621,7 +800,7 @@ t_directory* directorioEncontrado = list_find(directorios, condition); //seria d
 return directorioEncontrado;
 }
 
-int almacenarArchivo(char* ruta, char* nombreArchivo, char* tipo){// Faltan argumentos
+int almacenarArchivo(char* ruta, char* nombreArchivo, char* tipo){// Faltan argumentos?
 
 	long tamanioFile = conseguirTamanioArchivo(ruta);
 	void* data = obtenerContenido(ruta);
@@ -1738,6 +1917,7 @@ int buscarIndices(char* ruta){
 
 	char** subdirectorios = string_split(ruta, "/");
 	int i;
+	t_directory* directorioExistente;
 
 	int cantidadSubdirectorios = obtenerCantidadElementos(subdirectorios);
 
@@ -1756,19 +1936,20 @@ int buscarIndices(char* ruta){
 			indicePadre = directorioPadre->index;
 		}
 		else{
-			t_directory* directorioExistente = verificarExistenciaDirectorio(subdirectorios[i], indicePadre);
+			directorioExistente = verificarExistenciaDirectorio(subdirectorios[i], indicePadre);
 
 			if(directorioExistente == NULL){ // No lo encontro
 				directorioExistente = crearDirectorio(subdirectorios[i], indicePadre);
+
 				if(directorioExistente == NULL){ // No se pudo crear
-					return 0;
+					return -1;
 				}
 			}
 
 			indicePadre = directorioExistente->index;
 		}
 	}
-	return 1;
+	return directorioExistente->index;
 }
 
 int pedidoLecturaRuta(char* ruta){
@@ -1777,13 +1958,13 @@ int pedidoLecturaRuta(char* ruta){
 
 	int resultado = buscarIndices(ruta);
 
-	if(resultado){
-		log_info(logger, "Se pudieron crear los directorios de la ruta %s", ruta);
-		return 1;
+	if(resultado >= 0){
+		log_info(logger, "Se pudo acceder a los directorios de la ruta %s", ruta);
+		return resultado;
 	}
 	else{
-		log_error(logger, "Hubo un problema creando los directorios de la ruta %s", ruta);
-		return 0;
+		log_error(logger, "Hubo con el acceso a los directorios de la ruta %s", ruta);
+		return -1;
 	}
 }
 

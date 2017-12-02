@@ -157,5 +157,6 @@ t_directory* buscarPorIndice(int);
 bool verificarMetadataDirectorios(t_config*);
 char* sacarNombreArchivoDelPath(char* path);
 void mover (char* path_original, char* path_finalCompleto);
+int buscarArchivo(char*);
 
 #endif /* FUNCIONESFS_H_ */
