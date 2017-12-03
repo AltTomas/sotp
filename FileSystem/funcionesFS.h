@@ -116,7 +116,7 @@ bool masBloquesLibres(t_info_nodo*, t_info_nodo*);
 void seDesconectaUnNodo(char*);
 int buscarPosicion(char**, char*);
 void actualizarTablaNodosBorrar(int);
-void leer(char* path,char* nombreArch);
+void leer(char* path);
 void actualizarTablaNodosAgregar(char*, int, int);
 void actualizarTablaNodosAsignacion(int);
 char* buscarNombreNodo(int);

@@ -658,24 +658,13 @@ int determinarEstado() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void leer(char* path,char* nombreArch){
+void leer (char* path){
 
-	char* posicion;
+	//char* nombreArch = sacarNombreArchivoDelPath(path);
 
-	t_directory* directorioEncontrado = buscarDirectorio(path);
+	//t_directory* directorioEncontrado = buscarDirectorio(path);
 
-	posicion = string_itoa(directorioEncontrado->index);
-
-	char* rutaArchivo = string_new();
-
-	string_append (&rutaArchivo,tablaArchivos);
-	string_append (&rutaArchivo,"/");
-	string_append (&rutaArchivo,posicion);
-	string_append (&rutaArchivo,"/");
-	string_append (&rutaArchivo,nombreArch);
-
-
-	t_config* archivoTablaArchivos = config_create(rutaArchivo); // con o sin &&??
+	t_config* archivoTablaArchivos = config_create(path);
 
 	if(archivoTablaArchivos == NULL)
 			log_error(logger,"ERROR: No se pudo encontrar el archivo nombreArch.csv");
@@ -774,7 +763,7 @@ char** pathDividido = string_split(path, "/"); //Me quedaria una lista de cada s
 int i=0;
 char* ultimoSubdirectorio;
 
-while(pathDividido[i]!=NULL){
+	while(pathDividido[i]!=NULL){
 		if(pathDividido[i+1]==NULL){ //Si la siguiente posicion es NULL entonces es el ultimo subdirectorio
 		int verificacion = verificarSiEsArchivoODirectorio(pathDividido[i]); //agrego esta linea para que no tire el error de integer without cast
 		if(verificacion==0){ //me fijo si es archivo o directorio, si es archivo que me devuelva la la posicion anterior(carpeta donde se encuentra), si es una carpeta que me devuelva esa
@@ -791,13 +780,13 @@ while(pathDividido[i]!=NULL){
 		}
 	}
 
-bool condition(void* element) {
-	t_directory* directorio = element;
-	return string_equals_ignore_case(directorio->nombre, ultimoSubdirectorio);
-}
+	bool condition(void* element) {
+		t_directory* directorio = element;
+		return string_equals_ignore_case(directorio->nombre, ultimoSubdirectorio);
+	}
 
-t_directory* directorioEncontrado = list_find(directorios, condition); //seria directorios o habria que abrir el metadata directorios.dat
-return directorioEncontrado;
+	t_directory* directorioEncontrado = list_find(directorios, condition); //seria directorios o habria que abrir el metadata directorios.dat
+	return directorioEncontrado;
 }
 
 int almacenarArchivo(char* ruta, char* nombreArchivo, char* tipo){// Faltan argumentos?
@@ -2035,11 +2024,13 @@ void renombrar(char* path_original, char* path_finalCompleto){//ejemplo renombra
 		string_append (&rutaArchivo, path_final);
 
 				if(verificarExistenciaNombreArchivo(path_final)!=0){
-					char* mvChar = "mv "; //necesita directorio completo original y directorio completo final
+					char* mvChar = string_new;
+					string_append (&mvChar,"mv "); //necesita directorio completo original y directorio completo final
 					string_append (&mvChar,path_original);
 					string_append (&mvChar," "); //espacio para separar ambos paths
 					string_append (&mvChar,path_finalCompleto);
 					system(mvChar);
+					//printf("\n");
 				}else{
 					log_error(logger,"Ya existe ese nombre de Archivo");
 				}
@@ -2064,7 +2055,7 @@ void renombrar(char* path_original, char* path_finalCompleto){//ejemplo renombra
 int verificarSiEsArchivoODirectorio(char* path){
     struct stat path_stat;
     stat(path, &path_stat);
-    return S_ISREG(path_stat.st_mode);// si es !=0 es un archivo
+    return S_ISDIR(path_stat.st_mode);// si es !=0 es un archivo
 } //podria usarse un fopen, si abre es archivo y sino directorio, o con string_contains que se fijaria el "." para que sea archivo
 
 
@@ -2117,9 +2108,11 @@ void MD5(char* path_archivo) { //chequear si es char* o void (por system)
 	 file* archivoEncontrado = list_find(archivos, condition);
 
 	 if (archivoEncontrado!=NULL){
-		 	char* md5Char = "md5sum ";
+		 	char* md5Char = string_new;
+		 	string_append (&md5Char,"md5sum ");
 		 	string_append (&md5Char,path_archivo);
 			system(md5Char); //para que me quede md5sum utn/hola.txt
+			//printf("\n");
 	 } else {
 		 log_error(logger,"error al realizar el md5");
 	 }
@@ -2135,31 +2128,23 @@ void cat(char* path_archivo) { //chequear si es char* o void (por system)
 	 file* archivoEncontrado = list_find(archivos, condition);
 
 	 if (archivoEncontrado!=NULL){
-		 	char* catChar = "cat ";
+		 	char* catChar = string_new;
+		 	string_append (&catChar, "cat ");
 		 	string_append (&catChar,path_archivo);
 			system(catChar); //para que me quede cat utn/hola.txt, me devolveria el contenido ejemplo: adsasdasd
+			//printf("\n");
 	 } else {
 		 log_error(logger,"error al realizar el cat");
 	 }
 
 }
 
-void ls(char* path_archivo) { //chequear si es char* o void (por system)
-
-	bool condition(void* element) {
-			file* archivo = element;
-			return string_equals_ignore_case(archivo->path, path_archivo);
-		}
-	 file* archivoEncontrado = list_find(archivos, condition);
-
-	 if (archivoEncontrado!=NULL){
-		 	char* lsChar = "ls ";
-		 	string_append (&lsChar,path_archivo);
-			system(lsChar); //para que me quede ls utn/hola.txt
-	 } else {
-		 log_error(logger,"error al realizar el ls");
-	 }
-
+void ls(char* path_carpeta) { //chequear si es char* o void (por system)
+		 	char* lsChar = string_new;
+		 	string_append (&lsChar,"ls ");
+		 	string_append (&lsChar,path_carpeta);
+			system(lsChar);
+			//printf("\n");
 }
 
 void info(char* path_archivo) { //chequear si es char* o void (por system)
@@ -2280,7 +2265,7 @@ void mover (char* path_original, char* path_finalCompleto){ //deberia ser user/j
 
 		char* nombreNuevoSoloArchivo = sacarNombreArchivoDelPath(path_finalCompleto); // si
 
-		char* nombreNuevoCompleto;
+		char* nombreNuevoCompleto=string_new;
 
 		string_append(&nombreNuevoCompleto, path_finalCompleto);
 
