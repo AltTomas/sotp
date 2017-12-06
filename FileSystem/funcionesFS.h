@@ -69,6 +69,7 @@ typedef struct{
 }t_info_bloque_archivo;
 
 typedef struct{
+	char* pathArchivo;
 	char* nombreArchivo;
 	t_list* infoBloques;
 }t_info_archivo;

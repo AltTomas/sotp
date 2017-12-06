@@ -412,13 +412,148 @@ void commandHandler(){
 		}
 		break;
 
-		case 15:// RM - B
-			puts("ingrese path del archivo, nro bloque y nro copia");
-			break;
+		case 15:{// RM - B todo
+			char* pathArchivo = readline("ingrese el path del archivo");
+			char* numeroBloque = readline("ingrese el numero de bloque bloque");
+			char* numeroCopia = readline("ingrese el numero de copia");
 
+			char* nombreArchivo;
 
+			if(atoi(numeroCopia) > 0){
+				t_config* metadataArchivo = config_create(pathArchivo);
+
+				if(metadataArchivo == NULL){
+						printf("ERROR: No se pudo encontrar el archivo %s", pathArchivo);
+				}
+				else{
+
+					char** rutaDividida = string_split(pathArchivo, "/");
+					int cantidadRutas = obtenerCantidadElementos(rutaDividida);
+
+					char* rutaSinArchivo = string_new();
+					int i;
+					for(i = 0; i < (cantidadRutas - 1); i++){ // No consideramos el NULL
+						if(i != cantidadRutas - 2){
+							string_append(&rutaSinArchivo,rutaDividida[i]);
+						}
+						else if(i == cantidadRutas - 2){
+							nombreArchivo = (char*)malloc(strlen(rutaDividida[i])+1);
+							strcpy(nombreArchivo,rutaDividida[i]);
+						}
+					}
+
+					bool esArchivoBuscado(t_info_archivo* archivo){
+						return((strcmp(archivo->pathArchivo,rutaSinArchivo)==0)&&(strcmp(archivo->nombreArchivo,nombreArchivo)==0));
+					}
+
+					t_info_archivo* archivoBuscado = list_find(archivos,(void*)esArchivoBuscado);
+
+					bool esBloqueBuscado(t_info_bloque_archivo* bloque){
+						return(bloque->bloqueArchivo == atoi(numeroBloque));
+					}
+
+					t_info_bloque_archivo* bloqueBuscado = list_find(archivoBuscado->infoBloques,(void*)esBloqueBuscado);
+
+					if(atoi(numeroCopia) == 0){
+						int socketNodoCopia0 = buscarSocketNodo(bloqueBuscado->copia0Nodo);
+
+						t_struct_numero* eliminarBloque = malloc(sizeof(t_struct_numero));
+						eliminarBloque->numero = FS_DATANODE_ELIMINAR_BLOQUE;
+
+						socket_enviar(socketNodoCopia0,D_STRUCT_NUMERO,eliminarBloque);
+
+						t_struct_numero* enviado = malloc(sizeof(t_struct_numero));
+						enviado->numero = bloqueBuscado->copia0NodoBloque;
+
+						socket_enviar(socketNodoCopia0,D_STRUCT_NUMERO,enviado);
+
+						void* estructuraRecibida;
+						t_tipoEstructura tipoEstructura;
+
+						int recepcion = socket_recibir(socketNodoCopia0,&tipoEstructura,&estructuraRecibida);
+
+						if(recepcion == -1){
+							printf("Se desconecto el Nodo en el socket %d\n", socketNodoCopia0);
+							log_info(logger,"Se desconecto el Nodo en el socket %d", socketNodoCopia0);
+							close(socketNodoCopia0);
+							FD_CLR(socketNodoCopia0, &datanode);
+							FD_CLR(socketNodoCopia0, &setDataNodes);
+
+							//Actualizar tabla de nodos - Borrar
+							actualizarTablaNodosBorrar(socketNodoCopia0);
+
+							puts("El nodo que contenia el bloque a borrar se desconecto");
+						}
+						else if(tipoEstructura != D_STRUCT_NUMERO){
+							puts("Hubo un error en la serializacion del mensaje del nodo que contenia el bloque a eliminar");
+						}
+							else{
+								if(((t_struct_numero*)estructuraRecibida)->numero == 1){
+									printf("La copia 0 del bloque %s del archivo %s se elimino exitosamente", numeroBloque, nombreArchivo);
+								}
+								else{
+									printf("No se pudo eliminar la copia 0 del bloque %s del archivo %s", numeroBloque, nombreArchivo);
+								}
+
+							}
+					}
+					else if(atoi(numeroCopia) == 1){
+
+						int socketNodoCopia1 = buscarSocketNodo(bloqueBuscado->copia1Nodo);
+
+						t_struct_numero* eliminarBloque = malloc(sizeof(t_struct_numero));
+						eliminarBloque->numero = FS_DATANODE_ELIMINAR_BLOQUE;
+
+						socket_enviar(socketNodoCopia1,D_STRUCT_NUMERO,eliminarBloque);
+
+						t_struct_numero* enviado = malloc(sizeof(t_struct_numero));
+						enviado->numero = bloqueBuscado->copia1NodoBloque;
+
+						socket_enviar(socketNodoCopia1,D_STRUCT_NUMERO,enviado);
+
+						void* estructuraRecibida;
+						t_tipoEstructura tipoEstructura;
+
+						int recepcion = socket_recibir(socketNodoCopia1,&tipoEstructura,&estructuraRecibida);
+
+						if(recepcion == -1){
+							printf("Se desconecto el Nodo en el socket %d\n", socketNodoCopia1);
+							log_info(logger,"Se desconecto el Nodo en el socket %d", socketNodoCopia1);
+							close(socketNodoCopia1);
+							FD_CLR(socketNodoCopia1, &datanode);
+							FD_CLR(socketNodoCopia1, &setDataNodes);
+
+							//Actualizar tabla de nodos - Borrar
+							actualizarTablaNodosBorrar(socketNodoCopia1);
+
+							puts("El nodo que contenia el bloque a borrar se desconecto");
+							}
+						else if(tipoEstructura != D_STRUCT_NUMERO){
+							puts("Hubo un error en la serializacion del mensaje del nodo que contenia el bloque a eliminar");
+						}
+						else{
+							if(((t_struct_numero*)estructuraRecibida)->numero == 1){
+								printf("La copia 1 del bloque %s del archivo %s se elimino exitosamente", numeroBloque, nombreArchivo);
+							}
+							else{
+								printf("No se pudo eliminar la copia 1 del bloque %s del archivo %s", numeroBloque, nombreArchivo);
+							}
+
+						}
+
+					}
+					else{
+						puts("Por el momento nada mas trabajamos con copia 0 y 1");
+					}
+				}
+			}
+			else{
+				puts("El numero de copia ingresado no existe porque es negativo");
+			}
 		}
+		break;
 
+		}// Llave switch
 
 	free(linea);
 	}
@@ -834,15 +969,26 @@ int almacenarArchivo(char* ruta, char* nombreArchivo, char* tipo){// Faltan argu
 	void* data = obtenerContenido(ruta);
 	int numeroBloque = 0;
 
-	int indiceDirectorio = pedidoLecturaRuta(ruta);
+    char** rutaDividida = string_split(ruta, "/");
+	int cantidadRutas = obtenerCantidadElementos(rutaDividida);
+
+	char* rutaSinArchivo = string_new();
+	int i;
+	for(i = 0; i < (cantidadRutas - 1); i++){ // No consideramos el NULL
+		if(i != cantidadRutas - 2){
+			string_append(&rutaSinArchivo,rutaDividida[i]);
+	    }
+	}
+
+	int indiceDirectorio = pedidoLecturaRuta(rutaSinArchivo);
 
 	if(indiceDirectorio < 0){
 		log_error(logger,"No se pudo obtener el indice de la ruta");
 		return 0;
 	}
-	else{
-		crearMetadataArchivo(indiceDirectorio, nombreArchivo, tamanioFile, tipo);
-		}
+//	else{ Ya lo hace pedidoLectura
+//		crearMetadataArchivo(indiceDirectorio, nombreArchivo, tamanioFile, tipo);
+//		}
 
 	if(strcmp(tipo,"Binario") == 0){
 
@@ -853,13 +999,13 @@ int almacenarArchivo(char* ruta, char* nombreArchivo, char* tipo){// Faltan argu
 			if(tamanioFile > sizeBloque){
 				char* dataBloque = string_substring(data,offset,sizeBloque);
 				offset += sizeBloque;
-				int resultadoEnvio = enviarADataNode(ruta, nombreArchivo, dataBloque, numeroBloque, sizeBloque); // Considerando que los binarios no tiene basura
+				int resultadoEnvio = enviarADataNode(rutaSinArchivo, nombreArchivo, dataBloque, numeroBloque, sizeBloque); // Considerando que los binarios no tiene basura
 				if(!resultadoEnvio){ // Fallo el almacenamiento en nodos de algun bloque
 								return 0;
-							}
+				}
 			}
 			else{ // Puede estar de mas esto
-				enviarADataNode(ruta, nombreArchivo, data, numeroBloque, tamanioFile);
+				enviarADataNode(rutaSinArchivo, nombreArchivo, data, numeroBloque, tamanioFile);
 			}
 
 		}
@@ -871,7 +1017,7 @@ int almacenarArchivo(char* ruta, char* nombreArchivo, char* tipo){// Faltan argu
 		int cantidadRegistros = obtenerCantidadElementos(registros);
 
 		for(numeroBloque = 0; numeroBloque< cantidadRegistros; numeroBloque++){
-			int resultadoEnvio = enviarADataNode(ruta, nombreArchivo, registros[numeroBloque],numeroBloque,strlen(registros[numeroBloque]));
+			int resultadoEnvio = enviarADataNode(rutaSinArchivo, nombreArchivo, registros[numeroBloque],numeroBloque,strlen(registros[numeroBloque]));
 			if(!resultadoEnvio){ // Fallo el almacenamiento en nodos de algun bloque
 				return 0;
 			}
@@ -916,7 +1062,7 @@ int enviarADataNode(char* ruta, char* nombreArchivo, char* data, int numeroBloqu
 	return 0;
 }
 
-int guardarCopia(char* ruta, char* nombreArchivo, int socketNodo, t_pedido_almacenar_bloque* enviado, int copia){
+int guardarCopia(char* rutaSinNombre, char* nombreArchivo, int socketNodo, t_pedido_almacenar_bloque* enviado, int copia){
 
 	socket_enviar(socketNodo, FS_DATANODE_ALMACENAR_BLOQUE,enviado);
 
@@ -950,7 +1096,7 @@ int guardarCopia(char* ruta, char* nombreArchivo, int socketNodo, t_pedido_almac
 
 		    // Actualizar metadata de archivo - Bloque en bloque nodo
 
-			int indexDirectorio = pedidoLecturaRuta(ruta);
+			int indexDirectorio = pedidoLecturaRuta(rutaSinNombre);
 
 			char* string_index = string_itoa(indexDirectorio);
 
@@ -979,8 +1125,13 @@ int guardarCopia(char* ruta, char* nombreArchivo, int socketNodo, t_pedido_almac
 
 			  t_info_archivo* infoArchivo = malloc(sizeof(t_info_archivo));
 
-			   infoArchivo->nombreArchivo = (char*)malloc(strlen(nombreArchivo)+1);
-			   infoArchivo->infoBloques = list_create();
+			  infoArchivo->pathArchivo = (char*)malloc(strlen(rutaSinNombre)+1);
+			  strcpy(infoArchivo->pathArchivo,rutaSinNombre);
+
+			  infoArchivo->nombreArchivo = (char*)malloc(strlen(nombreArchivo)+1);
+			  strcpy(infoArchivo->nombreArchivo,nombreArchivo);
+
+			  infoArchivo->infoBloques = list_create();
 
 			   t_info_bloque_archivo* infoBloque = malloc(sizeof(t_info_bloque_archivo));
 
@@ -2030,16 +2181,6 @@ void crearMetadataArchivo(int indexDirectorio, char* nombreArchivo, long tamanio
 	    config_save(metadataArchivo);
 	    log_info(logger,"Se creo exitosamente archivo de metada %s",rutaArchivo);
 	    }
-
-//todo: Implementar funciones, ya esta hecho?
-void actualizarMetadataArchivo(char* nombreArchivo){
-
-}
-
-void actualizarMetadataArchivoBloques(char* nombreArchivo, char* nombreNodo, int bloqueNodo, int copia){
-
-}
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
