@@ -66,31 +66,6 @@ void destruirConfig(t_config_fs* config){
 	free(config);
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void crearEstructurasAdministrativas(){
-
-	info_DataNodes = list_create();
-	archivos = list_create();
-
-	char* crearDirectorioArchivos = string_from_format("mkdir -p %s", tablaArchivos);
-	system(crearDirectorioArchivos);
-
-	char* crearDirectorioBitmaps = string_from_format("mkdir -p %s", "../../yamaFS/metadata/bitmaps");
-	system(crearDirectorioBitmaps);
-
-	directorios = list_create();
-
-	char* crearTablaDirectorios = string_from_format("touch %s", tablaDirectorios);
-	system(crearTablaDirectorios);
-
-	crearRoot();
-
-	char* crearTablaNodos = string_from_format("touch %s", tablaNodos);
-	system(crearTablaNodos);
-	log_info(logger,"Se creo la tabla de nodos");
-
-
-}
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void commandHandler(){
 
@@ -114,19 +89,84 @@ void commandHandler(){
 		default:
 			puts("El comando que ingreso no es valido.");
 			break;
-		case 1:
+		case 1:{ // FORMAT - Testeado
 			puts("formatear FS");
-			break;
-		case 2:
-			puts("Ingresar path del archivo.");
-			break;
-		case 3:
+			formatear();
+		}
+		break;
+		case 2:{ // RM archivo - pasarle cosas en formato de directorios contenidos en yamaFS. PE: metadata/archivos/1/asd.asd
+			char* pathArchivo = readline("Ingrese path del archivo que se quiera borrar en yamaFS: ");
+
+			// Si borramos un archivo deberiamos avisarle a cada nodo que tiene sus bloques que los libere y borrar el metadata
+
+			char** pathDividido = string_split(pathArchivo, "/");
+
+			int cantidadSubdirectorios = obtenerCantidadElementos(pathDividido);
+
+			// Faltaria una condicion mas, si hay 2 archivos con = nombre cagamos
+
+			// Posible solucion: a t_info_archivo agregar un campo int que sea el indice que cuando
+			//se crea el archivo se copia el indice
+			bool buscarArchivo(t_info_archivo* archivo){
+
+			return (strcmp(archivo->nombreArchivo,pathDividido[cantidadSubdirectorios-2]) == 0);// -1 seria el null?
+			}
+
+			t_info_archivo* metadataArchivo = list_find(archivos,(void*)buscarArchivo);
+
+			int i;
+			for(i = 0; i < metadataArchivo->infoBloques->elements_count; i++){
+
+				t_info_bloque_archivo* bloque = list_get(metadataArchivo->infoBloques,i);
+
+				// Si no encuentra los sockets significa que se desconecto
+				int socketNodoCopia0 = buscarSocketNodo(bloque->copia0Nodo);
+				int socketNodoCopia1 = buscarSocketNodo(bloque->copia1Nodo);
+
+				t_struct_numero* eliminarBloque = malloc(sizeof(t_struct_numero));
+				eliminarBloque->numero = FS_DATANODE_ELIMINAR_BLOQUE;
+
+				socket_enviar(socketNodoCopia0, D_STRUCT_NUMERO, eliminarBloque);
+				socket_enviar(socketNodoCopia1, D_STRUCT_NUMERO, eliminarBloque);
+
+				// TODO: Manejar Desconexion
+
+				free(eliminarBloque);
+
+				t_struct_numero* bloqueCopia0 = malloc(sizeof(t_struct_numero));
+				bloqueCopia0->numero = bloque->copia0NodoBloque;
+
+				t_struct_numero* bloqueCopia1 = malloc(sizeof(t_struct_numero));
+				bloqueCopia1->numero = bloque->copia1NodoBloque;
+
+				socket_enviar(socketNodoCopia0, D_STRUCT_NUMERO, bloqueCopia0);
+				socket_enviar(socketNodoCopia1, D_STRUCT_NUMERO, bloqueCopia1);
+
+				free(bloqueCopia0);
+				free(bloqueCopia1);
+
+				// Manejar Desconexion
+
+			}
+
+			// Una vez que todos los nodos borraron sus bloques pertenecientes al archivo
+
+			char* comandoBorrarArchivo = string_new();
+			string_append(&comandoBorrarArchivo, "rm ");
+			string_append(&comandoBorrarArchivo, "../../yamaFS/");
+			string_append(&comandoBorrarArchivo, pathArchivo);
+
+			system(comandoBorrarArchivo);
+
+		}
+		break;
+		case 3: // RENAME
 			puts("Ingresar path original y nombre final.");
 			break;
-		case 4:
+		case 4: // MV
 			puts("Ingresar path original y path final");
 			break;
-		case 5:
+		case 5: // CAT
 			puts("Ingrese path el archivo");
 			break;
 
@@ -222,12 +262,9 @@ void commandHandler(){
 			char* pathYAMAFS = readline("Ingrese el path del archivo en yamaFS: ");
 			char* pathLocal = readline("Ingrese el path que tendria el archivo en el FS local: ");
 
+			//Con el path de yamaFS leemos el archivo (obtenemos su contenido completo)
+
 			//todo
-
-			// Leer deberia devovler un char*
-
-			//Con el path de yamaFS leemos el archivo (obtenemos todo su contenido)
-
 			//char* contenidoArchivo = leer(pathYAMAFS);
 			char* contenidoArchivo;
 
@@ -312,8 +349,6 @@ void commandHandler(){
 				  else{
 				    log_info(logger,"El nodo en el socket %d mando el contenido del bloque pedido", socketNodoAlmacenando);
 
-				    ((t_struct_string*)estructuraRecibida)->string;
-
 				    // Enviarle contenido a nodo nuevo para guardar
 
 				    int socketNodoCopiar = buscarSocketNodo(idNodo);
@@ -368,8 +403,12 @@ void commandHandler(){
 
 			char* pathDirectorio = readline("Ingrese path del directorio a borrar en yamaFS: ");
 
-			borrarDirectorio(pathDirectorio);
+			char* comandoBorrarDirectorio = string_new();
+			string_append(&comandoBorrarDirectorio,"rm -d  ../../yamaFS/");
+			string_append(&comandoBorrarDirectorio,pathDirectorio);
 
+			int resultado = system(comandoBorrarDirectorio);
+			//TODO: Si el directorio no esta vacio muestra el prompt de rm de linux, tendremos que de alguna manera catchearlo?
 		}
 		break;
 
@@ -658,7 +697,7 @@ int determinarEstado() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void leer (char* path){
+void leer (char* path){ // Leer deberia devolver un char*
 
 	//char* nombreArch = sacarNombreArchivoDelPath(path);
 
@@ -2192,16 +2231,105 @@ void info(char* path_archivo) { //chequear si es char* o void (por system)
 
 void formatear() {
 
+		puts("Empezamos el formateo");
+
 		list_destroy_and_destroy_elements(archivos, (void*) liberarArchivo);
 		list_destroy_and_destroy_elements(info_DataNodes, (void*) liberarinfoDataNodo);
 		list_destroy_and_destroy_elements(directorios,(void*) liberarDirectorio);
+
+		info_DataNodes = list_create();
+		archivos = list_create();
+		directorios = list_create();
+
+		//Borramos los metadatas
+
+		char* comandoBorrarMetadatasArchivos = string_new();
+
+		string_append(&comandoBorrarMetadatasArchivos,"rm -r ");
+		string_append(&comandoBorrarMetadatasArchivos,tablaArchivos);
+		string_append(&comandoBorrarMetadatasArchivos,"/*");
+
+		system(comandoBorrarMetadatasArchivos);
+
+		free(comandoBorrarMetadatasArchivos);
+
+		char* comandoBorrarBitmaps = string_new();
+
+		string_append(&comandoBorrarBitmaps,"rm -r ");
+		string_append(&comandoBorrarBitmaps,"../../yamaFS/metadata/bitmaps/*");
+
+		system(comandoBorrarBitmaps);
+
+		free(comandoBorrarBitmaps);
+
+		char* comandoBorrarNodos = string_new();
+
+		string_append(&comandoBorrarNodos,"rm ");
+		string_append(&comandoBorrarNodos,tablaNodos);
+
+		system(comandoBorrarNodos);
+
+		free(comandoBorrarNodos);
+
+		char* comandoBorrarDirectorios = string_new();
+
+		string_append(&comandoBorrarDirectorios,"rm ");
+		string_append(&comandoBorrarDirectorios,tablaDirectorios);
+
+		system(comandoBorrarDirectorios);
+
+		free(comandoBorrarDirectorios);
+
+		// Creamos nodos.bin y directorios.dat
+
+		char* crearMetadaNodos = string_new();
+		string_append(&crearMetadaNodos,"touch ");
+		string_append(&crearMetadaNodos,tablaNodos);
+
+		system(crearMetadaNodos);
+
+		free(crearMetadaNodos);
+
+		t_config* metadataNodos = config_create(tablaNodos);
+
+		if(metadataNodos == NULL)
+			printf("ERROR: No se pudo encontrar el archivo %s", tablaNodos);
+
+		//Seteo las keys del config
+		config_set_value(metadataNodos, "TAMANIO", "0");
+		config_set_value(metadataNodos, "LIBRE", "0");
+		config_set_value(metadataNodos, "NODOS", "[]");
+
+		config_save(metadataNodos);
+
+
+		char* crearMetadaDirectorios = string_new();
+		string_append(&crearMetadaDirectorios,"touch ");
+		string_append(&crearMetadaDirectorios,tablaDirectorios);
+
+		system(crearMetadaDirectorios);
+
+		free(crearMetadaDirectorios);
+
+		t_config* metadataDirectorios = config_create(tablaDirectorios);
+
+		if(metadataDirectorios == NULL)
+			printf("ERROR: No se pudo encontrar el archivo %s", tablaDirectorios);
+
+		//Seteo las keys del config
+		config_set_value(metadataDirectorios, "INDEX", "[]");
+		config_set_value(metadataDirectorios, "DIRECTORIO", "[]");
+		config_set_value(metadataDirectorios, "PADRE", "[]");
+
+		config_save(metadataDirectorios);
+
 		info_DataNodes = list_create();
 		archivos = list_create();
 		directorios = list_create(); //elimina el root
 
 		crearRoot(); //lo vuelvo a crear
 
-	printf("El file system ha sido formateado.\n");
+	puts("El file system ha sido formateado.");
 }
 
 void liberarBloqueEnNodo(copia* bloqueEnNodo) {
