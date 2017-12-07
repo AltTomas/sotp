@@ -361,7 +361,7 @@ void commandHandler(){
 				    datosBloque->bytesOcupados = bloque->bytesOcupados;
 
 				    // todo: Ver que onda esto, podemos hacer que se ingrese por parametro si se lo quiere meter de copia 0/1
-				    int resultado = guardarCopia(pathArchivo, nombreArchivo, socketNodoCopiar, datosBloque, 0);
+				    int resultado = guardarCopia(archivo, socketNodoCopiar, datosBloque, 0);
 				    if(resultado){
 				    	printf("Se guardo el bloque %s del archivo %s en el nodo de nombre: %s\n", numeroBloque, pathArchivo, idNodo);
 				    }
@@ -412,7 +412,7 @@ void commandHandler(){
 		}
 		break;
 
-		case 15:{// RM - B todo
+		case 15:{// RM - B
 			char* pathArchivo = readline("ingrese el path del archivo");
 			char* numeroBloque = readline("ingrese el numero de bloque bloque");
 			char* numeroCopia = readline("ingrese el numero de copia");
@@ -424,30 +424,31 @@ void commandHandler(){
 
 				if(metadataArchivo == NULL){
 						printf("ERROR: No se pudo encontrar el archivo %s", pathArchivo);
+
 				}
-				else{
 
-					char** rutaDividida = string_split(pathArchivo, "/");
-					int cantidadRutas = obtenerCantidadElementos(rutaDividida);
+				char** rutaDividida = string_split(pathArchivo, "/");
+				int cantidadRutas = obtenerCantidadElementos(rutaDividida);
 
-					char* rutaSinArchivo = string_new();
-					int i;
-					for(i = 0; i < (cantidadRutas - 1); i++){ // No consideramos el NULL
-						if(i != cantidadRutas - 2){
-							string_append(&rutaSinArchivo,rutaDividida[i]);
-						}
-						else if(i == cantidadRutas - 2){
-							nombreArchivo = (char*)malloc(strlen(rutaDividida[i])+1);
-							strcpy(nombreArchivo,rutaDividida[i]);
-						}
+				char* rutaSinArchivo = string_new();
+				int i;
+				for(i = 0; i < (cantidadRutas - 1); i++){ // No consideramos el NULL
+					if(i != cantidadRutas - 2){
+						string_append(&rutaSinArchivo,rutaDividida[i]);
 					}
-
-					bool esArchivoBuscado(t_info_archivo* archivo){
-						return((strcmp(archivo->pathArchivo,rutaSinArchivo)==0)&&(strcmp(archivo->nombreArchivo,nombreArchivo)==0));
+					else if(i == cantidadRutas - 2){
+						nombreArchivo = (char*)malloc(strlen(rutaDividida[i])+1);
+						strcpy(nombreArchivo,rutaDividida[i]);
 					}
+				}
 
-					t_info_archivo* archivoBuscado = list_find(archivos,(void*)esArchivoBuscado);
+				bool esArchivoBuscado(t_info_archivo* archivo){
+					return((strcmp(archivo->pathArchivo,rutaSinArchivo)==0)&&(strcmp(archivo->nombreArchivo,nombreArchivo)==0));
+				}
 
+				t_info_archivo* archivoBuscado = list_find(archivos,(void*)esArchivoBuscado);
+
+				if(archivoBuscado->copiasDisponibles > 1){
 					bool esBloqueBuscado(t_info_bloque_archivo* bloque){
 						return(bloque->bloqueArchivo == atoi(numeroBloque));
 					}
@@ -484,18 +485,22 @@ void commandHandler(){
 
 							puts("El nodo que contenia el bloque a borrar se desconecto");
 						}
+
 						else if(tipoEstructura != D_STRUCT_NUMERO){
 							puts("Hubo un error en la serializacion del mensaje del nodo que contenia el bloque a eliminar");
 						}
-							else{
-								if(((t_struct_numero*)estructuraRecibida)->numero == 1){
-									printf("La copia 0 del bloque %s del archivo %s se elimino exitosamente", numeroBloque, nombreArchivo);
-								}
-								else{
-									printf("No se pudo eliminar la copia 0 del bloque %s del archivo %s", numeroBloque, nombreArchivo);
-								}
+						else{
+							if(((t_struct_numero*)estructuraRecibida)->numero == 1){
+								printf("La copia 0 del bloque %s del archivo %s se elimino exitosamente", numeroBloque, nombreArchivo);
 
+								bloqueBuscado->copia0Nodo;
+								bloqueBuscado->copia0NodoBloque = -1;
 							}
+							else{
+								printf("No se pudo eliminar la copia 0 del bloque %s del archivo %s", numeroBloque, nombreArchivo);
+							}
+
+						}
 					}
 					else if(atoi(numeroCopia) == 1){
 
@@ -545,6 +550,9 @@ void commandHandler(){
 					else{
 						puts("Por el momento nada mas trabajamos con copia 0 y 1");
 					}
+				}
+				else{
+					printf("Solo queda una copia del bloque %s del archivo %s, no se puede eliminar", numeroBloque, nombreArchivo);
 				}
 			}
 			else{
@@ -980,15 +988,24 @@ int almacenarArchivo(char* ruta, char* nombreArchivo, char* tipo){// Faltan argu
 	    }
 	}
 
+	t_info_archivo* infoArchivo = malloc(sizeof(t_info_archivo));
+
+	infoArchivo->pathArchivo = (char*)malloc(strlen(rutaSinArchivo)+1);
+	strcpy(infoArchivo->pathArchivo,rutaSinArchivo);
+
+	infoArchivo->nombreArchivo = (char*)malloc(strlen(nombreArchivo)+1);
+	strcpy(infoArchivo->nombreArchivo,nombreArchivo);
+
+	infoArchivo->copiasDisponibles = 0;
+
+	infoArchivo->infoBloques = list_create();
+
 	int indiceDirectorio = pedidoLecturaRuta(rutaSinArchivo);
 
 	if(indiceDirectorio < 0){
 		log_error(logger,"No se pudo obtener el indice de la ruta");
 		return 0;
 	}
-//	else{ Ya lo hace pedidoLectura
-//		crearMetadataArchivo(indiceDirectorio, nombreArchivo, tamanioFile, tipo);
-//		}
 
 	if(strcmp(tipo,"Binario") == 0){
 
@@ -999,13 +1016,13 @@ int almacenarArchivo(char* ruta, char* nombreArchivo, char* tipo){// Faltan argu
 			if(tamanioFile > sizeBloque){
 				char* dataBloque = string_substring(data,offset,sizeBloque);
 				offset += sizeBloque;
-				int resultadoEnvio = enviarADataNode(rutaSinArchivo, nombreArchivo, dataBloque, numeroBloque, sizeBloque); // Considerando que los binarios no tiene basura
+				int resultadoEnvio = enviarADataNode(infoArchivo, dataBloque, numeroBloque, sizeBloque); // Considerando que los binarios no tiene basura
 				if(!resultadoEnvio){ // Fallo el almacenamiento en nodos de algun bloque
 								return 0;
 				}
 			}
 			else{ // Puede estar de mas esto
-				enviarADataNode(rutaSinArchivo, nombreArchivo, data, numeroBloque, tamanioFile);
+				enviarADataNode(infoArchivo, data, numeroBloque, tamanioFile);
 			}
 
 		}
@@ -1017,7 +1034,7 @@ int almacenarArchivo(char* ruta, char* nombreArchivo, char* tipo){// Faltan argu
 		int cantidadRegistros = obtenerCantidadElementos(registros);
 
 		for(numeroBloque = 0; numeroBloque< cantidadRegistros; numeroBloque++){
-			int resultadoEnvio = enviarADataNode(rutaSinArchivo, nombreArchivo, registros[numeroBloque],numeroBloque,strlen(registros[numeroBloque]));
+			int resultadoEnvio = enviarADataNode(infoArchivo, registros[numeroBloque],numeroBloque,strlen(registros[numeroBloque]));
 			if(!resultadoEnvio){ // Fallo el almacenamiento en nodos de algun bloque
 				return 0;
 			}
@@ -1029,7 +1046,7 @@ int almacenarArchivo(char* ruta, char* nombreArchivo, char* tipo){// Faltan argu
 	return 1; // Exito
 }
 
-int enviarADataNode(char* ruta, char* nombreArchivo, char* data, int numeroBloque, int bytesOcupados){ // Aca distribuimos el envio a los datanodes
+int enviarADataNode(t_info_archivo* archivo, char* data, int numeroBloque, int bytesOcupados){ // Aca distribuimos el envio a los datanodes
 
 	//t_Nodos* metadataNodos = leerMetadataNodos(tablaNodos); // Llamo la funcion para ver si hubo cambios en nodos.bin
 	// Ya no se usaria, pero por las dudas la dejo
@@ -1047,13 +1064,22 @@ int enviarADataNode(char* ruta, char* nombreArchivo, char* data, int numeroBloqu
 	enviado->bloqueArchivo = numeroBloque;
 	enviado->bytesOcupados = bytesOcupados;
 
-	int resultadoCopia0 = guardarCopia(ruta, nombreArchivo, socketNodoCopia0,enviado,0);
-	int resultadoCopia1 = guardarCopia(ruta, nombreArchivo, socketNodoCopia1,enviado,1);
+	t_info_bloque_archivo* infoBloque = malloc(sizeof(t_info_bloque_archivo));
+
+	infoBloque->bloqueArchivo = numeroBloque;
+	infoBloque->bytesOcupados = bytesOcupados;
+
+	list_add(archivo->infoBloques, infoBloque);
+
+	int resultadoCopia0 = guardarCopia(archivo, socketNodoCopia0, enviado,0);
+	int resultadoCopia1 = guardarCopia(archivo, socketNodoCopia1, enviado,1);
 	free(enviado);
 
 	if(resultadoCopia0 || resultadoCopia1){ // Se pudo guardar en alguna de las 2 copias
 
 		return 1;
+
+	list_add(archivos,archivo);
 	}
 	else{ // No se pudo guardar el archivo
 
@@ -1062,7 +1088,7 @@ int enviarADataNode(char* ruta, char* nombreArchivo, char* data, int numeroBloqu
 	return 0;
 }
 
-int guardarCopia(char* rutaSinNombre, char* nombreArchivo, int socketNodo, t_pedido_almacenar_bloque* enviado, int copia){
+int guardarCopia(t_info_archivo* archivo, int socketNodo, t_pedido_almacenar_bloque* enviado, int copia){
 
 	socket_enviar(socketNodo, FS_DATANODE_ALMACENAR_BLOQUE,enviado);
 
@@ -1096,7 +1122,7 @@ int guardarCopia(char* rutaSinNombre, char* nombreArchivo, int socketNodo, t_ped
 
 		    // Actualizar metadata de archivo - Bloque en bloque nodo
 
-			int indexDirectorio = pedidoLecturaRuta(rutaSinNombre);
+			int indexDirectorio = pedidoLecturaRuta(archivo->pathArchivo);
 
 			char* string_index = string_itoa(indexDirectorio);
 
@@ -1105,7 +1131,7 @@ int guardarCopia(char* rutaSinNombre, char* nombreArchivo, int socketNodo, t_ped
 			string_append(&rutaMetadata,"/");
 			string_append(&rutaMetadata,string_index);
 			string_append(&rutaMetadata,"/");
-			string_append(&rutaMetadata,nombreArchivo);
+			string_append(&rutaMetadata,archivo->nombreArchivo);
 
 			t_config* metadataArchivo = config_create(rutaMetadata);
 
@@ -1122,75 +1148,75 @@ int guardarCopia(char* rutaSinNombre, char* nombreArchivo, int socketNodo, t_ped
 			    }
 			    //Agrego los valores de las keys del metadata
 
+			    int posicionBloque = buscarBloqueDeArchivo(archivo, enviado->bloqueArchivo);
 
-			  t_info_archivo* infoArchivo = malloc(sizeof(t_info_archivo));
+			    t_info_bloque_archivo* bloqueArchivo = list_remove(archivo->infoBloques,posicionBloque);
 
-			  infoArchivo->pathArchivo = (char*)malloc(strlen(rutaSinNombre)+1);
-			  strcpy(infoArchivo->pathArchivo,rutaSinNombre);
+			    if(bloqueArchivo == NULL){
+			    	printf("Error almacenando bloque %d del archivo %s", enviado->bloqueArchivo, archivo->pathArchivo);
+			    	log_error(logger,"Error almacenando bloque %d del archivo %s", enviado->bloqueArchivo, archivo->pathArchivo);
+			    }
+			    else{
+			    	char* string_bloque = string_itoa(enviado->bloqueArchivo);
 
-			  infoArchivo->nombreArchivo = (char*)malloc(strlen(nombreArchivo)+1);
-			  strcpy(infoArchivo->nombreArchivo,nombreArchivo);
+			    	char* keyBloqueCopia0 = strdup("BLOQUE");
+			    	string_append(&keyBloqueCopia0,string_bloque);
+			    	char* keyBloqueCopia1 = strdup(keyBloqueCopia0);
+			    	char* keyBytesOcupadosBloque = strdup(keyBloqueCopia0);
+			    	string_append(&keyBloqueCopia0,"COPIA0");
+			    	string_append(&keyBloqueCopia1,"COPIA1");
+			    	string_append(&keyBytesOcupadosBloque,"BYTES");
 
-			  infoArchivo->infoBloques = list_create();
+			    	char* string_bytesOcupados = string_itoa(enviado->bytesOcupados);
 
-			   t_info_bloque_archivo* infoBloque = malloc(sizeof(t_info_bloque_archivo));
+			    	//Actualizo los valores de las keys del config
+			    	config_set_value(metadataArchivo,keyBytesOcupadosBloque , string_bytesOcupados);
 
-			   infoBloque->bloqueArchivo = enviado->bloqueArchivo;
-			   infoBloque->bytesOcupados = enviado->bytesOcupados;
+			    	if(copia == 0){
+			    		bloqueArchivo->copia0Nodo =((t_almacenar_bloque*)estructuraRecibida)->nombreNodo;
+			    		bloqueArchivo->copia0NodoBloque = ((t_almacenar_bloque*)estructuraRecibida)->bloqueNodo;
 
-			   char* string_bloque = string_itoa(enviado->bloqueArchivo);
+			    		char* string_nodo_bloque = string_itoa(bloqueArchivo->copia0NodoBloque);
 
-			   char* keyBloqueCopia0 = strdup("BLOQUE");
-			   string_append(&keyBloqueCopia0,string_bloque);
-			   char* keyBloqueCopia1 = strdup(keyBloqueCopia0);
-			   char* keyBytesOcupadosBloque = strdup(keyBloqueCopia0);
-			   string_append(&keyBloqueCopia0,"COPIA0");
-			   string_append(&keyBloqueCopia1,"COPIA1");
-			   string_append(&keyBytesOcupadosBloque,"BYTES");
+			    		char* arrayBloques = string_new();
+			    		string_append(&arrayBloques,"[");
+			    		string_append(&arrayBloques, bloqueArchivo->copia0Nodo);
+			    		string_append(&arrayBloques,",");
+			    		string_append(&arrayBloques, string_nodo_bloque);
+			    		string_append(&arrayBloques,"]");
 
-			   char* string_bytesOcupados = string_itoa(enviado->bytesOcupados);
+			    		config_set_value(metadataArchivo, keyBloqueCopia0, arrayBloques);
 
-			   //Actualizo los valores de las keys del config
-			   config_set_value(metadataArchivo,keyBytesOcupadosBloque , string_bytesOcupados);
+			    		list_add(archivo->infoBloques,bloqueArchivo);
+			    		archivo->copiasDisponibles += 1;
+			    	}
+			    	else{
+			    		bloqueArchivo->copia1Nodo =((t_almacenar_bloque*)estructuraRecibida)->nombreNodo;
+			    		bloqueArchivo->copia1NodoBloque = ((t_almacenar_bloque*)estructuraRecibida)->bloqueNodo;
 
-			   if(copia == 0){
-				   infoBloque->copia0Nodo =((t_almacenar_bloque*)estructuraRecibida)->nombreNodo;
-				   infoBloque->copia0NodoBloque = ((t_almacenar_bloque*)estructuraRecibida)->bloqueNodo;
+			    		char* string_nodo_bloque = string_itoa(bloqueArchivo->copia1NodoBloque);
 
-				   char* string_nodo_bloque = string_itoa(infoBloque->copia0NodoBloque);
+			    		char* arrayBloques = string_new();
+			    		string_append(&arrayBloques,"[");
+			    		string_append(&arrayBloques, bloqueArchivo->copia1Nodo);
+			    		string_append(&arrayBloques,",");
+			    		string_append(&arrayBloques, string_nodo_bloque);
+			    		string_append(&arrayBloques,"]");
 
-				   char* arrayBloques = string_new();
-				   string_append(&arrayBloques,"[");
-				   string_append(&arrayBloques, infoBloque->copia0Nodo);
-				   string_append(&arrayBloques,",");
-				   string_append(&arrayBloques, string_nodo_bloque);
-				   string_append(&arrayBloques,"]");
+			    		config_set_value(metadataArchivo, keyBloqueCopia1, arrayBloques);
 
-				 config_set_value(metadataArchivo, keyBloqueCopia0, arrayBloques);
-			   }
-			   else{
-				   infoBloque->copia1Nodo =((t_almacenar_bloque*)estructuraRecibida)->nombreNodo;
-				   infoBloque->copia1NodoBloque = ((t_almacenar_bloque*)estructuraRecibida)->bloqueNodo;
+			    		list_add(archivo->infoBloques,bloqueArchivo);
+			    		archivo->copiasDisponibles += 1;
+			    	}
 
-				   char* string_nodo_bloque = string_itoa(infoBloque->copia1NodoBloque);
+			    	config_save(metadataArchivo);
+			    		log_info(logger,"La metadata del archivo %s se actualizo exitosamente", archivo->nombreArchivo);
+			    }
 
-				   char* arrayBloques = string_new();
-				   string_append(&arrayBloques,"[");
-				   string_append(&arrayBloques, infoBloque->copia1Nodo);
-				   string_append(&arrayBloques,",");
-				   string_append(&arrayBloques, string_nodo_bloque);
-				   string_append(&arrayBloques,"]");
-
-				  config_set_value(metadataArchivo, keyBloqueCopia1, arrayBloques);
-			   }
-
-			    config_save(metadataArchivo);
-			    log_info(logger,"La metadata del archivo %s se actualizo exitosamente", nombreArchivo);
-		   }
-
-	   		log_info(logger,"Se  almaceno el bloque %d en el DN de socket: %d", enviado->bloqueArchivo, socketNodo);
-	   		return 1;
-	  	}
+			    	log_info(logger,"Se  almaceno el bloque %d en el DN de socket: %d", enviado->bloqueArchivo, socketNodo);
+			    	return 1;
+		}
+	}
 
 	puts("Llego a cualquier lado");
 	return 0;

@@ -71,6 +71,7 @@ typedef struct{
 typedef struct{
 	char* pathArchivo;
 	char* nombreArchivo;
+	int copiasDisponibles;
 	t_list* infoBloques;
 }t_info_archivo;
 
@@ -105,14 +106,14 @@ void trabajarSolicitudDataNode(int);
 void buscarBloquesArchivo(char*, int);
 char* obtenerContenido(char*);
 long conseguirTamanioArchivo(char*);
-int enviarADataNode(char*, char*, char*, int, int);
+int enviarADataNode(t_info_archivo*, char*, int, int);
 t_Nodos* leerMetadataNodos(char*);
 bool verificarMetadataNodos(t_config*);
 int obtenerCantidadElementos(char**);
 bool esBinario(const void *, size_t);
 int almacenarArchivo(char*, char*, char*);
 int buscarSocketNodo(char*);
-int guardarCopia(char*, char*, int, t_pedido_almacenar_bloque*, int);
+int guardarCopia(t_info_archivo*, int, t_pedido_almacenar_bloque*, int);
 bool masBloquesLibres(t_info_nodo*, t_info_nodo*);
 void seDesconectaUnNodo(char*);
 int buscarPosicion(char**, char*);
