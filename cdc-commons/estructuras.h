@@ -202,11 +202,11 @@ typedef struct infoNodoRG{
 
 typedef struct bloques{ // Elementos de la lista anterior
     int finalBloque;
-    int numNodoOriginal;
+    char* numNodoOriginal;
     int numBloqueOriginal;
     char* ipNodoOriginal;
     int puertoNodoOriginal;
-    int numNodoCopia;
+    char* numNodoCopia;
     int numBloqueCopia;
     char* ipNodoCopia;
     int puertoNodoCopia;

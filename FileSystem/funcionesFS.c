@@ -840,7 +840,7 @@ int determinarEstado() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void leer (char* path){ // Leer deberia devolver un char*
+char* leer (char* path){ // Leer deberia devolver un char*
 
 	//char* nombreArch = sacarNombreArchivoDelPath(path);
 
@@ -870,71 +870,89 @@ void leer (char* path){ // Leer deberia devolver un char*
 
 		string_append (&bloque,"COPIA0");
 
-		copiaLectura* bloqueLectura= config_get_array_value(archivoTablaArchivos,bloque); //TIENE QUE SER CHAR**
+		char** bloqueLectura= config_get_array_value(archivoTablaArchivos,bloque); //TIENE QUE SER CHAR**
+
+		int socketNodo = buscarSocketNodo(bloqueLectura[0]);
+
 
 		//busco Nodo y su bloque interno que contiene a la copia0 del bloque del archivo
 
-		bool condition(void* element) {
-			t_info_nodo* nodo = element;
-				return string_equals_ignore_case(nodo->nombreNodo, bloqueLectura->numNodo);
-			}
 
-		t_info_nodo* nodoEncontrado = list_find(info_DataNodes,condition);
+		t_struct_numero* pedidoBloque = malloc(sizeof(t_struct_numero));
+		pedidoBloque->numero = FS_DATANODE_PEDIDO_CONTENIDO_BLOQUE;
 
-		int socketNodoEncontrado = nodoEncontrado -> socket;
+		socket_enviar(socketNodo, D_STRUCT_NUMERO,pedidoBloque);
+
+		free(pedidoBloque);
+
+		// Manejar recibir?
 
 		t_struct_numero* enviado = malloc(sizeof(t_struct_numero));
-		enviado->numero = bloqueLectura->bloqueNodo;
+		enviado->numero = atoi(bloqueLectura[1]);
 
-		socket_enviar(socketNodoEncontrado, D_STRUCT_NUMERO,enviado); //[Nodo1, 33]
+		socket_enviar(socketNodo, D_STRUCT_NUMERO,enviado); //[Nodo1, 33]
+
 
 		void* estructuraRecibida;
 		t_tipoEstructura tipoEstructura;
 
-		int recepcion = socket_recibir(socketNodoEncontrado, &tipoEstructura,&estructuraRecibida);
+		int recepcion = socket_recibir(socketNodo, &tipoEstructura,&estructuraRecibida);
 
 		if (recepcion == -1){
 
 				log_info(logger,"No se recibio la copia0 del Nodo");
 
-				char* numeroBloqueSinNumCopia = string_substring_until(numero,12);//BLOQUE0COPIA faltaria el 1
+				actualizarTablaNodosBorrar(socketNodo);
 
-				string_append (&numeroBloqueSinNumCopia,"1"); //corregir a COPIA1
+				char* bloqueCopia = "BLOQUE";
 
-				copiaLectura* bloqueCopiaLectura= config_get_array_value(archivoTablaArchivos,numeroBloqueSinNumCopia); //TIENE QUE SER CHAR**
+				string_append(&bloqueCopia, numero);
+
+				string_append (&bloqueCopia,"COPIA1");
+
+				char** bloqueCopiaLectura= config_get_array_value(archivoTablaArchivos,bloqueCopia); //TIENE QUE SER CHAR**
 
 
-				bool condition(void* element) {
-					t_info_nodo* nodo = element;
-					return string_equals_ignore_case(nodo->nombreNodo, bloqueCopiaLectura->numNodo);
-						}
+				int socketNodoCopia = buscarSocketNodo(bloqueCopiaLectura[0]);
 
-				t_info_nodo* nodocopia1Encontrado = list_find(info_DataNodes,condition);
 
-				int socketNodocopia1Encontrado = nodocopia1Encontrado -> socket;
+				//busco Nodo y su bloque interno que contiene a la copia0 del bloque del archivo
 
-				t_struct_numero* enviado = malloc(sizeof(t_struct_numero));
-				enviado ->numero = bloqueLectura->bloqueNodo;
 
-				// Lo mismo que con el enviar de arriba
-				socket_enviar(socketNodocopia1Encontrado,D_STRUCT_NUMERO,enviado); //[Nodo1, 33]
+				t_struct_numero* pedidoBloqueCopia = malloc(sizeof(t_struct_numero));
+				pedidoBloqueCopia->numero = FS_DATANODE_PEDIDO_CONTENIDO_BLOQUE;
 
-				void* estructuraCopiaRecibida;
-				t_tipoEstructura tipoEstructuraCopia;
+				socket_enviar(socketNodo, D_STRUCT_NUMERO,pedidoBloqueCopia);
 
-				int recepcionCopia = socket_recibir(socketNodoEncontrado, &tipoEstructuraCopia,&estructuraCopiaRecibida);
+				free(pedidoBloqueCopia);
+
+				// Manejar recibir?
+
+				t_struct_numero* enviadoCopia = malloc(sizeof(t_struct_numero));
+				enviadoCopia->numero = atoi(bloqueLectura[1]);
+
+				socket_enviar(socketNodo, D_STRUCT_NUMERO,enviadoCopia); //[Nodo1, 33]
+
+				int recepcionCopia = socket_recibir(socketNodoCopia, &tipoEstructura,&estructuraRecibida);
 
 				if (recepcionCopia == -1){
 					log_info(logger,"No se recibio ni la copia0 ni la copia1 del Nodo");
 				}
-
+				//recibir bien serializado
+				// recibir contenido bloque
+				//string_append contenido bloque(char)
 
 
 		}
-
+		//recibir bien serializado
+		//recibir contenido bloque
+		//string_append
 		j++;
 
 	}
+
+	//return contenido append
+
 }
 
 //////////////////// todo: Fijarse si esta funcion sigue siendo necesaria ////////////////////////////////////////
@@ -961,6 +979,8 @@ char* ultimoSubdirectorio;
 			i++;
 		}
 	}
+
+	//FALTA PEDIDOLECTURA PARA QUE DEVUELVE INDICE (SACAR FUNCION DE CREAR DIRECTORIO)
 
 	bool condition(void* element) {
 		t_directory* directorio = element;
@@ -1869,7 +1889,7 @@ int borrarDirectorio(char* ruta){ // todo: Se deberia poder borrar el root?
 	int cantidadFinalDirectorios = directorios->elements_count;
 
 	////////////////////////////// INDICES ///////////////////////////////////////////////
-	char** copiaArrayIndices = (char*)malloc(sizeof(char*) * (cantidadFinalDirectorios));
+	char** copiaArrayIndices = malloc(sizeof(char*) * (cantidadFinalDirectorios));
 
 	for(i = 0; i < cantidadFinalDirectorios; i++){
 
@@ -2134,15 +2154,18 @@ int buscarIndices(char* ruta){
 
 			t_directory* directorioPadre = verificarExistenciaDirectorio(subdirectorios[i], 0); // Tiene a root como padre
 
+			//
 			if(directorioPadre == NULL){ // No lo encontro
 				directorioPadre = crearDirectorio(subdirectorios[i], 0);
 			}
+			// MANEJAR ERROR NO EXISTE
 
 			indicePadre = directorioPadre->index;
 		}
 		else{
 			directorioExistente = verificarExistenciaDirectorio(subdirectorios[i], indicePadre);
 
+			//
 			if(directorioExistente == NULL){ // No lo encontro
 				directorioExistente = crearDirectorio(subdirectorios[i], indicePadre);
 
@@ -2150,6 +2173,7 @@ int buscarIndices(char* ruta){
 					return -1;
 				}
 			}
+			//
 
 			indicePadre = directorioExistente->index;
 		}
@@ -2230,7 +2254,7 @@ void renombrar(char* path_original, char* path_finalCompleto){//ejemplo renombra
 		string_append (&rutaArchivo, path_final);
 
 				if(verificarExistenciaNombreArchivo(path_final)!=0){
-					char* mvChar = string_new;
+					char* mvChar = string_new();
 					string_append (&mvChar,"mv "); //necesita directorio completo original y directorio completo final
 					string_append (&mvChar,path_original);
 					string_append (&mvChar," "); //espacio para separar ambos paths
@@ -2314,11 +2338,11 @@ void MD5(char* path_archivo) { //chequear si es char* o void (por system)
 	 file* archivoEncontrado = list_find(archivos, condition);
 
 	 if (archivoEncontrado!=NULL){
-		 	char* md5Char = string_new;
+		 	char* md5Char = string_new();
 		 	string_append (&md5Char,"md5sum ");
 		 	string_append (&md5Char,path_archivo);
 			system(md5Char); //para que me quede md5sum utn/hola.txt
-			//printf("\n");
+			printf("\n");
 	 } else {
 		 log_error(logger,"error al realizar el md5");
 	 }
@@ -2334,11 +2358,11 @@ void cat(char* path_archivo) { //chequear si es char* o void (por system)
 	 file* archivoEncontrado = list_find(archivos, condition);
 
 	 if (archivoEncontrado!=NULL){
-		 	char* catChar = string_new;
+		 	char* catChar = string_new();
 		 	string_append (&catChar, "cat ");
 		 	string_append (&catChar,path_archivo);
 			system(catChar); //para que me quede cat utn/hola.txt, me devolveria el contenido ejemplo: adsasdasd
-			//printf("\n");
+			printf("\n");
 	 } else {
 		 log_error(logger,"error al realizar el cat");
 	 }
@@ -2346,11 +2370,11 @@ void cat(char* path_archivo) { //chequear si es char* o void (por system)
 }
 
 void ls(char* path_carpeta) { //chequear si es char* o void (por system)
-		 	char* lsChar = string_new;
+		 	char* lsChar = string_new();
 		 	string_append (&lsChar,"ls ");
 		 	string_append (&lsChar,path_carpeta);
 			system(lsChar);
-			//printf("\n");
+			printf("\n");
 }
 
 void info(char* path_archivo) { //chequear si es char* o void (por system)
@@ -2376,16 +2400,16 @@ void info(char* path_archivo) { //chequear si es char* o void (por system)
 		 	  bloque* bloque = list_get(archivoEncontrado->bloques,i);
 		 	  int numeroBloque = bloque -> numBloque;
 		 	  int fin = bloque -> finBloque;
-		 	  int nodoOriginal = bloque -> copia0-> numNodo;
+		 	  char* nodoOriginal = bloque -> copia0-> numNodo;
 		 	  int bloqueNodoOriginal = bloque -> copia0-> bloqueNodo;
-		 	  int nodoCopia = bloque -> copia1 -> numNodo;
+		 	  char* nodoCopia = bloque -> copia1 -> numNodo;
 		 	  int bloqueNodoCopia = bloque -> copia1-> bloqueNodo;
 
 		 	 printf("Contiene al bloque numero %d\n", numeroBloque);
 		 	 printf("Finaliza en %d\n", fin);
-		 	 printf("La copia original se ubica en el nodo %d\n", nodoOriginal);
+		 	 printf("La copia original se ubica en el nodo %s\n", nodoOriginal);
 		 	 printf("En el bloque %d\n", bloqueNodoOriginal);
-		 	 printf("La copia1 se ubica en el nodo %d\n", nodoCopia);
+		 	 printf("La copia1 se ubica en el nodo %s\n", nodoCopia);
 		 	 printf("En el bloque %d\n", bloqueNodoCopia);
 
 		 	}
@@ -2499,7 +2523,7 @@ void formatear() {
 	puts("El file system ha sido formateado.");
 }
 
-void liberarBloqueEnNodo(copia* bloqueEnNodo) {
+void liberarBloqueEnNodo(copiaLectura* bloqueEnNodo) {
 	free(bloqueEnNodo);
 }
 
@@ -2560,7 +2584,7 @@ void mover (char* path_original, char* path_finalCompleto){ //deberia ser user/j
 
 		char* nombreNuevoSoloArchivo = sacarNombreArchivoDelPath(path_finalCompleto); // si
 
-		char* nombreNuevoCompleto=string_new;
+		char* nombreNuevoCompleto=string_new();
 
 		string_append(&nombreNuevoCompleto, path_finalCompleto);
 
@@ -2597,3 +2621,33 @@ void mover (char* path_original, char* path_finalCompleto){ //deberia ser user/j
 	}
 }
 
+
+////////////////
+
+//lo haria con el main
+void iniciarFileSystem (char* flag){
+
+	system("clear");
+	//inicio todos los conifgs, rutas(contenidas en el metadata) (verificar si esta hecho)
+	//creo listaNodos (nodo_info);
+	int conexiones = 1; //1=activado, sirve para que permita la conexion con los otros procesos
+	int estado = 0; //0 es inestable
+
+	if(flag=="--clean"){ //con el flag clean se ignora el estado anterior, se reinicia el FS
+			/*elimino Metadata viejo;
+			creo Metadata nuevo;
+			creo lista archivos;
+			creo lista directorios;
+			directorioIniciarControl(); (con bitmap)
+			archivoPersistirControl();
+			nodoPersistir();*/
+			printf("Conectar los nodos y formatear\n");
+	}else{
+			/*archivoRecuperarPersistencia();
+			directorioRecuperarPersistencia();
+			nodoRecuperarPersistencia();*/
+			int estadoEjecucion = 1; //normal
+			printf("Conecte los nodos necesarios\n");
+	}
+
+}

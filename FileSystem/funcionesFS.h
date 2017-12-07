@@ -139,7 +139,7 @@ void liberarDirectorio(t_directory* unDirectorio);
 void liberarBloqueArch(bloque* bloqueArch);
 void liberarArchivo(file* unArchivo);
 void liberarinfoDataNodo(t_Nodos *unNodo);
-void liberarBloqueEnNodo(copia* bloqueEnNodo);
+void liberarBloqueEnNodo(copiaLectura* bloqueEnNodo);
 void crearRoot();
 t_directory* verificarExistenciaDirectorio(char*, int);
 t_directory* crearDirectorio(char*, int);

@@ -24,21 +24,16 @@
 
 
 typedef struct {
-	int numNodo;
-	int bloqueNodo; //bloque del nodo que compone el archivo
-	char* ip;
-	int puerto;
-} copia;
-
-typedef struct {
 	char* numNodo;
 	int bloqueNodo;
+	char* ip;
+	int puerto;
 } copiaLectura;
 
 typedef struct {
 	int numBloque; //bloque individual del archivo (0,1,2,...)
-	copia* copia0;
-	copia* copia1;
+	copiaLectura* copia0;
+	copiaLectura* copia1;
 	int finBloque; //byte que indica el ultimo byte del bloque
 } bloque;
 
