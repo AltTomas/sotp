@@ -608,6 +608,7 @@ int commandParser(char* linea){
 }
 
 
+
 ////////////////////Conexiones/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -783,12 +784,12 @@ void trabajarSolicitudYama(int socketYAMA){
 void buscarBloquesArchivo(char* nombreFile, int socketConexionYAMA) {
 
 	bool condition(void* element) {
-		file* archivo = element;
-		return string_equals_ignore_case(archivo->path, nombreFile);
+		t_info_archivo* archivo = element;
+		return string_equals_ignore_case(archivo->pathArchivo, nombreFile);
 	}
-  file* archivoEncontrado = list_find(archivos, condition); //me devuelve el archivo, verificar si esta bien hecha
+	t_info_archivo* archivoEncontrado = list_find(archivos, condition); //me devuelve el archivo, verificar si esta bien hecha
 
-  int cantidadBloques = list_size(archivoEncontrado -> bloques);
+  int cantidadBloques = list_size(archivoEncontrado -> infoBloques);
 
   t_struct_numero* enviado = malloc(sizeof(t_struct_numero));
   enviado->numero = cantidadBloques;
@@ -799,7 +800,7 @@ void buscarBloquesArchivo(char* nombreFile, int socketConexionYAMA) {
 
   for(i=0;i<cantidadBloques;i++){
 
-  bloque* bloque = list_get(archivoEncontrado->bloques,i);
+  bloque* bloque = list_get(archivoEncontrado->infoBloques,i);
 
   t_struct_bloques* bloquesFile = malloc(sizeof(t_struct_bloques));  //bloquesFile seria la informacion de cada Bloque del arch
   bloquesFile->finalBloque = bloque -> finBloque;
@@ -817,7 +818,7 @@ void buscarBloquesArchivo(char* nombreFile, int socketConexionYAMA) {
   }
 }
 
-int determinarEstado() {
+/*int determinarEstado() {
 
 	int cantidadArchivosAlmacenados = list_size(archivos);
 
@@ -825,7 +826,7 @@ int determinarEstado() {
 
 	for(i=0;i<cantidadArchivosAlmacenados;i++){
 
-		file* archivoAlmacenado1 = list_get(archivos,i);
+		t_info_archivo* archivoAlmacenado1 = list_get(archivos,i);
 
 		int cantidadBloquesArchivosAlmacenados = list_size(archivoAlmacenado1->bloques);
 
@@ -836,15 +837,19 @@ int determinarEstado() {
 		}
 		//IF se cumple todo, esta en estado estable
 	}
-}
+}*/
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-char* leer (char* path){ // Leer deberia devolver un char*
+char* leer (char* path){ //esta marcando error porque no esta hecho el char que devuelve
 
 	//char* nombreArch = sacarNombreArchivoDelPath(path);
-
 	//t_directory* directorioEncontrado = buscarDirectorio(path);
+
+	char* contenidoTotal=string_new();
+
+	void* estructuraRecibida;
+	t_tipoEstructura tipoEstructura;
 
 	t_config* archivoTablaArchivos = config_create(path);
 
@@ -874,10 +879,6 @@ char* leer (char* path){ // Leer deberia devolver un char*
 
 		int socketNodo = buscarSocketNodo(bloqueLectura[0]);
 
-
-		//busco Nodo y su bloque interno que contiene a la copia0 del bloque del archivo
-
-
 		t_struct_numero* pedidoBloque = malloc(sizeof(t_struct_numero));
 		pedidoBloque->numero = FS_DATANODE_PEDIDO_CONTENIDO_BLOQUE;
 
@@ -885,7 +886,18 @@ char* leer (char* path){ // Leer deberia devolver un char*
 
 		free(pedidoBloque);
 
-		// Manejar recibir?
+		int recepcionOrden = socket_recibir(socketNodo, &tipoEstructura,&estructuraRecibida);
+
+		if (recepcionOrden == -1){
+
+						log_info(logger,"No se recibio la respuesta al pedido");
+
+						close(socketNodo);
+						FD_CLR(socketNodo, &datanode);
+						FD_CLR(socketNodo, &setDataNodes);
+
+						actualizarTablaNodosBorrar(socketNodo);
+		}
 
 		t_struct_numero* enviado = malloc(sizeof(t_struct_numero));
 		enviado->numero = atoi(bloqueLectura[1]);
@@ -893,16 +905,18 @@ char* leer (char* path){ // Leer deberia devolver un char*
 		socket_enviar(socketNodo, D_STRUCT_NUMERO,enviado); //[Nodo1, 33]
 
 
-		void* estructuraRecibida;
-		t_tipoEstructura tipoEstructura;
-
 		int recepcion = socket_recibir(socketNodo, &tipoEstructura,&estructuraRecibida);
 
 		if (recepcion == -1){
 
 				log_info(logger,"No se recibio la copia0 del Nodo");
 
+				close(socketNodo);
+				FD_CLR(socketNodo, &datanode);
+				FD_CLR(socketNodo, &setDataNodes);
+
 				actualizarTablaNodosBorrar(socketNodo);
+
 
 				char* bloqueCopia = "BLOQUE";
 
@@ -910,23 +924,33 @@ char* leer (char* path){ // Leer deberia devolver un char*
 
 				string_append (&bloqueCopia,"COPIA1");
 
-				char** bloqueCopiaLectura= config_get_array_value(archivoTablaArchivos,bloqueCopia); //TIENE QUE SER CHAR**
+				char** bloqueCopiaLectura= config_get_array_value(archivoTablaArchivos,bloqueCopia);
 
 
 				int socketNodoCopia = buscarSocketNodo(bloqueCopiaLectura[0]);
 
 
-				//busco Nodo y su bloque interno que contiene a la copia0 del bloque del archivo
-
-
 				t_struct_numero* pedidoBloqueCopia = malloc(sizeof(t_struct_numero));
 				pedidoBloqueCopia->numero = FS_DATANODE_PEDIDO_CONTENIDO_BLOQUE;
 
-				socket_enviar(socketNodo, D_STRUCT_NUMERO,pedidoBloqueCopia);
+				socket_enviar(socketNodoCopia, D_STRUCT_NUMERO,pedidoBloqueCopia);
 
 				free(pedidoBloqueCopia);
 
-				// Manejar recibir?
+
+				int recepcionOrdenCopia = socket_recibir(socketNodoCopia, &tipoEstructura,&estructuraRecibida);
+
+				if (recepcionOrdenCopia == -1){
+
+								log_info(logger,"No se recibio la respuesta al pedido");
+
+								close(socketNodoCopia);
+								FD_CLR(socketNodoCopia, &datanode);
+								FD_CLR(socketNodoCopia, &setDataNodes);
+
+								actualizarTablaNodosBorrar(socketNodoCopia);
+				}
+
 
 				t_struct_numero* enviadoCopia = malloc(sizeof(t_struct_numero));
 				enviadoCopia->numero = atoi(bloqueLectura[1]);
@@ -937,54 +961,73 @@ char* leer (char* path){ // Leer deberia devolver un char*
 
 				if (recepcionCopia == -1){
 					log_info(logger,"No se recibio ni la copia0 ni la copia1 del Nodo");
+					close(socketNodoCopia);
+					FD_CLR(socketNodoCopia, &datanode);
+					FD_CLR(socketNodoCopia, &setDataNodes);
+					actualizarTablaNodosBorrar(socketNodoCopia);
 				}
-				//recibir bien serializado
-				// recibir contenido bloque
-				//string_append contenido bloque(char)
-
-
 		}
-		//recibir bien serializado
-		//recibir contenido bloque
-		//string_append
-		j++;
 
+
+	//verifico lo que recibio
+				if(tipoEstructura != D_STRUCT_STRING){ //deberia recibir un char con el contenido del bloque
+					puts("Error en la serializacion");
+					log_error(logger,"Error en la serializacion");
+					return 0;
+				}
+
+		string_append(&contenidoTotal,estructuraRecibida);
 	}
 
-	//return contenido append
+	return contenidoTotal;
 
 }
 
 //////////////////// todo: Fijarse si esta funcion sigue siendo necesaria ////////////////////////////////////////
 
-t_directory* buscarDirectorio(char* path){
+t_directory* buscarDirectorio(char* path){ //similar a buscarIndice pero devuelve directorio y no crea uno si no lo encuentra
 
-char** pathDividido = string_split(path, "/"); //Me quedaria una lista de cada subdirectorio dividido por "/", termina con un valor NULL
-int i=0;
-char* ultimoSubdirectorio;
+	log_info(logger,"Obteniendo indice de la  ruta: %s",path);
 
-	while(pathDividido[i]!=NULL){
-		if(pathDividido[i+1]==NULL){ //Si la siguiente posicion es NULL entonces es el ultimo subdirectorio
-		int verificacion = verificarSiEsArchivoODirectorio(pathDividido[i]); //agrego esta linea para que no tire el error de integer without cast
-		if(verificacion==0){ //me fijo si es archivo o directorio, si es archivo que me devuelva la la posicion anterior(carpeta donde se encuentra), si es una carpeta que me devuelva esa
-		ultimoSubdirectorio = malloc(strlen(pathDividido[i])+1);
-		strcpy(ultimoSubdirectorio, pathDividido[i]);  //obtengo subdirectorio donde estara el archivo
+	char** subdirectorios = string_split(path, "/");
+	int i;
+	t_directory* directorioExistente;
+
+	int cantidadSubdirectorios = obtenerCantidadElementos(subdirectorios);
+
+	int indicePadre;
+
+	for(i = 0; i < cantidadSubdirectorios; i++){
+
+		if(i == 0){ // Directorio con root como padre
+
+			t_directory* directorioPadre = verificarExistenciaDirectorio(subdirectorios[i], 0); // Tiene a root como padre
+
+			//
+			if(directorioPadre == NULL){ // No lo encontro
+				printf("No se encontro el directorio\n");
+			}
+
+			indicePadre = directorioPadre->index;
 		}
 		else{
-		ultimoSubdirectorio = malloc(strlen(pathDividido[i-1])+1);
-		strcpy(ultimoSubdirectorio, pathDividido[i-1]);
-		}
-		}
-		else{
-			i++;
+			directorioExistente = verificarExistenciaDirectorio(subdirectorios[i], indicePadre);
+
+			//
+			if(directorioExistente == NULL){ // No lo encontro
+				printf("No se encontro el directorio\n");
+
+			}
+
+			indicePadre = directorioExistente->index;
 		}
 	}
 
-	//FALTA PEDIDOLECTURA PARA QUE DEVUELVE INDICE (SACAR FUNCION DE CREAR DIRECTORIO)
+	char* padreChar = string_itoa(indicePadre);
 
 	bool condition(void* element) {
 		t_directory* directorio = element;
-		return string_equals_ignore_case(directorio->nombre, ultimoSubdirectorio);
+		return string_equals_ignore_case (string_itoa(directorio->index), padreChar); //chequear
 	}
 
 	t_directory* directorioEncontrado = list_find(directorios, condition); //seria directorios o habria que abrir el metadata directorios.dat
@@ -1026,6 +1069,7 @@ int almacenarArchivo(char* ruta, char* nombreArchivo, char* tipo){// Faltan argu
 		log_error(logger,"No se pudo obtener el indice de la ruta");
 		return 0;
 	}
+
 
 	if(strcmp(tipo,"Binario") == 0){
 
@@ -2253,23 +2297,22 @@ void renombrar(char* path_original, char* path_finalCompleto){//ejemplo renombra
 		string_append (&rutaArchivo,"/");
 		string_append (&rutaArchivo, path_final);
 
-				if(verificarExistenciaNombreArchivo(path_final)!=0){
+				if(verificarExistenciaNombreArchivo(rutaArchivo)!=0){
 					char* mvChar = string_new();
 					string_append (&mvChar,"mv "); //necesita directorio completo original y directorio completo final
 					string_append (&mvChar,path_original);
 					string_append (&mvChar," "); //espacio para separar ambos paths
 					string_append (&mvChar,path_finalCompleto);
 					system(mvChar);
-					//printf("\n");
 				}else{
 					log_error(logger,"Ya existe ese nombre de Archivo");
 				}
 
 	}else{
-	char* nombreUltimoSubdirectorio = ultimoSubdirectorio -> nombre;
-	int padreUltimoSubdirectorio = ultimoSubdirectorio -> indexPadre;
+	//char* nombreUltimoSubdirectorio = ultimoSubdirectorio -> nombre;
+	//int padreUltimoSubdirectorio = ultimoSubdirectorio -> indexPadre;
 
-	if (verificarExistenciaNombreDirectorio(nombreUltimoSubdirectorio,padreUltimoSubdirectorio)==1){
+	if (verificarExistenciaNombreDirectorio(ultimoSubdirectorio)==1){ //si es 1 no existe el mismo nombre con ese padre
 		free(ultimoSubdirectorio->nombre);
 		ultimoSubdirectorio->nombre = malloc(strlen(path_final) + 1);
 		strcpy(ultimoSubdirectorio->nombre, path_final);
@@ -2290,24 +2333,26 @@ int verificarSiEsArchivoODirectorio(char* path){
 
 
 
-int verificarExistenciaNombreDirectorio(char* nombre, int padre){ //podria usar un strcmp
+int verificarExistenciaNombreDirectorio(t_directory* directorioAVerificar){ //podria usar un strcmp
 
-	int respuesta;
-	char* padreChar = string_itoa(padre);
+	char* nombreDirectorio=directorioAVerificar->nombre;
+	int padreDirectorio=directorioAVerificar->indexPadre;
 
-	bool condition(void* element) {
-		t_directory* directorio = element;
-		return string_equals_ignore_case(string_itoa(directorio->indexPadre), padreChar) && string_equals_ignore_case(directorio->nombre, nombre) ;
-	}
-	t_directory* directorioConMismoPadreYNombre = list_find(directorios, condition);//seria directorios o habria que abrir el metadata directorios.dat
 
-	if (directorioConMismoPadreYNombre == NULL){
-		respuesta=1;
-	}else{
-		respuesta=0;
-	}
-	return respuesta; //    =0 ya existe el directorio con ese nombre en el mismo padre
-}
+	int cantidadDirectorios = list_size(directorios);
+
+	int indice;
+
+	for(indice = 0; indice < cantidadDirectorios; indice++) {
+			t_directory* directorioEncontrado = list_get(directorios, indice);
+
+			if((directorioEncontrado->nombre == nombreDirectorio) && (directorioEncontrado->indexPadre == padreDirectorio)) {
+				return 0; //devuelve 0 si ya existe
+			}
+			}
+
+	return 1;
+		}
 
 
 
@@ -2332,10 +2377,10 @@ int verificarExistenciaNombreArchivo(char* rutaArchivo){
 void MD5(char* path_archivo) { //chequear si es char* o void (por system)
 
 	bool condition(void* element) {
-			file* archivo = element;
-			return string_equals_ignore_case(archivo->path, path_archivo);
+		t_info_archivo* archivo = element;
+			return string_equals_ignore_case(archivo->pathArchivo, path_archivo);
 		}
-	 file* archivoEncontrado = list_find(archivos, condition);
+	t_info_archivo* archivoEncontrado = list_find(archivos, condition);
 
 	 if (archivoEncontrado!=NULL){
 		 	char* md5Char = string_new();
@@ -2352,10 +2397,10 @@ void MD5(char* path_archivo) { //chequear si es char* o void (por system)
 void cat(char* path_archivo) { //chequear si es char* o void (por system)
 
 	bool condition(void* element) {
-			file* archivo = element;
-			return string_equals_ignore_case(archivo->path, path_archivo);
+		t_info_archivo* archivo = element;
+			return string_equals_ignore_case(archivo->pathArchivo, path_archivo);
 		}
-	 file* archivoEncontrado = list_find(archivos, condition);
+	t_info_archivo* archivoEncontrado = list_find(archivos, condition);
 
 	 if (archivoEncontrado!=NULL){
 		 	char* catChar = string_new();
@@ -2380,15 +2425,15 @@ void ls(char* path_carpeta) { //chequear si es char* o void (por system)
 void info(char* path_archivo) { //chequear si es char* o void (por system)
 
 	bool condition(void* element) {
-			file* archivo = element;
-			return string_equals_ignore_case(archivo->path, path_archivo);
+		t_info_archivo* archivo = element;
+			return string_equals_ignore_case(archivo->pathArchivo, path_archivo);
 		}
-	 file* archivoEncontrado = list_find(archivos, condition);
+	t_info_archivo* archivoEncontrado = list_find(archivos, condition);
 
 	 if (archivoEncontrado!=NULL){
 		 	int tamanioDelArchivo = archivoEncontrado->tamanio;
 		 	char* tipoDelArchivo = archivoEncontrado->tipo;
-		 	int cantidadBloques = list_size(archivoEncontrado -> bloques);
+		 	int cantidadBloques = list_size(archivoEncontrado -> infoBloques);
 
 		 	 printf("El tamanio Del Archivo es %d\n", tamanioDelArchivo);
 		 	 printf("El tipo Del Archivo del archivo es %s\n", tipoDelArchivo);
@@ -2397,7 +2442,7 @@ void info(char* path_archivo) { //chequear si es char* o void (por system)
 
 		 	int i;
 		 	for(i=0;i<cantidadBloques;i++){
-		 	  bloque* bloque = list_get(archivoEncontrado->bloques,i);
+		 	  bloque* bloque = list_get(archivoEncontrado->infoBloques,i);
 		 	  int numeroBloque = bloque -> numBloque;
 		 	  int fin = bloque -> finBloque;
 		 	  char* nodoOriginal = bloque -> copia0-> numNodo;
@@ -2531,8 +2576,8 @@ void liberarBloqueArch(bloque* bloqueArch) { //verificar si elimina copias
 	free(bloqueArch);
 }
 
-void liberarArchivo(file* unArchivo) {
-	list_destroy_and_destroy_elements((unArchivo->bloques),(void*) liberarBloqueArch);
+void liberarArchivo(t_info_archivo* unArchivo) {
+	list_destroy_and_destroy_elements((unArchivo->infoBloques),(void*) liberarBloqueArch);
 	free(unArchivo);
 }
 
@@ -2569,16 +2614,16 @@ char* sacarNombreArchivoDelPath(char* path){
 
 
 
-void mover (char* path_original, char* path_finalCompleto){ //deberia ser user/juan/datos user/marcelo
+void mv (char* path_original, char* path_finalCompleto){ //deberia ser user/juan/datos user/marcelo
 
 	if(verificarSiEsArchivoODirectorio(path_original)!=0){ //si es !=0 es un archivo
 
 			bool condition(void* element) {
-						file* archivo = element;
-						return string_equals_ignore_case(archivo->path, path_original);
+				t_info_archivo* archivo = element;
+						return string_equals_ignore_case(archivo->pathArchivo, path_original);
 				}
 
-			file* archivoOriginal = list_find(archivos, condition);
+			t_info_archivo* archivoOriginal = list_find(archivos, condition);
 
 	if(verificarExistenciaNombreArchivo(path_original)==1) { // ==0 ya existe archivo con ese nombre en el mismo index
 
@@ -2590,7 +2635,7 @@ void mover (char* path_original, char* path_finalCompleto){ //deberia ser user/j
 
 		string_append(&nombreNuevoCompleto, nombreNuevoSoloArchivo);
 
-		(archivoOriginal ->path) = nombreNuevoCompleto;
+		(archivoOriginal ->pathArchivo) = nombreNuevoCompleto;
 
 
 	}else{

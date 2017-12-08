@@ -72,6 +72,8 @@ typedef struct{
 	char* pathArchivo;
 	char* nombreArchivo;
 	int copiasDisponibles;
+	int tamanio; //chequear
+	char* tipo; //chequear
 	t_list* infoBloques;
 }t_info_archivo;
 
@@ -118,7 +120,7 @@ bool masBloquesLibres(t_info_nodo*, t_info_nodo*);
 void seDesconectaUnNodo(char*);
 int buscarPosicion(char**, char*);
 void actualizarTablaNodosBorrar(int);
-void leer(char* path);
+char* leer(char* path);
 void actualizarTablaNodosAgregar(char*, int, int);
 void actualizarTablaNodosAsignacion(int);
 char* buscarNombreNodo(int);
@@ -128,7 +130,7 @@ t_directory* buscarDirectorio(char*);
 void actualizarMetadataArchivo(char*);
 void actualizarMetadataArchivoBloques(char*, char*, int, int);
 int verificarSiEsArchivoODirectorio(char* path);
-int verificarExistenciaNombreDirectorio(char* nombre, int padre);
+int verificarExistenciaNombreDirectorio(t_directory*);
 int verificarExistenciaNombreArchivo(char* rutaArchivo);
 void MD5(char* path_archivo);
 void cat(char* path_archivo);
@@ -137,7 +139,7 @@ void info(char* path_archivo);
 void formatear();
 void liberarDirectorio(t_directory* unDirectorio);
 void liberarBloqueArch(bloque* bloqueArch);
-void liberarArchivo(file* unArchivo);
+void liberarArchivo(t_info_archivo* unArchivo);
 void liberarinfoDataNodo(t_Nodos *unNodo);
 void liberarBloqueEnNodo(copiaLectura* bloqueEnNodo);
 void crearRoot();
@@ -160,5 +162,6 @@ bool verificarMetadataDirectorios(t_config*);
 char* sacarNombreArchivoDelPath(char* path);
 void mover (char* path_original, char* path_finalCompleto);
 int buscarArchivo(char*);
+void renombrar(char* path_original, char* path_finalCompleto);
 
 #endif /* FUNCIONESFS_H_ */
