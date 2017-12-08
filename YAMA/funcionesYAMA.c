@@ -335,8 +335,8 @@ void asignarBloquesALosWorkers(){
 	int indexCursor = 0;
 	int indexWorkerActual = 0;
 	int pasos = 1;
-	int numBloque = 0;
-	for(numBloque; numBloque < cantBloques; numBloque++){
+	int numBloque;
+	for(numBloque= 0; numBloque < cantBloques; numBloque++){
 		while(!workerTieneBloque(indexWorkerActual, numBloque)){
 			indexWorkerActual++;
 			pasos++;
@@ -381,7 +381,7 @@ void aumentarAvaibility(){
 
 void iniciarPlanificacion(){
 	/* Asigno los bloques a la lista de Balanceo Cargas*/
-	asignarBloquesALosWorkers();
+		asignarBloquesALosWorkers();
 
 	/* Cuando inicias planificacion modificas Tabla de Estados que seria el controller */
 
