@@ -32,7 +32,7 @@
 #define configuracionFS "../../Configs/configFileSystem.config"
 #define tablaDirectorios "../../metadata/directorios.dat"
 #define tablaNodos "../../yamaFS/metadata/nodos.bin"
-#define tablaArchivos "../../yamaFS/metadata/archivos" //rompe en leer porque necesita ser un char*
+#define tablaArchivos "../../yamaFS/metadata/archivos"
 
 #define MAX_LEN_PUERTO 6
 #define PUNTO_MONTAJE 250
@@ -163,5 +163,6 @@ char* sacarNombreArchivoDelPath(char* path);
 void mover (char* path_original, char* path_finalCompleto);
 int buscarArchivo(char*);
 void renombrar(char* path_original, char* path_finalCompleto);
+void mv (char*, char*);
 
 #endif /* FUNCIONESFS_H_ */

@@ -162,12 +162,28 @@ void commandHandler(){
 		break;
 		case 3: // RENAME
 			puts("Ingresar path original y nombre final.");
+			char* pathOriginalARenombrar = readline("Ingrese path del archivo o carpeta que se quiera renombrar en yamaFS: ");
+			char* pathRenombrado = readline("Ingrese pathFinal del archivo o carpeta que se quiera renombrar en yamaFS: ");
+
+			renombrar(pathOriginalARenombrar,pathRenombrado);
+
 			break;
+
 		case 4: // MV
 			puts("Ingresar path original y path final");
+			char* pathOriginalAMover = readline("Ingrese path del archivo o carpeta que se quiera mover en yamaFS: ");
+			char* pathMovido = readline("Ingrese path del archivo o carpeta que se quiera mover en yamaFS: ");
+
+			mv (pathOriginalAMover, pathMovido);
+
 			break;
+
 		case 5: // CAT
 			puts("Ingrese path el archivo");
+			char* pathCAT = readline("Ingrese path del archivo o carpeta que se quiera mover en yamaFS: ");
+
+			cat (pathCAT);
+
 			break;
 
 		case 6:{ //MKDIR
@@ -375,12 +391,25 @@ void commandHandler(){
 			break;
 		case 10: // MD5
 			puts("Ingrese el path del archivo en el YAMAFS");
+			char* pathMD5 = readline("Ingrese path del archivo para realizar su md5: ");
+
+			MD5 (pathMD5);
+
 			break;
+
 		case 11:// LS
-			puts("Ingrese el path de un directorio");
+			puts("Ingrese el path de la carpeta en el YAMAFS");
+			char* pathls = readline("Ingrese path de una carpeta para realizar su ls: ");
+
+			ls (pathls);
+
 			break;
 		case 12:// INFO
-			puts("Ingrese el path de un archivo");
+			puts("Ingrese el path del archivo en el YAMAFS");
+			char* pathinfo = readline("Ingrese path de un archivo para realizar su info: ");
+
+			info (pathinfo);
+
 			break;
 		case 13: // HELP
 			puts("format - Formatear el Filesystem.");
@@ -2668,31 +2697,3 @@ void mv (char* path_original, char* path_finalCompleto){ //deberia ser user/juan
 
 
 ////////////////
-
-//lo haria con el main
-void iniciarFileSystem (char* flag){
-
-	system("clear");
-	//inicio todos los conifgs, rutas(contenidas en el metadata) (verificar si esta hecho)
-	//creo listaNodos (nodo_info);
-	int conexiones = 1; //1=activado, sirve para que permita la conexion con los otros procesos
-	int estado = 0; //0 es inestable
-
-	if(flag=="--clean"){ //con el flag clean se ignora el estado anterior, se reinicia el FS
-			/*elimino Metadata viejo;
-			creo Metadata nuevo;
-			creo lista archivos;
-			creo lista directorios;
-			directorioIniciarControl(); (con bitmap)
-			archivoPersistirControl();
-			nodoPersistir();*/
-			printf("Conectar los nodos y formatear\n");
-	}else{
-			/*archivoRecuperarPersistencia();
-			directorioRecuperarPersistencia();
-			nodoRecuperarPersistencia();*/
-			int estadoEjecucion = 1; //normal
-			printf("Conecte los nodos necesarios\n");
-	}
-
-}
