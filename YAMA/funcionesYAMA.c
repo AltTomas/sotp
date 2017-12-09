@@ -416,3 +416,66 @@ void agregarALaListaBalanceoCarga(int idWorker){
 	}
 
 }
+
+void inicializarYama(){
+	tablaEstados = list_create();
+}
+
+void agregarEntradaTablaEstado(int job, int master, int nodo, int bloque, char* archivoTemporal){
+	t_tablaEstados* entrada = malloc(sizeof(t_tablaEstados));
+
+	entrada->job = job;
+	entrada->master = master;
+	entrada->nodo = nodo;
+	entrada->bloque = bloque;
+	entrada->etapa = ETAPA_TRANSFORMACION;
+	entrada->fileTemporal = malloc(strlen(archivoTemporal));
+	strcpy(entrada->fileTemporal, archivoTemporal);
+	entrada->status = ESTADO_EN_PROCESO;
+
+	list_add(tablaEstados, entrada);
+}
+
+int getMayorCargaExistente(){
+
+	bool estaTrabajando(t_tablaEstados* entrada){
+		return entrada->status == ESTADO_EN_PROCESO;
+	}
+
+	t_list* nodosTrabajando = list_filter(tablaEstados, estaTrabajando);
+
+	bool ordenarPorNodo(t_tablaEstados* entradaUno, t_tablaEstados* entradaDos){
+		return entradaUno->nodo >= entradaDos->nodo;
+	}
+
+	list_sort(nodosTrabajando, ordenarPorNodo);
+
+	int maximaCarga = 1;
+	int cargaActual = 1;
+	int nodoActual = -1;
+
+	void chequearMaximo(t_tablaEstados* entrada){
+		if(nodoActual == entrada->nodo)
+			cargaActual++;
+		else{
+			nodoActual = entrada->nodo;
+			if(cargaActual > maximaCarga)
+				maximaCarga = cargaActual;
+		}
+
+	}
+
+	list_iterate(nodosTrabajando, chequearMaximo);
+
+	return maximaCarga;
+}
+
+int cargaNodo(int nodo){
+
+	bool estaTrabajandoElNodo(t_tablaEstados* entrada){
+		return entrada->status == ESTADO_EN_PROCESO && entrada->nodo == nodo;
+	}
+
+	return list_count_satisfying(tablaEstados, estaTrabajandoElNodo);
+
+}

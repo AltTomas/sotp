@@ -59,6 +59,11 @@ void getNodoByFile(char*, int);
 bool workerTieneBloque(int indexWorkerActual, int numBloque);
 void asignarBloquesALosWorkers();
 void aumentarAvaibility();
+void inicializarYama();
+int cargaNodo(int nodo);
+int getMayorCargaExistente();
+void agregarEntradaTablaEstado(int job, int master, int nodo, int bloque, char* archivoTemporal);
+int getAvailabilityBase();
 
 /* Variables Globales */
 int socketConexionFS;
