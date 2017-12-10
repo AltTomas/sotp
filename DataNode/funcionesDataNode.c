@@ -25,40 +25,33 @@ void leerArchivoConfig(char* rutaArchivoConfig)
 
 void conectarConFS(void){
 
-	log_info(logger,"Conectandose a YAMA");
+	t_struct_numero handshake;
+
+	handshake.numero = ES_DATANODE;
+
+	log_info(logger,"Conectandose a FS");
 
 	int puerto = data_DataNode->PUERTO_FILESYSTEM;
+
+	t_struct_datanode * datanodeParaFS;
 
 	socketConexionFS = crearCliente(data_DataNode->IP_FILESYSTEM, puerto);
 
 	if(socketConexionFS== -1){
-		log_error(logger,"No se pudo establecer la conexion con YAMA, cerrando FS...");
+		log_error(logger,"No se pudo establecer la conexion con FS...");
 		exit(1);
 	}
+
+	socket_enviar(socketConexionFS, D_STRUCT_NUMERO, handshake);
 
 	puts("Me conecte a FS");
 	log_info(logger,"Me conecte a FS");
 
-		int cantidadBloquesDN = list_size(blokesDN);
 
-		int i;
+	datanodeParaFS->bloquesTotales = cantidadBloques;
+	datanodeParaFS->nomDN = data_DataNode->NOMBRE_NODO;
 
-		t_bloquesDN* bloqueDataN = list_get(blokesDN,i);
-
-		t_struct_datanode* datanodeParaFS = malloc(sizeof(t_struct_datanode));
-
-		datanodeParaFS->ipDN = DataNodePRUEBA->IP_NODO;
-		datanodeParaFS->puertoDN = DataNode->PUERTO_NODO;
-		datanodeParaFS->nomDN = DataNode->NOMBRE_N;
-
-		for(i=0;i<cantidadBloquesDN;i++){
-			t_bloquesDN* bloque = list_get(data_DataNode->bloquesDN,i)
-			datanodeParaFs->bloqueDN-> = DataNode->bloqueDN->numBloque;
-
-		}
-
-
-		socket_enviar(socketConexionFS, D_STRUCT_DATA_NODE,dataNodeParaFS);
+	socket_enviar(socketConexionFS, D_STRUCT_INFO_NODO,datanodeParaFS);
 	//socket_enviar(socketConexionFS, D_STRUCT_NUMERO,enviado);
 
 	log_info(logger,"Handshake enviado a YAMA");

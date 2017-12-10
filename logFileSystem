@@ -8,3 +8,7 @@
 [INFO] 13:01:57:272 filesystem/(3536:3536): Configuracion levantada correctamente
 [DEBUG] 23:57:01:280 filesystem/(3355:3355): Path config: ../Configs/configFileSystem.config
 [INFO] 23:57:01:327 filesystem/(3355:3355): Configuracion levantada correctamente
+[DEBUG] 16:15:14:712 filesystem/(4588:4588): Path config: ../../Configs/configFileSystem.config
+[INFO] 16:15:14:712 filesystem/(4588:4588): Configuracion levantada correctamente
+[DEBUG] 16:15:39:519 filesystem/(4595:4595): Path config: ../../Configs/configFileSystem.config
+[INFO] 16:15:39:520 filesystem/(4595:4595): Configuracion levantada correctamente

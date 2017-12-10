@@ -18,7 +18,8 @@
 #include <string.h>
 #include <sys/mman.h>
 #include <fcntl.h>
-
+#include <sockets.h>
+#include <serializacion.h>
 extern t_log* logger;
 int socketConexionFS;
 
@@ -61,7 +62,7 @@ void leerArchivoConfig(char* rutaArchivoConfig);
 void conectarConFS(void);
 char getBloque(int bloque);
 int setBloque(int bloque, char data[DATANODE_BLOCK_SIZE]);
-int calcularCantidadDeBloques(int fd);
+void calcularCantidadDeBloques(int fd);
 void mapearDataBin();
 
 
