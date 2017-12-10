@@ -376,7 +376,7 @@ bool workerTieneBloque(int indexWorkerActual, int numBloque){
 
 void aumentarAvaibility(int nodo){
 	void aumentar(balanceoCargas* elemento){
-		elemento->availability += getAvailability(nodo);
+		elemento->availability += getAvailabilityBase();
 	}
 	list_iterate(listaBalanceoCargas, aumentar);
 }
