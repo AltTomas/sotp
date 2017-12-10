@@ -203,8 +203,8 @@ void atenderMaster(int socketMaster){
 
 int doJob_transformacion(t_struct_jobT* job){
 
-	char pathScriptT[200];
-	char pathBloqueT[200];
+	char * pathScriptT;
+	char * pathBloqueT;
 
 	pathScriptT = createScript(job->scriptTransformacion);
 	pathBloqueT = createBloque(job->bloque);
@@ -225,9 +225,14 @@ int doJob_transformacion(t_struct_jobT* job){
 
 int doJob_reduccion(t_struct_jobR* job){
 
+	char * pathScriptR;
+		char * pathBloqueT;
+
+		pathScriptR = createScript(job->scriptReduccion);
+
 	char command[500];
 
-		sprintf(command, "cat %s | %s >> %s", job->pathTemp, job->scriptReduccion, job->pathTempFinal);
+		sprintf(command, "cat %s | %s >> %s", job->pathTemp, pathScriptR, job->pathTempFinal);
 
 		if(system(command)){
 			return 1;
@@ -247,7 +252,7 @@ char createScript(char script){
 					log_error(logger, "Error de escritura (%s) del archivo en el path: %s ", strerror(errno), path);
 	}
 
-	return path;
+	return path[200];
 }
 
 char createBloque(int bloque){

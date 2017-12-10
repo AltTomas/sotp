@@ -20,7 +20,7 @@ int main(int argc, char** argv){
 
 	conectarConYAMA();
 
-	ejecutarJob(argv);
+	consola();
 
 	mostrarMetricas();
 
