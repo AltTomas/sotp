@@ -54,7 +54,6 @@ typedef struct{
 
 t_list* blokesDN;//t_bloqueDN
 
-t_DataNode* data_DataNode;
 char * databin;
 int cantidadBloques;
 

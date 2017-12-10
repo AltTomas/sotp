@@ -1,22 +1,21 @@
 #include "funcionesDataNode.h"
 #include <estructuras.h>
 
-
-
+t_DataNode* data_DataNode;
 
 void leerArchivoConfig(char* rutaArchivoConfig)
 {
 	data_DataNode = malloc(sizeof(t_DataNode));
 
-	data_DataNode->IP_FILESYSTEM=strdup("");
-	data_DataNode->NOMBRE_NODO=strdup("");
-	data_DataNode->RUTA_DATABIN=strdup("");
-
 	t_config *configuracion = config_create(rutaArchivoConfig);
 
-	string_append(&data_DataNode->IP_FILESYSTEM,config_get_string_value(configuracion,"IP_FILESYSTEM"));
-	string_append(&data_DataNode->NOMBRE_NODO,config_get_string_value(configuracion,"NOMBRE_NODO"));
-	string_append(&data_DataNode->RUTA_DATABIN,config_get_string_value(configuracion,"RUTA_DATABIN"));
+	char* ipFS = config_get_string_value(configuracion,"IP_FILESYSTEM");
+
+	data_DataNode->IP_FILESYSTEM = malloc(strlen(ipFS)+1);
+	strcpy(data_DataNode->IP_FILESYSTEM,ipFS);
+
+	data_DataNode->NOMBRE_NODO= strdup(config_get_string_value(configuracion,"NOMBRE_NODO"));
+	data_DataNode->RUTA_DATABIN=strdup(config_get_string_value(configuracion,"RUTA_DATABIN"));
 	data_DataNode->PUERTO_FILESYSTEM= config_get_int_value(configuracion,"PUERTO_FILESYSTEM");
 	data_DataNode->PUERTO_WORKER=config_get_int_value(configuracion,"PUERTO_WORKER");
 
@@ -25,20 +24,21 @@ void leerArchivoConfig(char* rutaArchivoConfig)
 
 void conectarConFS(void){
 
-	t_struct_numero handshake;
+	t_struct_numero* handshake = malloc(sizeof(t_struct_numero));
 
-	handshake.numero = ES_DATANODE;
+	handshake->numero = ES_DATANODE;
 
 	log_info(logger,"Conectandose a FS");
 
-	int puerto = data_DataNode->PUERTO_FILESYSTEM;
+	printf("IP FS: %s\n", data_DataNode->IP_FILESYSTEM);
 
-	t_struct_datanode * datanodeParaFS;
+	t_struct_datanode * datanodeParaFS = malloc(sizeof(t_struct_datanode));
 
-	socketConexionFS = crearCliente(data_DataNode->IP_FILESYSTEM, puerto);
+	socketConexionFS = crearCliente(data_DataNode->IP_FILESYSTEM, data_DataNode->PUERTO_FILESYSTEM);
 
-	if(socketConexionFS== -1){
+	if(socketConexionFS== 1){
 		log_error(logger,"No se pudo establecer la conexion con FS...");
+		puts("No se pudo establecer la conexion con FS...");
 		exit(1);
 	}
 
