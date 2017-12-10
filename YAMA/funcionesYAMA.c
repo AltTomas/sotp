@@ -197,18 +197,12 @@ void trabajarSolicitudMaster(int socketMaster) {
 	} else {
 		switch (tipoEstructura) {
 		case D_STRUCT_STRING:
-			printf("Llego solicitud de tarea del Master en el socket %d\n",
-					socketMaster);
-			log_info(logger,
-					"Llego solicitud de tarea del Master en el socket %d",
-					socketMaster);
+			printf("Llego solicitud de tarea del Master en el socket %d\n",socketMaster);
+			log_info(logger,"Llego solicitud de tarea del Master en el socket %d",socketMaster);
 
-			printf("Archivo Objetivo: %s\n",
-					((t_struct_string*) estructuraRecibida)->string);
-			log_info(logger, "Archivo Objetivo: %s",
-					((t_struct_string*) estructuraRecibida)->string);
-			getNodoByFile(((t_struct_string*) estructuraRecibida)->string,
-					socketMaster);
+			printf("Archivo Objetivo: %s\n",((t_struct_string*) estructuraRecibida)->string);
+			log_info(logger, "Archivo Objetivo: %s",((t_struct_string*) estructuraRecibida)->string);
+			getNodoByFile(((t_struct_string*) estructuraRecibida)->string,socketMaster);
 			FD_SET(socketMaster, &setMasters);
 
 			break;
@@ -228,8 +222,7 @@ void getNodoByFile(char* nombreFile, int socketConexionMaster) {
 	socket_enviar(socketConexionFS, D_STRUCT_STRING, stringFile);
 	free(stringFile);
 
-	int recepcion = socket_recibir(socketConexionFS, &tipoEstructura,
-			&estructuraRecibida);
+	int recepcion = socket_recibir(socketConexionFS, &tipoEstructura, &estructuraRecibida);
 	if (recepcion == -1) {
 		printf("Se desconecto el FS en el socket %d\n", socketConexionFS);
 		log_info(logger, "Se desconecto el Master en el socket %d",
@@ -267,8 +260,15 @@ void getNodoByFile(char* nombreFile, int socketConexionMaster) {
 						bloqueEnviar->puertoNodoCopia= ((t_struct_bloques*) estructuraRecibida)->puertoNodoCopia;
 						bloqueEnviar->finalBloque= ((t_struct_bloques*) estructuraRecibida)->finalBloque;
 
-						agregarBloqueALaLista(bloqueEnviar);
+						//agregarBloqueALaLista(bloqueEnviar);
+
+						agregarNodoAlDiccionario(bloqueEnviar->numBloqueOriginal,bloqueEnviar->numNodoOriginal);
+						agregarNodoAlDiccionario(bloqueEnviar->numBloqueCopia,bloqueEnviar->numNodoCopia);
+
+						agregarALaListaBalanceoCarga(bloqueEnviar->numNodoOriginal);
+						agregarALaListaBalanceoCarga(bloqueEnviar->numNodoCopia);
 					}
+					iniciarPlanificacion();
 				break;
 				}
 			}
@@ -286,7 +286,7 @@ void init() {
 
 int getAvailability() {
 	int pwl;
-	if (strcmp(config->Retardo_Planificacion, "CLOCK")) {
+	if(!strcmp(config->Retardo_Planificacion, "CLOCK")){
 		pwl = 0;
 	} else {
 		//pwl =
@@ -300,9 +300,19 @@ char* generarNombreTemporal(int socketMaster, int nroBloque) {
 	string_append(&nombre, bloque);
 	return nombre;
 }
+
+void agregarNodoAlDiccionario(int idWorker, int numBloque){
+
+	if(!dictionary_has_key(ubicacionBloques, idWorker)){
+		dictionary_put(ubicacionBloques,idWorker,list_create());
+	}
+
+	t_list* listaBloques = dictionary_get(ubicacionBloques, idWorker);
+	list_add(listaBloques, numBloque);
+}
+
 void agregarBloqueALaLista(t_struct_bloques* bloqueAgregar){
 	listaUbicacionBloques* nuevoBloque = malloc(sizeof(listaUbicacionBloques));
-	t_struct_bloques* datosNodoDelBloque = malloc(sizeof(t_struct_bloques));
 
 	/* Datos del nodo Original*/
 	nuevoBloque->idNodoOriginal = bloqueAgregar->numNodoOriginal;
@@ -317,6 +327,142 @@ void agregarBloqueALaLista(t_struct_bloques* bloqueAgregar){
 	nuevoBloque->finalBloque = bloqueAgregar->finalBloque;
 
 	list_add(listaInfoBloques,nuevoBloque); /* lista var global */
+}
 
-	free(nuevoBloque);free(datosNodoDelBloque);
+void asignarBloquesALosWorkers(){
+
+	int cantBloques = dictionary_size(ubicacionBloques);
+	int indexCursor = 0;
+	int indexWorkerActual = 0;
+	int pasos = 1;
+	int numBloque;
+	for(numBloque= 0; numBloque < cantBloques; numBloque++){
+		while(!workerTieneBloque(indexWorkerActual, numBloque)){
+			indexWorkerActual++;
+			pasos++;
+
+			if(pasos == cantBloques){
+				pasos = 1;
+				aumentarAvaibility();
+			}
+			if(indexWorkerActual >= cantBloques) indexWorkerActual = 0;
+		}
+		indexCursor++;
+		indexWorkerActual = indexCursor;
+	}
+}
+
+bool workerTieneBloque(int indexWorkerActual, int numBloque){
+
+	balanceoCargas* infoWorker = list_get(listaBalanceoCargas, indexWorkerActual);
+	t_list* bloquesDelWorker = dictionary_get(ubicacionBloques, infoWorker->worker);
+
+	bool tieneBloque(int bloque){
+		return numBloque == bloque ? 1 : 0;
+	}
+
+	bool resultado =  list_any_satisfy(bloquesDelWorker, tieneBloque);
+
+	if(resultado){
+		if(infoWorker->availability == 0) return 0;
+		infoWorker->availability--;
+
+		list_add(bloquesDelWorker, numBloque);
+	}
+
+	return resultado;
+}
+
+void aumentarAvaibility(){
+	void aumentar(balanceoCargas* elemento){
+		elemento->availability += getAvailability();
+	}
+	list_iterate(listaBalanceoCargas, aumentar);
+}
+
+void iniciarPlanificacion(){
+	/* Asigno los bloques a la lista de Balanceo Cargas*/
+		asignarBloquesALosWorkers();
+}
+
+void agregarALaListaBalanceoCarga(int idWorker){
+
+	bool existeWorker(balanceoCargas* elemento){
+		return elemento->worker == idWorker ? 1 : 0;
+	}
+	if(!list_any_satisfy(listaBalanceoCargas,existeWorker)){
+		balanceoCargas* elementoAgregar = malloc(sizeof(balanceoCargas));
+		elementoAgregar->availability = getAvailability();
+		elementoAgregar->worker = idWorker;
+		elementoAgregar->bloques = list_create();
+		list_add(listaBalanceoCargas,elementoAgregar);
+		/*Envio a ejecutar el bloque*/
+	}
+
+}
+
+void inicializarYama(){
+	tablaEstados = list_create();
+	listaInfoBloques = list_create();
+	listaBalanceoCargas = list_create();
+	ubicacionBloques = dictionary_create();
+}
+
+void agregarEntradaTablaEstado(int job, int master, int nodo, int bloque, char* archivoTemporal){
+	t_tablaEstados* entrada = malloc(sizeof(t_tablaEstados));
+
+	entrada->job = job;
+	entrada->master = master;
+	entrada->nodo = nodo;
+	entrada->bloque = bloque;
+	entrada->etapa = ETAPA_TRANSFORMACION;
+	entrada->fileTemporal = malloc(strlen(archivoTemporal));
+	strcpy(entrada->fileTemporal, archivoTemporal);
+	entrada->status = ESTADO_EN_PROCESO;
+
+	list_add(tablaEstados, entrada);
+}
+
+int getMayorCargaExistente(){
+
+	bool estaTrabajando(t_tablaEstados* entrada){
+		return entrada->status == ESTADO_EN_PROCESO;
+	}
+
+	t_list* nodosTrabajando = list_filter(tablaEstados, estaTrabajando);
+
+	bool ordenarPorNodo(t_tablaEstados* entradaUno, t_tablaEstados* entradaDos){
+		return entradaUno->nodo >= entradaDos->nodo;
+	}
+
+	list_sort(nodosTrabajando, ordenarPorNodo);
+
+	int maximaCarga = 1;
+	int cargaActual = 1;
+	int nodoActual = -1;
+
+	void chequearMaximo(t_tablaEstados* entrada){
+		if(nodoActual == entrada->nodo)
+			cargaActual++;
+		else{
+			nodoActual = entrada->nodo;
+			if(cargaActual > maximaCarga)
+				maximaCarga = cargaActual;
+		}
+
+	}
+
+	list_iterate(nodosTrabajando, chequearMaximo);
+
+	return maximaCarga;
+}
+
+int cargaNodo(int nodo){
+
+	bool estaTrabajandoElNodo(t_tablaEstados* entrada){
+		return entrada->status == ESTADO_EN_PROCESO && entrada->nodo == nodo;
+	}
+
+	return list_count_satisfying(tablaEstados, estaTrabajandoElNodo);
+
 }
