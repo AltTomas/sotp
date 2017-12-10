@@ -35,11 +35,17 @@ t_config_fs* levantarConfiguracionFS(char* archivo_conf) {
         if(!verificarConfig(configFs))
         	log_error(logger,"CONFIG NO VALIDA");
 
-        conf->punto_montaje = malloc(PUNTO_MONTAJE);
+        char* puerto = config_get_string_value(configFs, "FS_PUERTO");
+
+        printf("PUERTO CONFIG: %s\n", puerto);
+
+        conf->punto_montaje = malloc(strlen(config_get_string_value(configFs, "PUNTO_MONTAJE"))+1);
         strcpy(conf->punto_montaje, config_get_string_value(configFs, "PUNTO_MONTAJE"));
 
-        conf->fs_puerto = malloc(MAX_LEN_PUERTO);
-        strcpy(conf->fs_puerto, config_get_string_value(configFs, "FS_PUERTO"));
+        conf->fs_puerto = malloc(strlen(puerto)+1);
+        strcpy(conf->fs_puerto, puerto);
+
+        printf("PUERTO CONFIG: %s\n", conf->fs_puerto);
 
         config_destroy(configFs);
         printf("Configuracion levantada correctamente.\n");
@@ -651,7 +657,6 @@ void escucharConexiones(void){
 	FD_SET(socketEscuchaDataNodes, &datanode);
 	fd_set read_fd;
 	int iterador_sockets, resultadoHilo;
-
 
 	while(1){
 		read_fd = datanode;

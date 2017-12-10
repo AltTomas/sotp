@@ -44,12 +44,8 @@
 
 
 typedef struct {
-	//char* yama_puerto;
-	//char* worker_puerto;
-	//char* dataNode_puerto;
 	char* fs_puerto;
 	char* punto_montaje;
-	//char* rutaMetadata;
 }t_config_fs;
 
 typedef struct{
