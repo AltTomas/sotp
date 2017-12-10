@@ -280,9 +280,7 @@ void commandHandler(){
 
 			//Con el path de yamaFS leemos el archivo (obtenemos su contenido completo)
 
-			//todo
-			//char* contenidoArchivo = leer(pathYAMAFS);
-			char* contenidoArchivo;
+			char* contenidoArchivo = leer(pathYAMAFS);
 
 			char* comandoCopiar = string_from_format ("echo %s", contenidoArchivo);
 
@@ -1063,80 +1061,154 @@ t_directory* buscarDirectorio(char* path){ //similar a buscarIndice pero devuelv
 	return directorioEncontrado;
 }
 
-int almacenarArchivo(char* ruta, char* nombreArchivo, char* tipo){// Faltan argumentos?
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int almacenarArchivo(char* rutaDesde, char* rutaHacia, char* tipoArchivo){
 
-	long tamanioFile = conseguirTamanioArchivo(ruta);
-	void* data = obtenerContenido(ruta);
-	int numeroBloque = 0;
+if(verificarRuta(rutaHacia)) {
+		log_error(logger,"La ruta hacia donde se almacenaria no es valida");
+		return -1;
+}
 
-    char** rutaDividida = string_split(ruta, "/");
-	int cantidadRutas = obtenerCantidadElementos(rutaDividida);
+char** rutaDividida = string_split(rutaHacia, "/");
+int cantidadRutas = obtenerCantidadElementos(rutaDividida);
+char* rutaSinNombreArchivo = string_new();
+char* rutaHaciaNombreArchivo;
 
-	char* rutaSinArchivo = string_new();
-	int i;
-	for(i = 0; i < (cantidadRutas - 1); i++){ // No consideramos el NULL
-		if(i != cantidadRutas - 2){
-			string_append(&rutaSinArchivo,rutaDividida[i]);
-	    }
-	}
+int i;
+for(i = 0; i < (cantidadRutas - 1); i++){ // No consideramos el NULL
+	if(i != cantidadRutas - 2){
+		string_append(&rutaSinNombreArchivo,rutaDividida[i]);
+    }
+    else if(i == cantidadRutas - 2){
+		rutaHaciaNombreArchivo = malloc(strlen(rutaDividida[i])+1);
+		strcpy(rutaHaciaNombreArchivo,rutaDividida[i]);
+    }
+}
 
-	t_info_archivo* infoArchivo = malloc(sizeof(t_info_archivo));
+int indiceDirectorio = pedidoLecturaRuta(rutaSinNombreArchivo);
 
-	infoArchivo->pathArchivo = (char*)malloc(strlen(rutaSinArchivo)+1);
-	strcpy(infoArchivo->pathArchivo,rutaSinArchivo);
+if(indiceDirectorio < 0){
+	log_error(logger,"No se pudo obtener el directorio para almacenar el archivo de la ruta %s", rutaHacia);
+		return -1;
+}
 
-	infoArchivo->nombreArchivo = (char*)malloc(strlen(nombreArchivo)+1);
-	strcpy(infoArchivo->nombreArchivo,nombreArchivo);
+bool tieneIndice(t_directory* directorio){
+	return directorio->index == indiceDirectorio;
+}
 
-	infoArchivo->copiasDisponibles = 0;
+t_directory* directorio = list_find(directorios, (void*)tieneIndice);
 
-	infoArchivo->infoBloques = list_create();
+if(archivoExiste(directorio->index, rutaHaciaNombreArchivo)) {
+	log_error(logger, "Ya existe un archivo con el nombre del que se quiere almacenar");
+	return -1;
+}
 
-	int indiceDirectorio = pedidoLecturaRuta(rutaSinArchivo);
+FILE* archivo = fopen(rutaDesde, "r");
 
-	if(indiceDirectorio < 0){
-		log_error(logger,"No se pudo obtener el indice de la ruta");
-		return 0;
-	}
+if(archivo == NULL) {
+	log_error(logger, "El archivo a copiar para el almacenamiento no existe");
+	return -1;
+}
 
+log_info(logger, "Copiando archivo en yamaFS");
+t_info_archivo* archivoCreado = malloc(sizeof(t_info_archivo));
 
-	if(strcmp(tipo,"Binario") == 0){
+archivoCreado->pathArchivo = malloc(strlen(rutaHacia)+1);
+strcpy(archivoCreado->pathArchivo, rutaHacia);
+archivoCreado->nombreArchivo = malloc(strlen(rutaHaciaNombreArchivo)+1);
+strcpy(archivoCreado->nombreArchivo, rutaHaciaNombreArchivo);
+archivoCreado->copiasDisponibles = 0;
+archivoCreado->tamanio = conseguirTamanioArchivo(rutaDesde);
+archivoCreado->indicePadre = directorio->index;
+archivoCreado->tipo = malloc(strlen(tipoArchivo)+1);
+strcpy(archivoCreado->tipo, tipoArchivo);
+archivoCreado->infoBloques = list_create();
 
-		int cantidadBloques = tamanioFile/sizeBloque + (tamanioFile % sizeBloque !=0);
-		int offset = 0;
+free(rutaHaciaNombreArchivo);
+free(rutaDesde);
 
-		for(numeroBloque = 0; numeroBloque < cantidadBloques; numeroBloque++){ // Fijarse bien como cortar el void*
-			if(tamanioFile > sizeBloque){
-				char* dataBloque = string_substring(data,offset,sizeBloque);
-				offset += sizeBloque;
-				int resultadoEnvio = enviarADataNode(infoArchivo, dataBloque, numeroBloque, sizeBloque); // Considerando que los binarios no tiene basura
-				if(!resultadoEnvio){ // Fallo el almacenamiento en nodos de algun bloque
-								return 0;
-				}
-			}
-			else{ // Puede estar de mas esto
-				enviarADataNode(infoArchivo, data, numeroBloque, tamanioFile);
-			}
+int estado = -1;
 
+if(strcmp(archivoCreado->tipo, "Binario") == 0){
+	estado = almacenarBinario(archivoCreado, archivo);
+}
+else{
+	estado = almacenarTexto(archivoCreado, archivo);
+}
+
+fclose(archivo);
+return estado;
+
+}
+
+int almacenarBinario(t_info_archivo* archivo, FILE* archivoACopiar){
+	char* dataBloque = malloc(sizeBloque);
+	size_t bytes;
+	int resultado = 1;
+
+	int numeroBloque;
+	for(numeroBloque = 0; (bytes = fread(dataBloque, sizeof(char), sizeBloque, archivoACopiar)) == sizeBloque; numeroBloque++){
+
+		resultado = enviarADataNode(archivo, dataBloque, numeroBloque, sizeBloque);
+		if(resultado == -1){
+			return resultado;
 		}
 	}
-	else if(strcmp(tipo,"Texto") == 0){
+	return resultado;
+}
 
-		char **registros = string_split((char*)data, "\n");
+int almacenarTexto(t_info_archivo* archivo, FILE* archivoACopiar){
 
-		int cantidadRegistros = obtenerCantidadElementos(registros);
+	char* dataBloque = malloc(sizeBloque+1);
+	char* datos = malloc(sizeBloque);
+	int bytesDisponibles = sizeBloque;
+	int offset = 0;
+	int resultado = 1;
+	int numeroBloque;
 
-		for(numeroBloque = 0; numeroBloque< cantidadRegistros; numeroBloque++){
-			int resultadoEnvio = enviarADataNode(infoArchivo, registros[numeroBloque],numeroBloque,strlen(registros[numeroBloque]));
-			if(!resultadoEnvio){ // Fallo el almacenamiento en nodos de algun bloque
-				return 0;
+	ssize_t sizeDataBloque;
+	size_t limite = sizeBloque;
+
+	while((sizeDataBloque = getline(&dataBloque, &limite, archivoACopiar)) != -1){
+		if(sizeDataBloque > sizeBloque){
+			resultado = -1;
+			log_error(logger,"El registro del archivo de texto es mas grande que 1 MB");
+			return -1;
+		}
+		if(sizeDataBloque <= bytesDisponibles){
+
+			memcpy(datos + offset, dataBloque, sizeDataBloque);
+			bytesDisponibles -= sizeDataBloque;
+			offset += sizeDataBloque;
+		}
+		else{
+
+			resultado = enviarADataNode(archivo, datos, numeroBloque, sizeBloque - bytesDisponibles);
+
+			if(resultado == -1){
+				return -1;
 			}
-		}// habra que poner el +1 en el strlen?
 
+			free(datos);
+			datos = malloc(sizeBloque);
+			bytesDisponibles = sizeBloque;
+			offset = 0;
+			numeroBloque++;
+
+			memcpy(datos+offset, dataBloque, sizeDataBloque);
+			bytesDisponibles -= sizeDataBloque;
+			offset += sizeDataBloque;
+			}
+		}
+
+	if(resultado != -1 && bytesDisponibles < sizeBloque){
+		resultado = enviarADataNode(archivo, datos, numeroBloque, sizeBloque - bytesDisponibles);
 	}
-	//Contemplar que no se pueda almacenar porque faltan bloques
 
-	return 1; // Exito
+	free(dataBloque);
+	free(datos);
+	return resultado;
+
 }
 
 int enviarADataNode(t_info_archivo* archivo, char* data, int numeroBloque, int bytesOcupados){ // Aca distribuimos el envio a los datanodes
@@ -1406,6 +1478,45 @@ int obtenerCantidadElementos(char** array){
 bool esBinario(const void *data, size_t len){// revisar porque puede fallar
 	    return memchr(data, '\0', len) != NULL;
 	}
+
+bool caracteresIguales (char caracter1, char caracter2){
+	return caracter1 == caracter2;
+}
+
+bool rutaTieneRaiz(char* ruta) {
+	char* raiz = string_substring_until(ruta, 8);
+	int resultado = strcmp(raiz, "/yamafs:") == 0;
+	free(raiz);
+	return resultado;
+}
+
+bool rutaBarrasEstanSeparadas(char* ruta) {
+	int i;
+	for(i = 0; i < strlen(ruta); i++) {
+		if(caracteresIguales(ruta[i], '/')) {
+			if(i==0) {
+
+				if(caracteresIguales(ruta[i+1], '/'))
+					return false;
+			}
+			else {
+
+				if(i==strlen(ruta)-1 && ruta[i-1] != ':'){
+					return false;
+				}
+
+				else if (caracteresIguales(ruta[i-1], '/') || caracteresIguales(ruta[i+1], '/'))
+						return false;
+			}
+
+		}
+	}
+	return true;
+}
+
+bool verificarRuta(char* ruta) {
+	return rutaTieneRaiz(ruta) && rutaBarrasEstanSeparadas(ruta);
+}
 
 int buscarSocketNodo(char* nombreNodo){ // Revisar
 
@@ -2399,6 +2510,16 @@ int verificarExistenciaNombreArchivo(char* rutaArchivo){
 
 	return respuesta;
 	}
+
+bool archivoExiste(int indiceDirectorioPadre, char* nombreArchivo) {
+
+	bool existeNombre(t_info_archivo* archivo) {
+		return (indiceDirectorioPadre == archivo->indicePadre && (strcmp(nombreArchivo, archivo->nombreArchivo) == 0));
+	}
+
+	bool resultado = list_any_satisfy(archivos, (void*)existeNombre);
+	return resultado;
+}
 
 /////////////////////////////////////////////////////////
 

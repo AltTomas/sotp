@@ -72,8 +72,9 @@ typedef struct{
 	char* pathArchivo;
 	char* nombreArchivo;
 	int copiasDisponibles;
-	int tamanio; //chequear
-	char* tipo; //chequear
+	int tamanio;
+	int indicePadre;
+	char* tipo;
 	t_list* infoBloques;
 }t_info_archivo;
 
@@ -114,6 +115,8 @@ bool verificarMetadataNodos(t_config*);
 int obtenerCantidadElementos(char**);
 bool esBinario(const void *, size_t);
 int almacenarArchivo(char*, char*, char*);
+int almacenarBinario(t_info_archivo*, FILE* );
+int almacenarTexto(t_info_archivo*, FILE*);
 int buscarSocketNodo(char*);
 int guardarCopia(t_info_archivo*, int, t_pedido_almacenar_bloque*, int);
 bool masBloquesLibres(t_info_nodo*, t_info_nodo*);
@@ -164,5 +167,11 @@ void mover (char* path_original, char* path_finalCompleto);
 int buscarArchivo(char*);
 void renombrar(char* path_original, char* path_finalCompleto);
 void mv (char*, char*);
+bool rutaTieneRaiz(char*);
+bool caracteresIguales (char, char);
+bool rutaBarrasEstanSeparadas(char*);
+bool verificarRuta(char*);
+bool archivoExiste(int, char*);
+int buscarBloqueDeArchivo(t_info_archivo* , int);
 
 #endif /* FUNCIONESFS_H_ */
