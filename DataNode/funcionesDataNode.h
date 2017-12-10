@@ -28,27 +28,28 @@ int socketConexionFS;
 typedef unsigned char dataNode_block[DATANODE_BLOCK_SIZE];
 typedef uint32_t dataNode_block_pointer;
 
+#define configuracionNodo "../../Configs/configNodo.config"
+
 typedef struct{
 	int numBloque;
 	int estado; //ocupado o libre
 }t_bloquesDN;
 
 typedef struct{
-  char*   IP_FILESYSTEM;
-	int   PUERTO_FILESYSTEM;
-  char*   NOMBRE_NODO;
-	int   PUERTO_WORKER;
-	int   PUERTO_DATANODE;
-  char*   RUTA_DATABIN;
-} t_DataNode;
+	char*   IP_FILESYSTEM;
+	char*   PUERTO_FILESYSTEM;
+	char*   NOMBRE_NODO;
+	char*   RUTA_DATABIN;
+	char* 	PUERTO_NODO;
+} t_config_nodo;
 
 typedef struct{
   char*   IP_FILESYSTEM;
-  int   PUERTO_FILESYSTEM;
-  int   NOMBRE_N;
-  int   PUERTO_WORKER;
+  char*   PUERTO_FILESYSTEM;
+  char*   NOMBRE_N;
+  char*   PUERTO_WORKER;
   char*   RUTA_DATABIN;
-  int 	  PUERTO_NODO;
+  char* 	  PUERTO_NODO;
   char*   IP_NODO;
 } DataNodePRUEBA;
 
@@ -56,14 +57,14 @@ t_list* blokesDN;//t_bloqueDN
 
 char * databin;
 int cantidadBloques;
+t_config_nodo* config;
 
-void leerArchivoConfig(char* rutaArchivoConfig);
+bool verificarExistenciaDeArchivo(char*);
+t_config_nodo* levantarConfiguracionNodo(char*);
 void conectarConFS(void);
 char getBloque(int bloque);
 int setBloque(int bloque, char data[DATANODE_BLOCK_SIZE]);
 void calcularCantidadDeBloques(int fd);
 void mapearDataBin();
-
-
 
 #endif /* FUNCIONESDATANODE_H_ */

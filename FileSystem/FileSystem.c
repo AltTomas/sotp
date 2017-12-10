@@ -33,9 +33,9 @@ int main(int argc, char** argv){
 	}
 
 
-	destruirConfig(config);
+	//destruirConfig(config);
 
-	void escucharConexiones();
+	escucharConexiones();
 
 	commandHandler();
 	return EXIT_SUCCESS;

@@ -13,7 +13,9 @@
 int main(int argc, char *argv[]) {
 
 	logger = log_create("../../logDataNode","datanode", 0, LOG_LEVEL_TRACE);
-	leerArchivoConfig("../../Configs/configNodo.config");
+
+	crearConfig();
+
 	conectarConFS();
 
 	return 0;

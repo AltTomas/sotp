@@ -61,6 +61,9 @@ t_stream * serialize(int tipoEstructura, void * estructuraOrigen){
 			case FS_DATANODE_ALMACENAR_BLOQUE:
 				paquete = serializeStruct_fs_datanode_almacenar((t_almacenar_bloque *) estructuraOrigen, FS_DATANODE_ALMACENAR_BLOQUE);
 				break;
+			case D_STRUCT_INFO_NODO:
+				paquete = serializeStruct_datanode((t_struct_datanode*) estructuraOrigen, D_STRUCT_INFO_NODO);
+				break;
 		}
 
 	return paquete;
@@ -210,9 +213,7 @@ int calcularTamanioBloques(t_list* bloqueDN){
 
 	for(i=0;i<list_size(bloqueDN);i++){
 
-		char* bloque = list_get(bloqueDN,i);
-
-		int tamanioBloque = strlen(bloque)+1;
+		int tamanioBloque = sizeof(int)*2;
 
 		int tamanioParcial = tamanioBloque;
 
@@ -229,9 +230,10 @@ t_stream * serializeStruct_datanode(t_struct_datanode* estructuraOrigen, int hea
 
 	int tamaniobloques = calcularTamanioBloques(estructuraOrigen->bloqueDN);
 
-	paquete->length = sizeof(t_header)  	+ sizeof(uint16_t)
-											+ strlen(estructuraOrigen->ipDN) + 1
-											+ tamaniobloques;
+	paquete->length = sizeof(t_header)  	+ strlen(estructuraOrigen->ipDN) + 1
+											+ tamaniobloques
+											+ sizeof(int) *3
+											+ strlen(estructuraOrigen->nomDN) + 1;
 
 	char * data = crearDataConHeader(headerOperacion, paquete->length);
 
@@ -245,19 +247,22 @@ t_stream * serializeStruct_datanode(t_struct_datanode* estructuraOrigen, int hea
 
 	tamanoTotal+=tamanoDato;
 
-	memcpy(data + tamanoTotal, &estructuraOrigen->nomDN , tamanoDato = sizeof(int));
+	memcpy(data + tamanoTotal, &estructuraOrigen->nomDN , tamanoDato = strlen(estructuraOrigen->nomDN) + 1);
 
 	tamanoTotal+=tamanoDato;
 
 	int contadorBloques = 0;
 
-	int cantidadBloques = list_size(estructuraOrigen->bloqueDN); //chequear
+	int cantidadBloques = estructuraOrigen->bloquesTotales; //chequear
 
 	while(contadorBloques < cantidadBloques){
 
-		char* temporal = list_get(estructuraOrigen->bloqueDN,contadorBloques);
+		t_struct_bloqueDN* bloque = list_get(estructuraOrigen->bloqueDN,contadorBloques);
 
-		memcpy(data + tamanoTotal, temporal , tamanoDato = strlen(temporal)+1);
+		memcpy(data + tamanoTotal, &bloque->estado , tamanoDato = sizeof(int));
+		tamanoTotal+=tamanoDato;
+
+		memcpy(data + tamanoTotal, &bloque->numBloque , tamanoDato = sizeof(int));
 		tamanoTotal+=tamanoDato;
 	}
 
@@ -654,6 +659,9 @@ void * deserialize(uint8_t tipoEstructura, char * dataPaquete, uint16_t length){
 				break;
 			case FS_DATANODE_ALMACENAR_BLOQUE:
 				estructuraDestino = deserializeStruct_fs_datanode_almacenar(dataPaquete, length);
+				break;
+			case D_STRUCT_INFO_NODO:
+				estructuraDestino = deserializeStruct_datanode(dataPaquete, length);
 				break;
 	}
 
