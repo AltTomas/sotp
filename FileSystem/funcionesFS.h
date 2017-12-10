@@ -17,6 +17,8 @@
 #include <pthread.h>
 #include <readline/readline.h>
 #include <sockets.h>
+#include <commons/bitarray.h>
+#include <math.h>
 
 #include <fcntl.h>
 #include <unistd.h>
@@ -33,6 +35,8 @@
 #define tablaDirectorios "../../metadata/directorios.dat"
 #define tablaNodos "../../yamaFS/metadata/nodos.bin"
 #define tablaArchivos "../../yamaFS/metadata/archivos"
+#define tablaBitmaps "../../yamaFS/metadata/bitmaps"
+#define	tablaArchivostxt "../../yamaFS/metadata/Archivos.txt"
 
 #define MAX_LEN_PUERTO 6
 #define PUNTO_MONTAJE 250
@@ -40,8 +44,12 @@
 
 
 typedef struct {
+	//char* yama_puerto;
+	//char* worker_puerto;
+	//char* dataNode_puerto;
 	char* fs_puerto;
 	char* punto_montaje;
+	//char* rutaMetadata;
 }t_config_fs;
 
 typedef struct{
@@ -52,6 +60,8 @@ typedef struct{
 	int bloquesTotales;
 	int bloquesLibres;
 	t_list* bloqueDN;//t_struct_bloqueDN
+	int estado;
+	t_bitarray*	bitmap;
 }t_info_nodo;
 
 typedef struct{

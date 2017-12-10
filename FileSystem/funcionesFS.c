@@ -2818,3 +2818,166 @@ void mv (char* path_original, char* path_finalCompleto){ //deberia ser user/juan
 
 
 ////////////////
+
+
+char* stringCrear(int tamanio) {
+	char* string = malloc(tamanio);
+	memset(string, '\0', tamanio);
+	return string;
+}
+
+
+t_bitarray* crearBitmap(int cantidadBloques) {
+	int tamanioBytes = (int)ceil((double)cantidadBloques/(double)8); //para que ande habia que agregar lm en las libraries
+	char* bits = malloc(tamanioBytes);
+	t_bitarray* bitmap = bitarray_create_with_mode(bits, tamanioBytes, LSB_FIRST);
+	int indice;
+	for(indice = 0; indice < tamanioBytes*8; indice++)
+		bitarray_clean_bit(bitmap, indice);
+	return bitmap;
+}
+
+
+
+
+void recuperarArchivo() { //verificar si no falta lo del indicePadre en el archivo
+
+	FILE* archivo = fopen(tablaArchivostxt, "r");
+
+		if(archivo == NULL) {
+	printf("no se encontro el archivo\n");
+	return;
+		}
+
+	fclose(archivo);
+	archivos = list_create();
+	t_config* config = config_create(tablaArchivostxt);
+	int cantidadArchivos = config_get_int_value(config, "ARCHIVOS");
+	int indice;
+
+	for(indice = 0; indice < cantidadArchivos; indice++) {
+
+		char* nombreDentroConfig = string_from_format("NOMBRE%i", indice);
+		char* padreDentroConfig = string_from_format("PADRE%i", indice);
+		char* nombre = stringCrear(255);
+
+		int padre = config_get_int_value(config, padreDentroConfig);
+		strcpy(nombre,config_get_int_value(config, nombreDentroConfig));
+
+		free(nombreDentroConfig);
+		free(padreDentroConfig);
+
+		char* ruta = string_from_format("%s/%i/%s", tablaArchivos, padre, nombre);
+		t_config* config = config_create(ruta);
+		free(ruta);
+		free(nombre);
+
+		t_info_archivo* archivo = malloc(sizeof(t_info_archivo));
+		strcpy(archivo->nombreArchivo, config_get_string_value(config, "NOMBRE"));
+		archivo->indicePadre = config_get_int_value(config, "ID_PADRE");
+		strcpy(archivo->tipo, config_get_string_value(config, "TIPO"));
+
+		int indiceBloques;
+		archivo->infoBloques = list_create();
+		int cantidadBloques = config_get_int_value(config, "BLOQUES");
+
+		for(indiceBloques = 0; indiceBloques < cantidadBloques; indiceBloques++) {
+			t_info_bloque_archivo* bloque = malloc(sizeof(bloque));
+			char* lineaBloque = string_from_format("BLOQUE%i_BYTES", indiceBloques);
+			bloque->bloqueArchivo = indiceBloques;
+			bloque->bytesOcupados = config_get_int_value(config, lineaBloque);
+			free(lineaBloque);
+			list_add(archivo->infoBloques, bloque);
+			//faltaria copia0 y copia1
+		}
+		list_add(archivos,archivo);
+		config_destroy(config);
+	}
+	config_destroy(config);
+}
+
+
+
+void recuperarNodo() {
+
+	t_config* config = config_create(tablaNodos);
+	int cantidadNodos = config_get_int_value(config, "NODOS");
+	int indice;
+
+	for(indice = 0; indice < cantidadNodos; indice++) {
+		char* nombreDentroConfig = string_from_format("NOMBRE%i", indice);
+		char* lineaTotales = string_from_format("BLOQUES_TOTALES%i", indice);
+		char* lineaLibres = string_from_format("BLOQUES_LIBRES%i", indice);
+		t_info_nodo* nodo = malloc(sizeof(nodo));
+		strcpy(nodo->nombreNodo, config_get_string_value(config, nombreDentroConfig));
+		nodo->bloquesTotales = config_get_int_value(config, lineaTotales);
+		nodo->bloquesLibres = config_get_int_value(config, lineaLibres);
+		nodo->estado = 0;
+		nodo->socket = 0;
+		//nodo->mensaje?
+		nodo->puerto = 0;
+		strcpy(nodo->ip, "-");
+		//nodo->tareas?
+		free(nombreDentroConfig);
+		free(lineaTotales);
+		free(lineaLibres);
+		list_add(info_DataNodes,nodo);
+		char* ruta = string_from_format("%s/%s", tablaBitmaps, nodo->nombreNodo); //append =
+
+		FILE* file = fopen(ruta, "r");
+		if(file == NULL) {
+				printf("no se encontro el archivo\n");
+				free(ruta);
+				return;
+		}
+
+		nodo->bitmap = crearBitmap(nodo->bloquesTotales);
+		fread(nodo->bitmap->bitarray, sizeof(char), nodo->bitmap->size, file);
+		free(ruta);
+		fclose(file);
+		config_destroy(config);
+		}
+
+	config_destroy(config);
+	}
+
+
+
+void recuperarDirectorio() {
+
+	FILE* file = fopen(tablaArchivostxt, "r");
+	crearBitmap(100);
+		if(file == NULL) {
+			printf("no se encontro el archivo\n");
+			return;
+		}
+
+	fclose(file);
+
+	crearBitmap(100);
+	directorios = list_create();
+	t_config* config = config_create(tablaDirectorios);
+	int cantidadDirectorios = config_get_int_value(config, "DIRECTORIOS");
+
+	int indice;
+	for(indice = 0; indice < cantidadDirectorios; indice++) {
+		char* lineaIdentificador = string_from_format("IDENTIFICADOR%i", indice);
+		char* nombreDentroConfig = string_from_format("NOMBRE%i", indice);
+		char* padreDentroConfig = string_from_format("PADRE%i", indice);
+		t_directory* directorio = malloc(sizeof(t_directory));
+		directorio->index = config_get_int_value(config, lineaIdentificador);
+		directorio->indexPadre = config_get_int_value(config, padreDentroConfig);
+		strcpy(directorio->nombre, config_get_string_value(config, nombreDentroConfig));
+		list_add(directorios, directorio);
+		free(lineaIdentificador);
+		free(nombreDentroConfig);
+		free(padreDentroConfig);
+	}
+
+	config_destroy(config);
+	for(indice = 0; indice < cantidadDirectorios; indice++)
+		bitarray_set_bit(tablaBitmaps, indice);
+}
+
+
+
