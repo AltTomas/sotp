@@ -256,4 +256,8 @@ typedef struct almacenarBloque{
 	int bloqueNodo;
 }__attribute__((__packed__))t_almacenar_bloque;
 
+typedef struct t_dirFisica{
+	char* ip;
+	int puerto;
+}__attribute__((__packed__))t_dirFisica;
 #endif /* ESTRUCTURAS_H_ */

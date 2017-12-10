@@ -265,6 +265,9 @@ void getNodoByFile(char* nombreFile, int socketConexionMaster) {
 						agregarNodoAlDiccionario(bloqueEnviar->numBloqueOriginal,bloqueEnviar->numNodoOriginal);
 						agregarNodoAlDiccionario(bloqueEnviar->numBloqueCopia,bloqueEnviar->numNodoCopia);
 
+						agregarAlDiccionarioDirFisico(bloqueEnviar->numNodoOriginal,bloqueEnviar->ipNodoOriginal,bloqueEnviar->puertoNodoOriginal);
+						agregarAlDiccionarioDirFisico(bloqueEnviar->numNodoCopia,bloqueEnviar->ipNodoCopia,bloqueEnviar->puertoNodoCopia);
+
 						agregarALaListaBalanceoCarga(bloqueEnviar->numNodoOriginal);
 						agregarALaListaBalanceoCarga(bloqueEnviar->numNodoCopia);
 					}
@@ -407,6 +410,7 @@ void inicializarYama(){
 	listaInfoBloques = list_create();
 	listaBalanceoCargas = list_create();
 	ubicacionBloques = dictionary_create();
+	ubicacionFisicaBloques = dictionary_create();
 }
 
 void agregarEntradaTablaEstado(int job, int master, int nodo, int bloque, char* archivoTemporal){
@@ -466,4 +470,12 @@ int cargaNodo(int nodo){
 
 	return list_count_satisfying(tablaEstados, estaTrabajandoElNodo);
 
+}
+void agregarAlDiccionarioDirFisico(int idNodo,char* ip,int puerto){
+	if(!dictionary_has_key(ubicacionFisicaBloques, idNodo)){
+		t_dirFisica* ubicacion = malloc(sizeof(t_dirFisica));
+		strcpy(ubicacion->ip,ip);
+		ubicacion->puerto = puerto;
+		dictionary_put(ubicacionFisicaBloques,idNodo,ubicacion);
+	}
 }

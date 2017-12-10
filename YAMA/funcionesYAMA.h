@@ -67,6 +67,7 @@ int getAvailabilityBase();
 void agregarALaListaBalanceoCarga(int idWorker);
 void iniciarPlanificacion();
 int getAvailabilityBase();
+void agregarAlDiccionarioDirFisico(int idNodo,char* ip,int puerto);
 
 /* Variables Globales */
 
@@ -76,5 +77,6 @@ t_list * tablaEstados;
 t_list* listaInfoBloques;
 t_list* listaBalanceoCargas;
 t_dictionary* ubicacionBloques;
+t_dictionary* ubicacionFisicaBloques;
 
 #endif /* FUNCIONESYAMA_H_ */
