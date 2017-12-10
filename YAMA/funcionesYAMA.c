@@ -280,18 +280,19 @@ void getNodoByFile(char* nombreFile, int socketConexionMaster) {
 	}
 }
 
-void init() {
-	tablaEstados = list_create();
-}
-
-int getAvailability() {
+int getAvailability(int nodo) {
 	int pwl;
 	if(!strcmp(config->Retardo_Planificacion, "CLOCK")){
 		pwl = 0;
 	} else {
-		//pwl =
+		//si es w-clock
+		pwl = getMayorCargaExistente() - cargaNodo(nodo);
 	}
-	return config->Disp_Base + pwl;
+	return getAvailabilityBase() + pwl;
+}
+
+int getAvailabilityBase(){
+	return config->Disp_Base;
 }
 
 char* generarNombreTemporal(int socketMaster, int nroBloque) {
@@ -343,7 +344,7 @@ void asignarBloquesALosWorkers(){
 
 			if(pasos == cantBloques){
 				pasos = 1;
-				aumentarAvaibility();
+				aumentarAvaibility(indexWorkerActual);
 			}
 			if(indexWorkerActual >= cantBloques) indexWorkerActual = 0;
 		}
@@ -373,9 +374,9 @@ bool workerTieneBloque(int indexWorkerActual, int numBloque){
 	return resultado;
 }
 
-void aumentarAvaibility(){
+void aumentarAvaibility(int nodo){
 	void aumentar(balanceoCargas* elemento){
-		elemento->availability += getAvailability();
+		elemento->availability += getAvailability(nodo);
 	}
 	list_iterate(listaBalanceoCargas, aumentar);
 }
@@ -392,7 +393,7 @@ void agregarALaListaBalanceoCarga(int idWorker){
 	}
 	if(!list_any_satisfy(listaBalanceoCargas,existeWorker)){
 		balanceoCargas* elementoAgregar = malloc(sizeof(balanceoCargas));
-		elementoAgregar->availability = getAvailability();
+		elementoAgregar->availability = getAvailability(idWorker);
 		elementoAgregar->worker = idWorker;
 		elementoAgregar->bloques = list_create();
 		list_add(listaBalanceoCargas,elementoAgregar);

@@ -66,6 +66,7 @@ void agregarEntradaTablaEstado(int job, int master, int nodo, int bloque, char* 
 int getAvailabilityBase();
 void agregarALaListaBalanceoCarga(int idWorker);
 void iniciarPlanificacion();
+int getAvailabilityBase();
 
 /* Variables Globales */
 
