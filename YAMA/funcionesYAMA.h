@@ -64,8 +64,11 @@ int cargaNodo(int nodo);
 int getMayorCargaExistente();
 void agregarEntradaTablaEstado(int job, int master, int nodo, int bloque, char* archivoTemporal);
 int getAvailabilityBase();
+void agregarALaListaBalanceoCarga(int idWorker);
+void iniciarPlanificacion();
 
 /* Variables Globales */
+
 int socketConexionFS;
 
 t_list * tablaEstados;

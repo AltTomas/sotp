@@ -366,6 +366,7 @@ bool workerTieneBloque(int indexWorkerActual, int numBloque){
 	if(resultado){
 		if(infoWorker->availability == 0) return 0;
 		infoWorker->availability--;
+
 		list_add(bloquesDelWorker, numBloque);
 	}
 
@@ -382,24 +383,6 @@ void aumentarAvaibility(){
 void iniciarPlanificacion(){
 	/* Asigno los bloques a la lista de Balanceo Cargas*/
 		asignarBloquesALosWorkers();
-
-	/* Cuando inicias planificacion modificas Tabla de Estados que seria el controller */
-
-	/* ****************************************************************************** */
-
-
-	/* Me fijo en la lista de balanceo de cargas en que worker esta */
-
-	/* ****************************************************************************** */
-
-	/* Me fijo en la lista de estados si hay algo y sino agrego el estado en ejecucion */
-
-	/* ****************************************************************************** */
-
-	/* Mando a Ejecutar el bloque */
-
-	/* ****************************************************************************** */
-
 }
 
 void agregarALaListaBalanceoCarga(int idWorker){
@@ -413,12 +396,16 @@ void agregarALaListaBalanceoCarga(int idWorker){
 		elementoAgregar->worker = idWorker;
 		elementoAgregar->bloques = list_create();
 		list_add(listaBalanceoCargas,elementoAgregar);
+		/*Envio a ejecutar el bloque*/
 	}
 
 }
 
 void inicializarYama(){
 	tablaEstados = list_create();
+	listaInfoBloques = list_create();
+	listaBalanceoCargas = list_create();
+	ubicacionBloques = dictionary_create();
 }
 
 void agregarEntradaTablaEstado(int job, int master, int nodo, int bloque, char* archivoTemporal){
