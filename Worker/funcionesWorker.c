@@ -41,6 +41,8 @@ t_config_Worker* levantarConfiguracionWorker(char* archivo_conf) {
         	log_error(logger,"CONFIG NO VALIDA");
 
        conf->Worker_Puerto = config_get_int_value(configWorker, "PUERTO_WORKER");
+       conf->databinPath = strdup(config_get_string_value(config, "RUTA_DATABIN"));
+       conf->Puerto_DataNode = config_get_int_value(configWorker,"PUERTO_DATANODE");
 
         config_destroy(configWorker);
         printf("Configuracion levantada correctamente.\n");
@@ -66,6 +68,21 @@ bool verificarExistenciaDeArchivo(char* path) {
 
 void destruirConfig(t_config_Worker* config){
 	free(config);
+}
+
+int conectarADataNode (){
+
+	//Genera el socket cliente y lo conecta al kernel
+	int socketCliente = crearCliente(config->Worker_Puerto,config->Puerto_DataNode);
+
+	//Se realiza el handshake con el kernel
+	t_struct_numero* es_datanode = malloc(sizeof(t_struct_numero));
+	es_datanode->numero = ES_DATANODE;
+	socket_enviar(socketCliente, D_STRUCT_NUMERO, es_datanode);
+	free(es_datanode);
+
+	return socketCliente;
+
 }
 
 void escucharConexiones(void){
@@ -186,9 +203,15 @@ void atenderMaster(int socketMaster){
 
 int doJob_transformacion(t_struct_jobT* job){
 
+	char pathScriptT[200];
+	char pathBloqueT[200];
+
+	pathScriptT = createScript(job->scriptTransformacion);
+	pathBloqueT = createBloque(job->bloque);
+
 	char command[500];
 	int resultado;
-	sprintf(command, "cat %s | %s > %s", job->pathOrigen, job->scriptTransformacion, job->pathTemporal);
+	sprintf(command, "cat %s | %s > %s", job->pathOrigen, pathScriptT, job->pathTemporal);
 
 	resultado = system(command);
 
@@ -210,3 +233,80 @@ int doJob_reduccion(t_struct_jobR* job){
 			return 1;
 		}else return 0;
 }
+
+char createScript(char script){
+
+	char path[200];
+	FILE * fd;
+
+	sprintf(path, "Scripts/%d", numScriptT);
+
+	fd = fopen(path, "w");
+
+	if(pwrite(fd, script, sizeof(script), 0)<0){
+					log_error(logger, "Error de escritura (%s) del archivo en el path: %s ", strerror(errno), path);
+	}
+
+	return path;
+}
+
+char createBloque(int bloque){
+	char path[200];
+	char * bloqueData;
+		FILE * fd;
+
+		sprintf(path, "Scripts/%d", numScriptT);
+
+		fd = fopen(path, "w");
+
+		bloqueData = obtenerBloque(bloque);
+
+		if(pwrite(fd, bloqueData, sizeof(bloqueData), 0)<0){
+						log_error(logger, "Error de escritura (%s) del archivo en el path: %s ", strerror(errno), path);
+		}
+
+		return path;
+
+}
+void initializeFolders(){
+
+	mkdir("Scripts", S_IRWXU | S_IRWXG | S_IRWXO);
+	mkdir("BloquesTemp", S_IRWXU | S_IRWXG | S_IRWXO);
+	mkdir("Reducidos", S_IRWXU | S_IRWXG | S_IRWXO);
+	mkdir("Transformados", S_IRWXU | S_IRWXG | S_IRWXO);
+	mkdir("Final", S_IRWXU | S_IRWXG | S_IRWXO);
+}
+
+char obtenerBloque(int bloque){
+
+		char data[DATANODE_BLOCK_SIZE];
+
+		char databin;
+
+	    if(bloque < 0){
+	        return 0;
+	    }
+
+	    int fd = open(config->databinPath, O_RDONLY);
+
+	    if(fd == -1){
+	        log_error(logger, "No se encontró el data.bin en la ruta %s\n", config->databinPath);
+	        return -1;
+	    }
+
+	    databin = mmap(NULL, DATANODE_BLOCK_SIZE,
+	                        PROT_READ, MAP_PRIVATE, fd, DATANODE_BLOCK_SIZE * bloque);
+
+	    if(databin == MAP_FAILED){
+	        log_error(logger, "No se pudo mapear el data.bin en la ruta\n");
+	        return -1;
+	    }
+
+	    memcpy(data, databin, DATANODE_BLOCK_SIZE);
+
+	    munmap(databin, DATANODE_BLOCK_SIZE);
+	    close(fd);
+
+	    return data;
+	}
+

@@ -22,15 +22,23 @@
 #include <sockets.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
+#include <string.h>
+#include <sys/mman.h>
+#include <fcntl.h>
 
 #define configuracionWorker "/home/utnso/workspace/tp-2017-2c-Los-caballeros-del-C-diaco/Configs/configNodo.config"
 #define MAX_LEN_PUERTO 6
 #define MAX_LEN_NOMBRE 7
 #define MAX_RUTA 150
 #define MAX_LEN_IP 20
+#define DATANODE_BLOCK_SIZE 1048576
 
 typedef struct {
 	int Worker_Puerto;
+	char * IP_DataNode;
+	int Puerto_DataNode;
+	char * databinPath;
 }t_config_Worker;
 
 t_log* logger;
@@ -39,6 +47,8 @@ int socketEscucha;
 int max_fd;
 fd_set maestro;
 fd_set setMasters;
+int numBloqT;
+int numScriptT;
 
 void crearConfig();
 t_config_Worker* levantarConfiguracionWorker(char*);
@@ -50,6 +60,10 @@ int doJob_transformacion(t_struct_jobT* job);
 int doJob_reduccion(t_struct_jobR* job);
 void atenderMaster(int socketMaster);
 void escucharConexiones(void);
+char obtenerBloque(int bloque);
+void initializeFolders();
+char createBloque(int bloque);
+char createScript(char script);
 
 
 #endif /* FUNCIONESWORKER_H_ */

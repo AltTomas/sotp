@@ -3,6 +3,7 @@
 
 
 
+
 void leerArchivoConfig(char* rutaArchivoConfig)
 {
 	data_DataNode = malloc(sizeof(t_DataNode));
@@ -62,4 +63,85 @@ void conectarConFS(void){
 
 	log_info(logger,"Handshake enviado a YAMA");
 
+}
+
+
+
+char getBloque(int bloque){
+
+	char data[DATANODE_BLOCK_SIZE];
+
+    if(bloque < 0){
+        return 0;
+    }
+
+    if(bloque>cantidadBloques){
+        	log_error(logger, "No existe el bloque pedido");
+        	return -2;
+        }
+
+    int fd = open(data_DataNode->RUTA_DATABIN, O_RDONLY);
+
+    if(fd == -1){
+        log_error(logger, "No se encontró el data.bin en la ruta %s\n", data_DataNode->RUTA_DATABIN);
+        return -1;
+    }
+
+    databin = mmap(NULL, DATANODE_BLOCK_SIZE,
+                        PROT_READ, MAP_PRIVATE, fd, DATANODE_BLOCK_SIZE * bloque);
+
+    if(databin == MAP_FAILED){
+        log_error(logger, "No se pudo mapear el data.bin en la ruta\n");
+        return -1;
+    }
+
+    memcpy(data, databin, DATANODE_BLOCK_SIZE);
+
+    munmap(databin, DATANODE_BLOCK_SIZE);
+    close(fd);
+
+    return data;
+}
+
+int setBloque(int bloque, char data[DATANODE_BLOCK_SIZE]){
+    int fd = open(data_DataNode->RUTA_DATABIN, O_RDWR);
+
+    if(fd == -1){
+        log_error(logger, "No se encontró el data.bin en la ruta %s\n", data_DataNode->RUTA_DATABIN);
+        return -1;
+    }
+
+    if(bloque>cantidadBloques){
+    	log_error(logger, "No hay más espacio para escribir el bloque pedido");
+    	return -2;
+    }
+
+    databin = mmap(NULL, DATANODE_BLOCK_SIZE,
+                        PROT_READ | PROT_WRITE, MAP_SHARED, fd, DATANODE_BLOCK_SIZE * bloque);
+
+    if(databin == MAP_FAILED){
+        log_error(logger, "No se pudo mapear el data.bin en la ruta\n");
+        return -1;
+    }
+
+
+    memcpy(databin, data, DATANODE_BLOCK_SIZE);
+
+    if(msync(databin, DATANODE_BLOCK_SIZE, MS_SYNC) == -1){
+        return -1;
+    }
+
+    munmap(databin, DATANODE_BLOCK_SIZE);
+    close(fd);
+
+    return 0;
+}
+
+void calcularCantidadDeBloques(int fd){
+
+	struct stat stats;
+	fstat(fd, &stats);
+	cantidadBloques = stats.st_size / DATANODE_BLOCK_SIZE;
+
+	log_info(logger, "La cantidad de bloques es: %d", cantidadBloques);
 }

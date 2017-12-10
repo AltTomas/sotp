@@ -15,6 +15,9 @@
 #include <unistd.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
+#include <sys/mman.h>
+#include <fcntl.h>
 
 extern t_log* logger;
 int socketConexionFS;
@@ -51,9 +54,16 @@ typedef struct{
 t_list* blokesDN;//t_bloqueDN
 
 t_DataNode* data_DataNode;
-
+char * databin;
+int cantidadBloques;
 
 void leerArchivoConfig(char* rutaArchivoConfig);
 void conectarConFS(void);
+char getBloque(int bloque);
+int setBloque(int bloque, char data[DATANODE_BLOCK_SIZE]);
+int calcularCantidadDeBloques(int fd);
+void mapearDataBin();
+
+
 
 #endif /* FUNCIONESDATANODE_H_ */
