@@ -37,15 +37,11 @@ t_config_fs* levantarConfiguracionFS(char* archivo_conf) {
 
         char* puerto = config_get_string_value(configFs, "FS_PUERTO");
 
-        printf("PUERTO CONFIG: %s\n", puerto);
-
         conf->punto_montaje = malloc(strlen(config_get_string_value(configFs, "PUNTO_MONTAJE"))+1);
         strcpy(conf->punto_montaje, config_get_string_value(configFs, "PUNTO_MONTAJE"));
 
         conf->fs_puerto = malloc(strlen(puerto)+1);
         strcpy(conf->fs_puerto, puerto);
-
-        printf("PUERTO CONFIG: %s\n", conf->fs_puerto);
 
         config_destroy(configFs);
         printf("Configuracion levantada correctamente.\n");
@@ -656,7 +652,8 @@ void escucharConexiones(void){
 
 	FD_SET(socketEscuchaDataNodes, &datanode);
 	fd_set read_fd;
-	int iterador_sockets, resultadoHilo;
+	int iterador_sockets;
+	int resultadoHilo = 0;
 
 	while(1){
 		read_fd = datanode;
@@ -674,8 +671,8 @@ void escucharConexiones(void){
 
 			if(FD_ISSET(iterador_sockets, &setDataNodes) && FD_ISSET(iterador_sockets,&read_fd)){
 				FD_CLR(iterador_sockets, &setDataNodes);
-				pthread_t hilo;
-				resultadoHilo = pthread_create(hilo, NULL, trabajarSolicitudDataNode, iterador_sockets);
+				pthread_t* hilo;
+				resultadoHilo = pthread_create(hilo, NULL, (void*)trabajarSolicitudDataNode, iterador_sockets);
 				if(resultadoHilo) exit(1);
 			}
 		}
@@ -687,7 +684,7 @@ void aceptarNuevaConexion(int socketEscucha, fd_set* set){
 	int socketNuevo = aceptarCliente(socketEscucha);
 
 	if(socketNuevo == -1) {
-			perror("Error al aceptar conexion entrante");
+		perror("Error al aceptar conexion entrante");
 	}
 	else{
 		void* estructuraRecibida;
@@ -705,39 +702,35 @@ void aceptarNuevaConexion(int socketEscucha, fd_set* set){
 				printf("Se acaba de conectar un DATANODE  en el socket %d\n", socketNuevo);
 				log_info(logger,"Se acaba de conectar un DATANODE  en el socket %d", socketNuevo);
 
-			t_struct_numero* enviado = malloc(sizeof(t_struct_numero));
-			enviado->numero = FS_DATANODE_PEDIDO_INFO;
-			socket_enviar(socketNuevo,D_STRUCT_NUMERO,enviado);
-			free(enviado);// Este send puede estar de mas, podria enviarlo el DN directamente
-
 			void* estructuraRecibida;
 			t_tipoEstructura tipoEstructura;
 
-			 int recepcion = socket_recibir(socketNuevo, &tipoEstructura,&estructuraRecibida);
+			int recepcion = socket_recibir(socketNuevo, &tipoEstructura,&estructuraRecibida);
 
-			  if(recepcion == -1){
-			    printf("Se desconecto el Nodo en el socket %d\n", socketNuevo);
-			    log_info(logger,"Se desconecto el Nodo en el socket %d", socketNuevo);
-			    close(socketNuevo);
-			    FD_CLR(socketNuevo, &datanode);
-			    FD_CLR(socketNuevo, &setDataNodes);
-			  }
-			  else if(tipoEstructura != D_STRUCT_INFO_NODO){
-			    puts("Se esperaba recibir una estructura D_STRUCT_INFO_NODO");
-			    log_error(logger,"Se esperaba recibir una estructura D_STRUCT_INFO_NODO");
-			  }
-			  else{
+			if(recepcion == -1){
+				printf("Se desconecto el Nodo en el socket %d\n", socketNuevo);
+				log_info(logger,"Se desconecto el Nodo en el socket %d", socketNuevo);
+				close(socketNuevo);
+				FD_CLR(socketNuevo, &datanode);
+				FD_CLR(socketNuevo, &setDataNodes);
+			}
+			else if(tipoEstructura != D_STRUCT_INFO_NODO){
+				puts("Se esperaba recibir una estructura D_STRUCT_INFO_NODO");
+				log_error(logger,"Se esperaba recibir una estructura D_STRUCT_INFO_NODO");
+			}
+			else{
+				printf("Se recibio la informacion del %s\n", ((t_struct_datanode*)estructuraRecibida)->nomDN);
+				log_info(logger,"Se recibio la informacion del %s", ((t_struct_datanode*)estructuraRecibida)->nomDN);
+				// Guardamos esa info en nuestra lista de nodos conectados
+				list_add(info_DataNodes, (t_struct_datanode*)estructuraRecibida);
 
-				  // Guardamos esa info en nuestra lista de nodos conectados
-				  list_add(info_DataNodes, (t_struct_datanode*)estructuraRecibida);
+				// Con la info recibida del nodo que se conecto  actualizamos nodos.bin
 
-				  // Con la info recibida del nodo que se conecto  actualizamos nodos.bin
-
-				  actualizarTablaNodosAgregar( ((t_struct_datanode*)estructuraRecibida)->nomDN,
-						  	  	  	  	  	   ((t_struct_datanode*)estructuraRecibida)->bloquesTotales,
-											   ((t_struct_datanode*)estructuraRecibida)->bloquesLibres
-				  	  	  	  	  	 	 	 );
-			  }
+				actualizarTablaNodosAgregar( ((t_struct_datanode*)estructuraRecibida)->nomDN,
+						  	  	  	  	 	 ((t_struct_datanode*)estructuraRecibida)->bloquesTotales,
+											 ((t_struct_datanode*)estructuraRecibida)->bloquesLibres
+				  	  	  	  	  	 		);
+			}
 		}
 		else if(1){ // estado Estable
 			// Pueden conectarse YAMA y workers

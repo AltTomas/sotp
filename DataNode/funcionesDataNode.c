@@ -85,12 +85,6 @@ void conectarConFS(void){
 	puts("Conectandose a FS");
 	log_info(logger,"Conectandose a FS");
 
-	printf("IP FS: %s\n", config->IP_FILESYSTEM);
-	printf("Nombre Nodo: %s\n", config->NOMBRE_NODO);
-	printf("Puerto FS: %s\n", config->PUERTO_FILESYSTEM);
-	printf("Puerto Nodo: %s\n", config->PUERTO_NODO);
-	printf("Ruta DataBin: %s\n", config->RUTA_DATABIN);
-
 	t_struct_numero* handshake = malloc(sizeof(t_struct_numero));
 
 	handshake->numero = ES_DATANODE;
@@ -105,27 +99,31 @@ void conectarConFS(void){
 		exit(1);
 	}
 
-	socket_enviar(socketConexionFS, D_STRUCT_NUMERO, handshake);
-
 	puts("Me conecte a FS");
 	log_info(logger,"Me conecte a FS");
 
+	socket_enviar(socketConexionFS, D_STRUCT_NUMERO, handshake);
+
+	log_info(logger,"Handshake enviado a YAMA");
+
 	t_list *listatest =list_create();
-	list_add(listatest, "hola");
+	t_struct_bloqueDN* bloque = malloc(sizeof(t_struct_bloqueDN));
+	bloque->numBloque = 1;
+	bloque->estado = 1;
+	list_add(listatest, bloque);
 
 	datanodeParaFS->bloquesTotales = 1;
 	datanodeParaFS->nomDN = malloc(strlen(config->NOMBRE_NODO)+1);
 	strcpy(datanodeParaFS->nomDN,config->NOMBRE_NODO);
 	datanodeParaFS->bloqueDN = listatest;
 	datanodeParaFS->bloquesLibres = 1;
-	datanodeParaFS->ipDN = "123";
+	datanodeParaFS->ipDN = malloc(strlen("123")+1);
+	strcpy(datanodeParaFS->ipDN,"123");
 	datanodeParaFS->puertoDN = atoi(config->PUERTO_NODO);
 
 	socket_enviar(socketConexionFS, D_STRUCT_INFO_NODO,datanodeParaFS);
-	//socket_enviar(socketConexionFS, D_STRUCT_NUMERO,enviado);
 
-	log_info(logger,"Handshake enviado a YAMA");
-
+	puts("Aca muere datanode porque falta comportamiento");
 }
 
 

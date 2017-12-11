@@ -169,6 +169,75 @@ t_stream * serializeStruct_bloque_fs_yama(t_struct_bloques* estructuraOrigen, in
 	return paquete;
 }
 
+int calcularTamanioListaBloques(t_list* bloquesDN){
+
+	int tamanio = 0, i;
+
+	for(i=0;i<list_size(bloquesDN);i++){
+
+		t_struct_bloqueDN* bloque = list_get(bloquesDN,i);
+
+		int tamanioBloque = sizeof(int)*2;
+
+		int tamanioParcial = tamanioBloque;
+
+		tamanio += tamanioParcial;
+
+	}
+
+	return tamanio;
+}
+
+t_stream * serializeStruct_datanode(t_struct_datanode* estructuraOrigen, int headerOperacion){
+
+	t_stream * paquete = malloc(sizeof(t_stream));
+
+	int tamanioListaBLoques = calcularTamanioListaBloques(estructuraOrigen->bloqueDN);
+
+	paquete->length = sizeof(t_header)	+	strlen(estructuraOrigen->ipDN) + 1
+										+	sizeof(int)*3
+										+	strlen(estructuraOrigen->nomDN) + 1
+										+	tamanioListaBLoques;
+
+	char * data = crearDataConHeader(headerOperacion, paquete->length);
+
+	int tamanoTotal = sizeof(t_header), tamanoDato = 0;
+
+	memcpy(data + tamanoTotal, estructuraOrigen->ipDN , tamanoDato = strlen(estructuraOrigen->ipDN)+1);
+	tamanoTotal+=tamanoDato;
+
+	memcpy(data + tamanoTotal, &estructuraOrigen->puertoDN , tamanoDato = sizeof(int));
+	tamanoTotal+=tamanoDato;
+
+	memcpy(data + tamanoTotal, &estructuraOrigen->bloquesTotales , tamanoDato = sizeof(int));
+	tamanoTotal+=tamanoDato;
+
+	memcpy(data + tamanoTotal, &estructuraOrigen->bloquesLibres , tamanoDato = sizeof(int));
+	tamanoTotal+=tamanoDato;
+
+	memcpy(data + tamanoTotal, estructuraOrigen->nomDN , tamanoDato = strlen(estructuraOrigen->nomDN)+1);
+	tamanoTotal+=tamanoDato;
+
+	int contadorBloques = 0;
+	while(contadorBloques < estructuraOrigen->bloquesTotales){
+
+		t_struct_bloqueDN* bloque = list_get(estructuraOrigen->bloqueDN,contadorBloques);
+
+		memcpy(data + tamanoTotal, &bloque->numBloque , tamanoDato = sizeof(int));
+		tamanoTotal+=tamanoDato;
+
+		memcpy(data + tamanoTotal, &bloque->estado , tamanoDato = sizeof(int));
+		tamanoTotal+=tamanoDato;
+
+		contadorBloques++;
+	}
+
+	paquete->data = data;
+
+	return paquete;
+}
+
+
 t_stream * serializeStruct_jobT(t_struct_jobT * estructuraOrigen, int headerOperacion){
 
 	t_stream * paquete = malloc(sizeof(t_stream));
@@ -201,70 +270,6 @@ t_stream * serializeStruct_jobT(t_struct_jobT * estructuraOrigen, int headerOper
 	memcpy(data + tamanoTotal, &estructuraOrigen->bytesOcupadosBloque , tamanoDato = sizeof(int));
 
 	tamanoTotal+=tamanoDato;
-
-	paquete->data = data;
-
-	return paquete;
-}
-
-int calcularTamanioBloques(t_list* bloqueDN){
-
-	int tamanio = 0, i;
-
-	for(i=0;i<list_size(bloqueDN);i++){
-
-		int tamanioBloque = sizeof(int)*2;
-
-		int tamanioParcial = tamanioBloque;
-
-		tamanio += tamanioParcial;
-
-	}
-
-	return tamanio;
-}
-
-t_stream * serializeStruct_datanode(t_struct_datanode* estructuraOrigen, int headerOperacion){
-
-	t_stream * paquete = malloc(sizeof(t_stream));
-
-	int tamaniobloques = calcularTamanioBloques(estructuraOrigen->bloqueDN);
-
-	paquete->length = sizeof(t_header)  	+ strlen(estructuraOrigen->ipDN) + 1
-											+ tamaniobloques
-											+ sizeof(int) *3
-											+ strlen(estructuraOrigen->nomDN) + 1;
-
-	char * data = crearDataConHeader(headerOperacion, paquete->length);
-
-	int tamanoTotal = sizeof(t_header), tamanoDato = 0;
-
-	memcpy(data + tamanoTotal, &estructuraOrigen->ipDN , tamanoDato = strlen(estructuraOrigen->ipDN)+1);
-
-	tamanoTotal+=tamanoDato;
-
-	memcpy(data + tamanoTotal, &estructuraOrigen->puertoDN , tamanoDato = sizeof(int));
-
-	tamanoTotal+=tamanoDato;
-
-	memcpy(data + tamanoTotal, &estructuraOrigen->nomDN , tamanoDato = strlen(estructuraOrigen->nomDN) + 1);
-
-	tamanoTotal+=tamanoDato;
-
-	int contadorBloques = 0;
-
-	int cantidadBloques = estructuraOrigen->bloquesTotales; //chequear
-
-	while(contadorBloques < cantidadBloques){
-
-		t_struct_bloqueDN* bloque = list_get(estructuraOrigen->bloqueDN,contadorBloques);
-
-		memcpy(data + tamanoTotal, &bloque->estado , tamanoDato = sizeof(int));
-		tamanoTotal+=tamanoDato;
-
-		memcpy(data + tamanoTotal, &bloque->numBloque , tamanoDato = sizeof(int));
-		tamanoTotal+=tamanoDato;
-	}
 
 	paquete->data = data;
 
@@ -750,41 +755,50 @@ t_struct_bloques * deserializeStruct_bloque_fs_yama(char * dataPaquete, uint16_t
 
 t_struct_datanode * deserializeStruct_datanode(char * dataPaquete, uint16_t length){
 
-			t_struct_datanode * estructuraDestino = malloc(sizeof(t_struct_datanode));
+		t_struct_datanode * estructuraDestino = malloc(sizeof(t_struct_datanode));
 
-			int tamanoTotal = 0, tamanoDato = 0;
+		int tamanoTotal = 0, tamanoDato = 0;
 
-			tamanoTotal = tamanoDato;
+		for(tamanoDato = 1; (dataPaquete + tamanoTotal)[tamanoDato -1] != '\0';tamanoDato++);
+		estructuraDestino->ipDN = malloc(tamanoDato);
+		memcpy(estructuraDestino->ipDN, dataPaquete + tamanoTotal, tamanoDato);
+		tamanoTotal+= tamanoDato;
 
-			for(tamanoDato = 1; (dataPaquete + tamanoTotal)[tamanoDato -1] != '\0';tamanoDato++);
-			estructuraDestino->ipDN = malloc(tamanoDato);
-			memcpy(estructuraDestino->ipDN, dataPaquete + tamanoTotal, tamanoDato);
+		memcpy(&estructuraDestino->puertoDN,dataPaquete+tamanoTotal,tamanoDato=sizeof(int));
+		tamanoTotal+= tamanoDato;
 
+		memcpy(&estructuraDestino->bloquesTotales,dataPaquete+tamanoTotal,tamanoDato=sizeof(int));
+		tamanoTotal+= tamanoDato;
+
+		memcpy(&estructuraDestino->bloquesLibres,dataPaquete+tamanoTotal,tamanoDato=sizeof(int));
+		tamanoTotal+= tamanoDato;
+
+		for(tamanoDato = 1; (dataPaquete + tamanoTotal)[tamanoDato -1] != '\0';tamanoDato++);
+		estructuraDestino->nomDN = malloc(tamanoDato);
+		memcpy(estructuraDestino->nomDN, dataPaquete + tamanoTotal, tamanoDato);
+		tamanoTotal+= tamanoDato;
+
+		int contadorBloques = 0;
+
+		int cantidadBloques = estructuraDestino->bloquesTotales;
+
+		estructuraDestino->bloqueDN = list_create();
+
+		while(contadorBloques < cantidadBloques){
+			t_struct_bloqueDN* bloque = malloc(sizeof(t_struct_bloqueDN));
+
+			memcpy(&bloque->numBloque,dataPaquete+tamanoTotal,tamanoDato=sizeof(int));
 			tamanoTotal+= tamanoDato;
 
-			memcpy(&estructuraDestino->puertoDN,dataPaquete+tamanoTotal,tamanoDato=sizeof(int));
-
+			memcpy(&bloque->estado,dataPaquete+tamanoTotal,tamanoDato=sizeof(int));
 			tamanoTotal+= tamanoDato;
 
-			memcpy(&estructuraDestino->nomDN,dataPaquete+tamanoTotal,tamanoDato=sizeof(int));
-
-			tamanoTotal+= tamanoDato;
-
-			int contadorBloques = 0;
-
-			int cantidadBloques = list_size(estructuraDestino->bloqueDN); //chequear
-
-			while(contadorBloques < cantidadBloques){
-				char* temporal = list_get(estructuraDestino->bloqueDN,contadorBloques);
-
-				for(tamanoDato = 1; (dataPaquete + tamanoTotal)[tamanoDato -1] != '\0';tamanoDato++);
-				temporal = (char*)malloc(tamanoDato);
-				memcpy(temporal, dataPaquete + tamanoTotal, tamanoDato);
-				tamanoTotal+= tamanoDato;
+			list_add(estructuraDestino->bloqueDN,bloque);
+			contadorBloques++;
 			}
 
 			return estructuraDestino;
-	}
+}
 
 
 
