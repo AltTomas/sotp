@@ -120,48 +120,41 @@ t_stream * serializeStruct_bloque_fs_yama(t_struct_bloques* estructuraOrigen, in
 
 	t_stream * paquete = malloc(sizeof(t_stream));
 
-	paquete->length = sizeof(t_header) + strlen(estructuraOrigen->ipNodoOriginal)+1
-									   + strlen(estructuraOrigen->ipNodoCopia)+1;
-
+	paquete->length = sizeof(t_header) 	+ sizeof(int)*5
+										+ strlen(estructuraOrigen->ipNodoOriginal) + 1
+										+ strlen(estructuraOrigen->ipNodoCopia) + 1
+										+ strlen(estructuraOrigen->numNodoOriginal) + 1
+										+ strlen(estructuraOrigen->numNodoCopia) + 1;
 
 	char * data = crearDataConHeader(headerOperacion, paquete->length);
 
 	int tamanoTotal = sizeof(t_header), tamanoDato = 0;
 
 	memcpy(data + tamanoTotal, &estructuraOrigen->finalBloque , tamanoDato = sizeof(int));
-
-	tamanoTotal+=tamanoDato;
-
-	memcpy(data + tamanoTotal, &estructuraOrigen->numNodoOriginal , tamanoDato = sizeof(int));
-
-	tamanoTotal+=tamanoDato;
-
-	memcpy(data + tamanoTotal, &estructuraOrigen->numBloqueOriginal , tamanoDato = sizeof(int));
-
-	tamanoTotal+=tamanoDato;
-
-	memcpy(data + tamanoTotal, estructuraOrigen->ipNodoOriginal , tamanoDato = strlen(estructuraOrigen->ipNodoOriginal)+1);
-
-	tamanoTotal+=tamanoDato;
-
-	memcpy(data + tamanoTotal,&estructuraOrigen->puertoNodoOriginal , tamanoDato = sizeof(int));
-
-	tamanoTotal+=tamanoDato;
-
-	memcpy(data + tamanoTotal, &estructuraOrigen->numNodoCopia , tamanoDato = sizeof(int));
-
 	tamanoTotal+=tamanoDato;
 
 	memcpy(data + tamanoTotal, &estructuraOrigen->numBloqueCopia , tamanoDato = sizeof(int));
-
 	tamanoTotal+=tamanoDato;
 
-	memcpy(data + tamanoTotal, estructuraOrigen->ipNodoCopia , tamanoDato = strlen(estructuraOrigen->ipNodoCopia)+1);
-
+	memcpy(data + tamanoTotal, &estructuraOrigen->numBloqueOriginal , tamanoDato = sizeof(int));
 	tamanoTotal+=tamanoDato;
 
 	memcpy(data + tamanoTotal, &estructuraOrigen->puertoNodoCopia , tamanoDato = sizeof(int));
+	tamanoTotal+=tamanoDato;
 
+	memcpy(data + tamanoTotal, &estructuraOrigen->puertoNodoOriginal , tamanoDato = sizeof(int));
+	tamanoTotal+=tamanoDato;
+
+	memcpy(data + tamanoTotal, estructuraOrigen->ipNodoOriginal , tamanoDato = strlen(estructuraOrigen->ipNodoOriginal)+1);
+	tamanoTotal+=tamanoDato;
+
+	memcpy(data + tamanoTotal, estructuraOrigen->ipNodoCopia , tamanoDato = strlen(estructuraOrigen->ipNodoCopia)+1);
+	tamanoTotal+=tamanoDato;
+
+	memcpy(data + tamanoTotal, estructuraOrigen->numNodoOriginal , tamanoDato = strlen(estructuraOrigen->numNodoOriginal)+1);
+	tamanoTotal+=tamanoDato;
+
+	memcpy(data + tamanoTotal, estructuraOrigen->numNodoCopia , tamanoDato = strlen(estructuraOrigen->numNodoCopia)+1);
 	tamanoTotal+=tamanoDato;
 
 	paquete->data = data;
@@ -710,45 +703,40 @@ t_struct_bloques * deserializeStruct_bloque_fs_yama(char * dataPaquete, uint16_t
 
 		int tamanoTotal = 0, tamanoDato = 0;
 
-		tamanoTotal = tamanoDato;
-
 		memcpy(&estructuraDestino->finalBloque,dataPaquete+tamanoTotal,tamanoDato=sizeof(int));
-
 		tamanoTotal+= tamanoDato;
 
-		memcpy(&estructuraDestino->numNodoOriginal,dataPaquete+tamanoTotal,tamanoDato=sizeof(int));
-
+		memcpy(&estructuraDestino->numBloqueCopia,dataPaquete+tamanoTotal,tamanoDato=sizeof(int));
 		tamanoTotal+= tamanoDato;
 
 		memcpy(&estructuraDestino->numBloqueOriginal,dataPaquete+tamanoTotal,tamanoDato=sizeof(int));
+		tamanoTotal+= tamanoDato;
 
+		memcpy(&estructuraDestino->puertoNodoCopia,dataPaquete+tamanoTotal,tamanoDato=sizeof(int));
+		tamanoTotal+= tamanoDato;
+
+		memcpy(&estructuraDestino->puertoNodoOriginal,dataPaquete+tamanoTotal,tamanoDato=sizeof(int));
 		tamanoTotal+= tamanoDato;
 
 		for(tamanoDato = 1; (dataPaquete + tamanoTotal)[tamanoDato -1] != '\0';tamanoDato++);
 		estructuraDestino->ipNodoOriginal = malloc(tamanoDato);
 		memcpy(estructuraDestino->ipNodoOriginal, dataPaquete + tamanoTotal, tamanoDato);
-
-		tamanoTotal+= tamanoDato;
-
-		memcpy(&estructuraDestino->puertoNodoOriginal,dataPaquete+tamanoTotal,tamanoDato=sizeof(int));
-
-		tamanoTotal+= tamanoDato;
-
-		memcpy(&estructuraDestino->numNodoCopia,dataPaquete+tamanoTotal,tamanoDato=sizeof(int));
-
-		tamanoTotal+= tamanoDato;
-
-		memcpy(&estructuraDestino->numBloqueCopia,dataPaquete+tamanoTotal,tamanoDato=sizeof(int));
-
 		tamanoTotal+= tamanoDato;
 
 		for(tamanoDato = 1; (dataPaquete + tamanoTotal)[tamanoDato -1] != '\0';tamanoDato++);
 		estructuraDestino->ipNodoCopia = malloc(tamanoDato);
 		memcpy(estructuraDestino->ipNodoCopia, dataPaquete + tamanoTotal, tamanoDato);
-
 		tamanoTotal+= tamanoDato;
 
-		memcpy(&estructuraDestino->puertoNodoCopia,dataPaquete+tamanoTotal,tamanoDato=sizeof(int));
+		for(tamanoDato = 1; (dataPaquete + tamanoTotal)[tamanoDato -1] != '\0';tamanoDato++);
+		estructuraDestino->numNodoOriginal = malloc(tamanoDato);
+		memcpy(estructuraDestino->numNodoOriginal, dataPaquete + tamanoTotal, tamanoDato);
+		tamanoTotal+= tamanoDato;
+
+		for(tamanoDato = 1; (dataPaquete + tamanoTotal)[tamanoDato -1] != '\0';tamanoDato++);
+		estructuraDestino->numNodoCopia = malloc(tamanoDato);
+		memcpy(estructuraDestino->numNodoCopia, dataPaquete + tamanoTotal, tamanoDato);
+		tamanoTotal+= tamanoDato;
 
 		return estructuraDestino;
 }

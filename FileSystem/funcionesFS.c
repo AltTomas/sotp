@@ -1714,7 +1714,7 @@ if(posicion < 0){
 }
 else{
 	t_info_nodo* nodoDesconectado = list_remove(info_DataNodes,posicion);
-	seDesconectaUnNodo(nodoDesconectado->nombreNodo);
+	//seDesconectaUnNodo(nodoDesconectado->nombreNodo);
 }
 }
 
