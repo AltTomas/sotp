@@ -41,10 +41,6 @@
 #define MAX_LEN_PUERTO 6
 #define PUNTO_MONTAJE 250
 
-int estadoConexiones;
-int estadoFileSystem;
-int estadoEjecucion;
-
 
 
 
@@ -60,7 +56,7 @@ typedef struct{
 	char* nombreNodo;
 	int bloquesTotales;
 	int bloquesLibres;
-	t_list* bloqueDN;//t_struct_bloqueDN
+	//t_list* bloqueDN;//t_struct_bloqueDN //no se usa?
 	int estado;
 	t_bitarray*	bitmap;
 }t_info_nodo;
@@ -98,6 +94,10 @@ fd_set yama;
 fd_set setyama;
 int socketEscuchaDataNodes;
 int max_fd;
+
+int fsEstable;
+t_info_nodo* nodoConectado;
+int noEstaVacio;
 
 t_list* directorios; // una lista de t_directory
 t_Nodos* infoNodos;

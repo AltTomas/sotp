@@ -18,18 +18,17 @@ int main(int argc, char** argv){
 	info_DataNodes = list_create();
 	archivos = list_create();
 	directorios = list_create();
-	estadoConexiones = 1; //1 es activado, 0 es desactivado
-	estadoFileSystem = 0; //0 es inestable, 1 es estable
+	nodoConectado = NULL;
 
 	if(argc == 2){
 		if(strcmp(argv[1],"--clean")==0){
 			formatear(); // Esto si se inicio con --clean
 		}
 	} else{
+		//INICIARConfiguraciones (EJEMPLO RUTAS, CONFIGS)
 		recuperarArchivo();
 		recuperarDirectorio();
 		recuperarNodo();
-		estadoEjecucion = 0; //0 es normal, 1 es si el fs es nuevo
 	}
 
 

@@ -695,7 +695,26 @@ void aceptarNuevaConexion(int socketEscucha, fd_set* set){
 		if(recepcion == -1 || tipoEstructura != D_STRUCT_NUMERO){
 			log_info(logger,"No se recibio correctamente a que atendio FS");
 		}
-		else if(((t_struct_numero*)estructuraRecibida)->numero == ES_DATANODE){ // Aca deberiamos rebotar nodos si el FS esta formateado
+		else if(((t_struct_numero*)estructuraRecibida)->numero == ES_DATANODE){// Aca deberiamos rebotar nodos si el FS esta formateado
+
+			if(estructuraRecibida == NULL && noEstaVacio){		//la estructuraRecibida deberia ser la estructura t_info_nodo
+			        printf("No se pueden agregar nodos nuevos\n");
+			        //free
+			        return;
+
+			}
+
+			if(!noEstaVacio){
+				fsEstable = 1;
+							    }else{
+				 fsEstable = 0;
+							    }
+				if(fsEstable){
+				 printf("El fs está estable\n");
+							    }else{
+				printf("El fs no está estable\n");
+						}
+
 			FD_SET(socketNuevo, &datanode);
 			FD_SET(socketNuevo, set);
 			if(socketNuevo > max_fd) max_fd = socketNuevo;
@@ -777,6 +796,14 @@ void trabajarSolicitudYama(int socketYAMA){
   void* estructuraRecibida;
   t_tipoEstructura tipoEstructura;
 
+  if (!fsEstable) {
+	  	  	printf ("El fs no es estable, cierro conexion con YAMA\n");
+           	close(socketYAMA);
+           	FD_CLR(socketYAMA, &yama);
+           	FD_CLR(socketYAMA, &setyama);
+  }
+  else{
+
   int recepcion = socket_recibir(socketYAMA, &tipoEstructura,&estructuraRecibida);
 
   if(recepcion == -1){
@@ -804,6 +831,7 @@ void trabajarSolicitudYama(int socketYAMA){
       }
     }
   }
+}
 }
 
 void buscarBloquesArchivo(char* nombreFile, int socketConexionYAMA) {
@@ -842,27 +870,6 @@ void buscarBloquesArchivo(char* nombreFile, int socketConexionYAMA) {
 
   }
 }
-
-/*int determinarEstado() {
-
-	int cantidadArchivosAlmacenados = list_size(archivos);
-
-	int i;
-
-	for(i=0;i<cantidadArchivosAlmacenados;i++){
-
-		t_info_archivo* archivoAlmacenado1 = list_get(archivos,i);
-
-		int cantidadBloquesArchivosAlmacenados = list_size(archivoAlmacenado1->bloques);
-
-		for(i=0;i<cantidadBloquesArchivosAlmacenados;i++){
-			//comparo si alguna de las dos copias de ese bloque esta dentro de los Nodos conectados con el md5 con un IF
-			//IF -> OK -> esta ese bloque en el Nodo Conectado
-
-		}
-		//IF se cumple todo, esta en estado estable
-	}
-}*/
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -2840,7 +2847,7 @@ t_bitarray* crearBitmap(int cantidadBloques) {
 
 void recuperarArchivo() { //verificar si no falta lo del indicePadre en el archivo
 
-	FILE* archivo = fopen(tablaArchivostxt, "r");
+	FILE* archivo = fopen(tablaArchivostxt, "r"); //verificar ruta
 
 		if(archivo == NULL) {
 	printf("no se encontro el archivo\n");
@@ -2849,7 +2856,7 @@ void recuperarArchivo() { //verificar si no falta lo del indicePadre en el archi
 
 	fclose(archivo);
 	archivos = list_create();
-	t_config* config = config_create(tablaArchivostxt);
+	t_config* config = config_create(tablaArchivostxt); //seria la ubicacion del metadata
 	int cantidadArchivos = config_get_int_value(config, "ARCHIVOS");
 	int indice;
 
@@ -2880,13 +2887,27 @@ void recuperarArchivo() { //verificar si no falta lo del indicePadre en el archi
 		int cantidadBloques = config_get_int_value(config, "BLOQUES");
 
 		for(indiceBloques = 0; indiceBloques < cantidadBloques; indiceBloques++) {
+
 			t_info_bloque_archivo* bloque = malloc(sizeof(bloque));
 			char* lineaBloque = string_from_format("BLOQUE%i_BYTES", indiceBloques);
 			bloque->bloqueArchivo = indiceBloques;
 			bloque->bytesOcupados = config_get_int_value(config, lineaBloque);
+
+			char* lineaBloqueCopia0 = string_from_format("BLOQUE%i_COPIA0", indiceBloques);
+			char* stringCopia0 = string_new();
+		    sprintf(stringCopia0, "[%s, %d]", bloque->copia0Nodo, bloque->copia0NodoBloque);
+
+
+			char* lineaBloqueCopia1 = string_from_format("BLOQUE%i_COPIA1", indiceBloques);
+			char* stringCopia1 = string_new();
+		    sprintf(stringCopia1, "[%s, %d]", bloque->copia1Nodo, bloque->copia1NodoBloque);
+
+		    config_set_value(config, lineaBloqueCopia0, stringCopia0);
+		    config_set_value(config, lineaBloqueCopia1, stringCopia1);
+
 			free(lineaBloque);
+
 			list_add(archivo->infoBloques, bloque);
-			//faltaria copia0 y copia1
 		}
 		list_add(archivos,archivo);
 		config_destroy(config);
@@ -2898,7 +2919,16 @@ void recuperarArchivo() { //verificar si no falta lo del indicePadre en el archi
 
 void recuperarNodo() {
 
-	t_config* config = config_create(tablaNodos);
+	t_config* config = config_create(tablaNodos); //verificar ruta
+
+	if(config == NULL){
+			noEstaVacio = 0;
+	        printf ("No habia nodos guardados\n");
+	        return;
+	    }
+
+	    noEstaVacio = 1;
+
 	int cantidadNodos = config_get_int_value(config, "NODOS");
 	int indice;
 
@@ -2912,10 +2942,9 @@ void recuperarNodo() {
 		nodo->bloquesLibres = config_get_int_value(config, lineaLibres);
 		nodo->estado = 0;
 		nodo->socket = 0;
-		//nodo->mensaje?
 		nodo->puerto = 0;
+		//nodo->bloqueDN??????? chequear
 		strcpy(nodo->ip, "-");
-		//nodo->tareas?
 		free(nombreDentroConfig);
 		free(lineaTotales);
 		free(lineaLibres);
@@ -2943,7 +2972,7 @@ void recuperarNodo() {
 
 void recuperarDirectorio() {
 
-	FILE* file = fopen(tablaArchivostxt, "r");
+	FILE* file = fopen(tablaArchivostxt, "r"); //verificar ruta
 	crearBitmap(100);
 		if(file == NULL) {
 			printf("no se encontro el archivo\n");
