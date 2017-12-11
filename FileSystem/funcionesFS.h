@@ -41,6 +41,11 @@
 #define MAX_LEN_PUERTO 6
 #define PUNTO_MONTAJE 250
 
+int estadoConexiones;
+int estadoFileSystem;
+int estadoEjecucion;
+
+
 
 
 typedef struct {
@@ -179,5 +184,8 @@ bool rutaBarrasEstanSeparadas(char*);
 bool verificarRuta(char*);
 bool archivoExiste(int, char*);
 int buscarBloqueDeArchivo(t_info_archivo* , int);
+void recuperarArchivo();
+void recuperarDirectorio();
+void recuperarNodo();
 
 #endif /* FUNCIONESFS_H_ */

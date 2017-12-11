@@ -18,8 +18,8 @@ int main(int argc, char** argv){
 	info_DataNodes = list_create();
 	archivos = list_create();
 	directorios = list_create();
-	int estadoConexiones = 1; //1 es activado, 0 es desactivado
-	int estadoFileSystem = 0; //0 es inestable, 1 es estable
+	estadoConexiones = 1; //1 es activado, 0 es desactivado
+	estadoFileSystem = 0; //0 es inestable, 1 es estable
 
 	if(argc == 2){
 		if(strcmp(argv[1],"--clean")==0){
@@ -29,7 +29,7 @@ int main(int argc, char** argv){
 		recuperarArchivo();
 		recuperarDirectorio();
 		recuperarNodo();
-		int estadoEjecucion = 0; //0 es normal, 1 es si el fs es nuevo
+		estadoEjecucion = 0; //0 es normal, 1 es si el fs es nuevo
 	}
 
 

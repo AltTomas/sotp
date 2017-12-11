@@ -2866,8 +2866,8 @@ void recuperarArchivo() { //verificar si no falta lo del indicePadre en el archi
 		char* padreDentroConfig = string_from_format("PADRE%i", indice);
 		char* nombre = stringCrear(255);
 
+		strcpy(nombre,config_get_string_value(config, nombreDentroConfig));
 		int padre = config_get_int_value(config, padreDentroConfig);
-		strcpy(nombre,config_get_int_value(config, nombreDentroConfig));
 
 		free(nombreDentroConfig);
 		free(padreDentroConfig);
@@ -2959,7 +2959,7 @@ void recuperarDirectorio() {
 
 	fclose(file);
 
-	crearBitmap(100);
+	t_bitarray* bitmap=crearBitmap(100);
 	directorios = list_create();
 	t_config* config = config_create(tablaDirectorios);
 	int cantidadDirectorios = config_get_int_value(config, "DIRECTORIOS");
@@ -2981,8 +2981,7 @@ void recuperarDirectorio() {
 
 	config_destroy(config);
 	for(indice = 0; indice < cantidadDirectorios; indice++)
-		bitarray_set_bit(tablaBitmaps, indice);
+		bitarray_set_bit(bitmap, indice);
 }
-
 
 
