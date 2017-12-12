@@ -99,67 +99,17 @@ void commandHandler(){
 		case 2:{ // RM archivo - pasarle cosas en formato de directorios contenidos en yamaFS. PE: metadata/archivos/1/asd.asd
 			char* pathArchivo = readline("Ingrese path del archivo que se quiera borrar en yamaFS: ");
 
-			// Si borramos un archivo deberiamos avisarle a cada nodo que tiene sus bloques que los libere y borrar el metadata
+			int borrado = rmBorrarArchivo(pathArchivo);
 
-			char** pathDividido = string_split(pathArchivo, "/");
-
-			int cantidadSubdirectorios = obtenerCantidadElementos(pathDividido);
-
-			// Faltaria una condicion mas, si hay 2 archivos con = nombre cagamos
-
-			// Posible solucion: a t_info_archivo agregar un campo int que sea el indice que cuando
-			//se crea el archivo se copia el indice
-			bool buscarArchivo(t_info_archivo* archivo){
-
-			return (strcmp(archivo->nombreArchivo,pathDividido[cantidadSubdirectorios-2]) == 0);// -1 seria el null?
+			if(borrado == 0){
+				puts("Como se desconecto uno de los nodos que tenian el archivo no se pueden eliminar sus bloques");
 			}
-
-			t_info_archivo* metadataArchivo = list_find(archivos,(void*)buscarArchivo);
-
-			int i;
-			for(i = 0; i < metadataArchivo->infoBloques->elements_count; i++){
-
-				t_info_bloque_archivo* bloque = list_get(metadataArchivo->infoBloques,i);
-
-				// Si no encuentra los sockets significa que se desconecto
-				int socketNodoCopia0 = buscarSocketNodo(bloque->copia0Nodo);
-				int socketNodoCopia1 = buscarSocketNodo(bloque->copia1Nodo);
-
-				t_struct_numero* eliminarBloque = malloc(sizeof(t_struct_numero));
-				eliminarBloque->numero = FS_DATANODE_ELIMINAR_BLOQUE;
-
-				socket_enviar(socketNodoCopia0, D_STRUCT_NUMERO, eliminarBloque);
-				socket_enviar(socketNodoCopia1, D_STRUCT_NUMERO, eliminarBloque);
-
-				// TODO: Manejar Desconexion
-
-				free(eliminarBloque);
-
-				t_struct_numero* bloqueCopia0 = malloc(sizeof(t_struct_numero));
-				bloqueCopia0->numero = bloque->copia0NodoBloque;
-
-				t_struct_numero* bloqueCopia1 = malloc(sizeof(t_struct_numero));
-				bloqueCopia1->numero = bloque->copia1NodoBloque;
-
-				socket_enviar(socketNodoCopia0, D_STRUCT_NUMERO, bloqueCopia0);
-				socket_enviar(socketNodoCopia1, D_STRUCT_NUMERO, bloqueCopia1);
-
-				free(bloqueCopia0);
-				free(bloqueCopia1);
-
-				// Manejar Desconexion
-
+			else if(borrado < 0){
+				puts("Uno de los nodos no pudo borrar uno de sus bloques - Borrado Fallido");
 			}
-
-			// Una vez que todos los nodos borraron sus bloques pertenecientes al archivo
-
-			char* comandoBorrarArchivo = string_new();
-			string_append(&comandoBorrarArchivo, "rm ");
-			string_append(&comandoBorrarArchivo, "../../yamaFS/");
-			string_append(&comandoBorrarArchivo, pathArchivo);
-
-			system(comandoBorrarArchivo);
-
+			else{
+				puts("Se removio el archivo exitosamente");
+			}
 		}
 		break;
 		case 3: // RENAME
@@ -3016,5 +2966,133 @@ void recuperarDirectorio() {
 	for(indice = 0; indice < cantidadDirectorios; indice++)
 		bitarray_set_bit(bitmap, indice);
 }
+
+int rmBorrarArchivo(char* pathArchivo){
+
+	// Si borramos un archivo deberiamos avisarle a cada nodo que tiene sus bloques que los libere y borrar el metadata
+
+	char** pathDividido = string_split(pathArchivo, "/");
+
+	int cantidadSubdirectorios = obtenerCantidadElementos(pathDividido);
+
+	char* rutaSinNombreArchivo = string_new();
+
+	int i;
+	for(i = 0; i < (cantidadSubdirectorios - 1); i++){ // No consideramos el NULL
+		if(i != cantidadSubdirectorios - 2){
+			string_append(&rutaSinNombreArchivo,pathDividido[i]);
+	    }
+	    else if(i == cantidadSubdirectorios - 2){
+
+	    }
+	}
+
+	int indicePadre = pedidoLecturaRuta(rutaSinNombreArchivo);
+
+	bool buscarArchivo(t_info_archivo* archivo){
+
+	return ((strcmp(archivo->nombreArchivo,pathDividido[cantidadSubdirectorios-2]) == 0) && (indicePadre == archivo->indicePadre));// -1 seria el null?
+	}
+
+	t_info_archivo* metadataArchivo = list_find(archivos,(void*)buscarArchivo);
+
+	for(i = 0; i < metadataArchivo->infoBloques->elements_count; i++){
+
+		t_info_bloque_archivo* bloque = list_get(metadataArchivo->infoBloques,i);
+
+		// Si no encuentra los sockets significa que se desconecto
+		int socketNodoCopia0 = buscarSocketNodo(bloque->copia0Nodo);
+		int socketNodoCopia1 = buscarSocketNodo(bloque->copia1Nodo);
+
+		t_struct_numero* eliminarBloque = malloc(sizeof(t_struct_numero));
+		eliminarBloque->numero = FS_DATANODE_ELIMINAR_BLOQUE;
+
+		socket_enviar(socketNodoCopia0, D_STRUCT_NUMERO, eliminarBloque);
+		socket_enviar(socketNodoCopia1, D_STRUCT_NUMERO, eliminarBloque);
+
+		//TODO: Manejar desconexion?
+
+		free(eliminarBloque);
+
+		t_struct_numero* bloqueCopia0 = malloc(sizeof(t_struct_numero));
+		bloqueCopia0->numero = bloque->copia0NodoBloque;
+
+		t_struct_numero* bloqueCopia1 = malloc(sizeof(t_struct_numero));
+		bloqueCopia1->numero = bloque->copia1NodoBloque;
+
+		void* estructuraRecibida;
+		t_tipoEstructura tipoEstructura;
+
+		socket_enviar(socketNodoCopia0, D_STRUCT_NUMERO, bloqueCopia0);
+
+		int recepcion = socket_recibir(socketNodoCopia0, &tipoEstructura,&estructuraRecibida);
+
+		if(recepcion == -1){
+			printf("Se desconecto el Nodo en el socket %d\n", socketNodoCopia0);
+			log_info(logger,"Se desconecto el Nodo en el socket %d", socketNodoCopia0);
+			close(socketNodoCopia0);
+			FD_CLR(socketNodoCopia0, &datanode);
+			FD_CLR(socketNodoCopia0, &setDataNodes);
+
+			//Actualizar tabla de nodos - Borrar
+			actualizarTablaNodosBorrar(socketNodoCopia0);
+			return 0;
+		}
+		else if(tipoEstructura != D_STRUCT_NUMERO){
+			puts("Error en la serializacion");
+			log_info(logger,"Error en la serializacion");
+		}
+		else{
+			if(((t_struct_numero*)estructuraRecibida)->numero == ELIMINAR_BLOQUE_EXITO){
+				log_info(logger,"Nodo en el socket %d elimino su bloque exitosamente", socketNodoCopia0);
+			}
+			else{
+				return -1;
+			}
+		}
+
+		socket_enviar(socketNodoCopia1, D_STRUCT_NUMERO, bloqueCopia1);
+
+		if(recepcion == -1){
+				printf("Se desconecto el Nodo en el socket %d\n", socketNodoCopia1);
+				log_info(logger,"Se desconecto el Nodo en el socket %d", socketNodoCopia1);
+				close(socketNodoCopia1);
+				FD_CLR(socketNodoCopia1, &datanode);
+				FD_CLR(socketNodoCopia1, &setDataNodes);
+
+				//Actualizar tabla de nodos - Borrar
+				actualizarTablaNodosBorrar(socketNodoCopia1);
+				return 0;
+			}
+			else if(tipoEstructura != D_STRUCT_NUMERO){
+				puts("Error en la serializacion");
+				log_info(logger,"Error en la serializacion");
+			}
+			else{
+				if(((t_struct_numero*)estructuraRecibida)->numero == ELIMINAR_BLOQUE_EXITO){
+					log_info(logger,"Nodo en el socket %d elimino su bloque exitosamente", socketNodoCopia1);
+				}
+				else{
+					return -1;
+				}
+			}
+
+		free(bloqueCopia0);
+		free(bloqueCopia1);
+
+	}
+
+	// Una vez que todos los nodos borraron sus bloques pertenecientes al archivo
+
+	char* comandoBorrarArchivo = string_new();
+	string_append(&comandoBorrarArchivo, "rm ");
+	string_append(&comandoBorrarArchivo, "../../yamaFS/");
+	string_append(&comandoBorrarArchivo, pathArchivo);
+
+	system(comandoBorrarArchivo);
+
+	return 1;
+}
+
 
 

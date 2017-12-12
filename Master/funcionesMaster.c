@@ -233,6 +233,8 @@ void ejecutarJob(t_argumentos argumentos){
 	// Esperamos a que se realicen todas las reducciones
 	sem_wait(&bin_reduccion);
 
+	// todo: Si con el semaforo no funciona podemos hacer que YAMA le mande un mensaje a master que puede realizar la RG
+
 	///					REDUCCION GLOBAL					///
 	recepcion = socket_recibir(socketConexionYAMA, &tipoEstructura, &estructuraRecibida); // Recibimos nodos para reduccion global
 
