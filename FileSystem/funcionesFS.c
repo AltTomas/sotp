@@ -697,26 +697,16 @@ void aceptarNuevaConexion(int socketEscucha, fd_set* set){
 		}
 		else if(((t_struct_numero*)estructuraRecibida)->numero == ES_DATANODE){// Aca deberiamos rebotar nodos si el FS esta formateado
 
-			if(estructuraRecibida == NULL && noEstaVacio){		//la estructuraRecibida deberia ser la estructura t_info_nodo
+			if(estructuraRecibida == NULL && noEstaVacio){		//la estructuraRecibida deberia ser la estructura t_info_nodo, verificar si va aca o despues del otro recibir
 			        printf("No se pueden agregar nodos nuevos\n");
 			        //free
 			        return;
 
 			}
 
-			if(!noEstaVacio){
-				fsEstable = 1;
-							    }else{
-				 fsEstable = 0;
-							    }
-				if(fsEstable){
-				 printf("El fs está estable\n");
-							    }else{
-				printf("El fs no está estable\n");
-						}
-
 			FD_SET(socketNuevo, &datanode);
 			FD_SET(socketNuevo, set);
+
 			if(socketNuevo > max_fd) max_fd = socketNuevo;
 				printf("Se acaba de conectar un DATANODE  en el socket %d\n", socketNuevo);
 				log_info(logger,"Se acaba de conectar un DATANODE  en el socket %d", socketNuevo);
@@ -749,6 +739,18 @@ void aceptarNuevaConexion(int socketEscucha, fd_set* set){
 						  	  	  	  	 	 ((t_struct_datanode*)estructuraRecibida)->bloquesTotales,
 											 ((t_struct_datanode*)estructuraRecibida)->bloquesLibres
 				  	  	  	  	  	 		);
+
+				// no estoy seguro si es necesario nodoPrueba((t_info_nodo*)estructuraRecibida);
+
+				if(!noEstaVacio){
+				fsEstable = 1;
+						 }else{
+				fsEstable = 0; }
+				if(fsEstable){
+			    printf("El fs está estable\n");
+				}else{
+				printf("El fs no está estable\n");
+											}
 			}
 		}
 		else if(1){ // estado Estable
@@ -758,6 +760,15 @@ void aceptarNuevaConexion(int socketEscucha, fd_set* set){
 			// No puede conectarse nada que no sea datanode
 		}
 	}
+}
+
+void nodoPrueba(t_info_nodo* nodo){
+    nodoConectado = nodo;
+    almacenarArchivo("archivo.txt", "/prueba","Texto");
+    nodo->bloquesLibres += 2;
+    MD5("/prueba");
+    //rmArchivo("/prueba");
+    nodoConectado = NULL;
 }
 
 void trabajarSolicitudDataNode(int socketDataNode){
