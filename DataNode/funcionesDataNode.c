@@ -104,7 +104,7 @@ void conectarConFS(void){
 
 	socket_enviar(socketConexionFS, D_STRUCT_NUMERO, handshake);
 
-	log_info(logger,"Handshake enviado a YAMA");
+	log_info(logger,"Handshake enviado a FS");
 
 	t_list *listatest =list_create();
 	t_struct_bloqueDN* bloque = malloc(sizeof(t_struct_bloqueDN));
@@ -124,6 +124,58 @@ void conectarConFS(void){
 	socket_enviar(socketConexionFS, D_STRUCT_INFO_NODO,datanodeParaFS);
 
 	puts("Aca muere datanode porque falta comportamiento");
+}
+
+void manejarFS(){
+
+	t_tipoEstructura tipoEstructura;
+	void * structRecibido;
+
+
+	while(socket_recibir(socketConexionFS,&tipoEstructura,&structRecibido) > 0){
+
+			switch(tipoEstructura){
+
+			case FS_DATANODE_ALMACENAR_BLOQUE: ;
+
+			t_pedido_almacenar_bloque*  archivoEsc = malloc(sizeof(t_pedido_almacenar_bloque* ));
+			t_struct_numero*  respuesta = malloc(sizeof(t_struct_numero* ));
+
+				socket_recibir(socketConexionFS, FS_DATANODE_ALMACENAR_BLOQUE , archivoEsc);
+
+				if(setBloque(archivoEsc->bloqueArchivo, archivoEsc->contenidoBloque) >0){
+
+					respuesta->numero = archivoEsc->bloqueArchivo;
+
+					socket_enviar(socketConexionFS, D_STRUCT_NUMERO, respuesta);
+				}
+
+				free(archivoEsc);
+
+			break;
+
+			case FS_DATANODE_LEER_BLOQUE: ;
+
+			t_pedido_almacenar_bloque*   archivoLec = malloc(sizeof(t_pedido_almacenar_bloque* ));
+
+					socket_recibir(socketConexionFS, FS_DATANODE_ALMACENAR_BLOQUE , archivoLec);
+
+					archivoLec->contenidoBloque = getBloque(archivoEsc->bloqueArchivo);
+
+					socket_enviar(socketConexionFS, FS_DATANODE_ALMACENAR_BLOQUE , archivoLec);
+
+					free(archivoLec);
+
+			break;
+			}
+
+
+	}
+
+
+	if (socket_recibir(socketConexionFS,&tipoEstructura,&structRecibido) == -1) {
+		log_info(logger,"El FS %d cerró la conexión.",socketConexionFS);
+	}
 }
 
 

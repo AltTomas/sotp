@@ -1246,7 +1246,7 @@ int guardarCopia(t_info_archivo* archivo, int socketNodo, t_pedido_almacenar_blo
 		return 0;
 	}
 	else{
-		if(((t_almacenar_bloque*)estructuraRecibida)->bloqueNodo >= 0){ // Se guardo bien, me enviaria el bloque donde se guardo
+		if(((t_struct_numero*)estructuraRecibida)->numero >= 0){ // Se guardo bien, me enviaria el bloque donde se guardo
 
 	   		//Actualizar tabla de nodos - Reducir bloques libres del nodo y bloques libres totales
 		    actualizarTablaNodosAsignacion(socketNodo);
