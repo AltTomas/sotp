@@ -260,4 +260,10 @@ typedef struct t_dirFisica{
 	char* ip;
 	int puerto;
 }__attribute__((__packed__))t_dirFisica;
+
+typedef struct t_espacio_bloques{
+	int nroBloque;
+	int bytesOcupados;
+}__attribute__((__packed__))t_espacio_bloques;
+
 #endif /* ESTRUCTURAS_H_ */

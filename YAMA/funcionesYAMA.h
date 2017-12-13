@@ -57,7 +57,7 @@ void trabajarSolicitudMaster(int);
 char* generarNombreTemporal(int, int);
 void getNodoByFile(char*, int);
 bool workerTieneBloque(int indexWorkerActual, int numBloque);
-void asignarBloquesALosWorkers();
+void asignarBloquesALosWorkers(int socketMaster);
 void aumentarAvaibility();
 void inicializarYama();
 int cargaNodo(int nodo);
@@ -65,13 +65,17 @@ int getMayorCargaExistente();
 void agregarEntradaTablaEstado(int job, int master, int nodo, int bloque, char* archivoTemporal);
 int getAvailabilityBase();
 void agregarALaListaBalanceoCarga(int idWorker);
-void iniciarPlanificacion();
+void iniciarPlanificacion(int socketMaster);
 int getAvailabilityBase();
 void agregarAlDiccionarioDirFisico(int idNodo,char* ip,int puerto);
+void enviarBloqueATransformar(int workerActual,int numBloque,int socketMaster);
+void agregarNodoAlDiccionario(int idWorker, int numBloque, int bytesOcupados);
+int getNuevoJob();
 
 /* Variables Globales */
 
 int socketConexionFS;
+int contadorJobs;
 
 t_list * tablaEstados;
 t_list* listaInfoBloques;

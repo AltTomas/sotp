@@ -132,17 +132,12 @@ void escucharConexiones(void) {
 			aceptarNuevaConexion(socketEscuchaMasters, &setMasters);
 		}
 
-		for (iterador_sockets = 0; iterador_sockets <= max_fd;
-				iterador_sockets++) {
-
-			if (FD_ISSET(iterador_sockets,
-					&setMasters) && FD_ISSET(iterador_sockets,&read_fd)) { //una master realiza una operacion
+		for (iterador_sockets = 0; iterador_sockets <= max_fd;iterador_sockets++) {
+			if (FD_ISSET(iterador_sockets,&setMasters) && FD_ISSET(iterador_sockets,&read_fd)) { //una master realiza una operacion
 				FD_CLR(iterador_sockets, &setMasters);
 				pthread_t hilo;
-				resultadoHilo = pthread_create(&hilo, NULL,
-						(void*) trabajarSolicitudMaster, iterador_sockets);
-				if (resultadoHilo)
-					exit(1);
+				resultadoHilo = pthread_create(&hilo, NULL,(void*) trabajarSolicitudMaster, iterador_sockets);
+				if (resultadoHilo) exit(1);
 			}
 		}
 	}
@@ -262,8 +257,8 @@ void getNodoByFile(char* nombreFile, int socketConexionMaster) {
 
 						//agregarBloqueALaLista(bloqueEnviar);
 
-						agregarNodoAlDiccionario(bloqueEnviar->numBloqueOriginal,bloqueEnviar->numNodoOriginal);
-						agregarNodoAlDiccionario(bloqueEnviar->numBloqueCopia,bloqueEnviar->numNodoCopia);
+						agregarNodoAlDiccionario(bloqueEnviar->numBloqueOriginal,bloqueEnviar->numNodoOriginal,bloqueEnviar->finalBloque);
+						agregarNodoAlDiccionario(bloqueEnviar->numBloqueCopia,bloqueEnviar->numNodoCopia,bloqueEnviar->finalBloque);
 
 						agregarAlDiccionarioDirFisico(bloqueEnviar->numNodoOriginal,bloqueEnviar->ipNodoOriginal,bloqueEnviar->puertoNodoOriginal);
 						agregarAlDiccionarioDirFisico(bloqueEnviar->numNodoCopia,bloqueEnviar->ipNodoCopia,bloqueEnviar->puertoNodoCopia);
@@ -271,7 +266,7 @@ void getNodoByFile(char* nombreFile, int socketConexionMaster) {
 						agregarALaListaBalanceoCarga(bloqueEnviar->numNodoOriginal);
 						agregarALaListaBalanceoCarga(bloqueEnviar->numNodoCopia);
 					}
-					iniciarPlanificacion();
+					iniciarPlanificacion(socketConexionMaster);
 				break;
 				}
 			}
@@ -305,14 +300,15 @@ char* generarNombreTemporal(int socketMaster, int nroBloque) {
 	return nombre;
 }
 
-void agregarNodoAlDiccionario(int idWorker, int numBloque){
-
+void agregarNodoAlDiccionario(int idWorker, int numBloque, int bytesOcupados){
 	if(!dictionary_has_key(ubicacionBloques, idWorker)){
 		dictionary_put(ubicacionBloques,idWorker,list_create());
 	}
-
+	t_espacio_bloques* espacioBloque = malloc(sizeof(espacioBloque));
+	espacioBloque->nroBloque = numBloque;
+	espacioBloque->bytesOcupados = bytesOcupados;
 	t_list* listaBloques = dictionary_get(ubicacionBloques, idWorker);
-	list_add(listaBloques, numBloque);
+	list_add(listaBloques, espacioBloque);
 }
 
 void agregarBloqueALaLista(t_struct_bloques* bloqueAgregar){
@@ -333,7 +329,7 @@ void agregarBloqueALaLista(t_struct_bloques* bloqueAgregar){
 	list_add(listaInfoBloques,nuevoBloque); /* lista var global */
 }
 
-void asignarBloquesALosWorkers(){
+void asignarBloquesALosWorkers(int socketMaster){
 
 	int cantBloques = dictionary_size(ubicacionBloques);
 	int indexCursor = 0;
@@ -347,10 +343,11 @@ void asignarBloquesALosWorkers(){
 
 			if(pasos == cantBloques){
 				pasos = 1;
-				aumentarAvaibility(indexWorkerActual);
+				aumentarAvaibility();
 			}
 			if(indexWorkerActual >= cantBloques) indexWorkerActual = 0;
 		}
+		enviarBloqueATransformar(indexWorkerActual,numBloque,socketMaster);
 		indexCursor++;
 		indexWorkerActual = indexCursor;
 	}
@@ -361,8 +358,8 @@ bool workerTieneBloque(int indexWorkerActual, int numBloque){
 	balanceoCargas* infoWorker = list_get(listaBalanceoCargas, indexWorkerActual);
 	t_list* bloquesDelWorker = dictionary_get(ubicacionBloques, infoWorker->worker);
 
-	bool tieneBloque(int bloque){
-		return numBloque == bloque ? 1 : 0;
+	bool tieneBloque(t_espacio_bloques* bloque){
+		return numBloque == bloque->nroBloque ? 1 : 0;
 	}
 
 	bool resultado =  list_any_satisfy(bloquesDelWorker, tieneBloque);
@@ -377,16 +374,16 @@ bool workerTieneBloque(int indexWorkerActual, int numBloque){
 	return resultado;
 }
 
-void aumentarAvaibility(int nodo){
+void aumentarAvaibility(){
 	void aumentar(balanceoCargas* elemento){
 		elemento->availability += getAvailabilityBase();
 	}
 	list_iterate(listaBalanceoCargas, aumentar);
 }
 
-void iniciarPlanificacion(){
+void iniciarPlanificacion(int socketMaster){
 	/* Asigno los bloques a la lista de Balanceo Cargas*/
-		asignarBloquesALosWorkers();
+		asignarBloquesALosWorkers(socketMaster);
 }
 
 void agregarALaListaBalanceoCarga(int idWorker){
@@ -411,6 +408,7 @@ void inicializarYama(){
 	listaBalanceoCargas = list_create();
 	ubicacionBloques = dictionary_create();
 	ubicacionFisicaBloques = dictionary_create();
+	contadorJobs = 0;
 }
 
 void agregarEntradaTablaEstado(int job, int master, int nodo, int bloque, char* archivoTemporal){
@@ -474,8 +472,38 @@ int cargaNodo(int nodo){
 void agregarAlDiccionarioDirFisico(int idNodo,char* ip,int puerto){
 	if(!dictionary_has_key(ubicacionFisicaBloques, idNodo)){
 		t_dirFisica* ubicacion = malloc(sizeof(t_dirFisica));
+		ubicacion->ip = malloc(strlen(ip));
 		strcpy(ubicacion->ip,ip);
 		ubicacion->puerto = puerto;
 		dictionary_put(ubicacionFisicaBloques,idNodo,ubicacion);
 	}
+}
+
+int getNuevoJob(){
+	return contadorJobs++;
+}
+void enviarBloqueATransformar(int workerActual,int numBloque,int socketMaster){
+	t_infoNodo_transformacion* infoNodo = malloc(sizeof(t_infoNodo_transformacion));
+	t_espacio_bloques* espacioBloque = malloc(sizeof(t_espacio_bloques));
+	t_list* infoBloque = dictionary_get(ubicacionBloques,workerActual);
+	t_dirFisica* dirFisica = malloc(sizeof(t_dirFisica));
+	char* temporal = generarNombreTemporal(socketMaster,numBloque);
+	bool tieneElBloque(t_espacio_bloques* bloque){
+		return bloque->nroBloque == numBloque;
+	}
+	dirFisica = dictionary_get(ubicacionFisicaBloques,workerActual);
+	espacioBloque = list_find(infoBloque,tieneElBloque);
+
+	infoNodo->bytesOcupados = espacioBloque->bytesOcupados;
+	infoNodo->idNodo = workerActual;
+	infoNodo->ip = malloc(strlen(dirFisica->ip));
+	strcpy(infoNodo->ip,dirFisica->ip);
+	infoNodo->puerto=dirFisica->puerto;
+	infoNodo->numBloque = numBloque;
+	infoNodo->nombreTemporal = malloc(strlen(temporal));
+	strcpy(infoNodo->nombreTemporal,temporal);
+
+	agregarEntradaTablaEstado(getNuevoJob(),socketMaster,workerActual,numBloque,infoNodo->nombreTemporal);
+	socket_enviar(socketMaster,D_STRUCT_NODO_TRANSFORMACION,infoNodo);
+	free(infoNodo);free(infoBloque);free(dirFisica);
 }
