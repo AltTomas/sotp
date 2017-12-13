@@ -70,21 +70,6 @@ void destruirConfig(t_config_Worker* config){
 	free(config);
 }
 
-int conectarADataNode (){
-
-	//Genera el socket cliente y lo conecta al kernel
-	int socketCliente = crearCliente(config->Worker_Puerto,config->Puerto_DataNode);
-
-	//Se realiza el handshake con el kernel
-	t_struct_numero* es_datanode = malloc(sizeof(t_struct_numero));
-	es_datanode->numero = ES_DATANODE;
-	socket_enviar(socketCliente, D_STRUCT_NUMERO, es_datanode);
-	free(es_datanode);
-
-	return socketCliente;
-
-}
-
 void escucharConexiones(void){
 
 	FD_ZERO(&maestro);
@@ -152,6 +137,21 @@ void aceptarNuevaConexion(int socketEscucha, fd_set* set){
 	}
 }
 
+int conectarAFS(){
+
+	//Genera el socket cliente y lo conecta a la memoria
+	int socketCliente = crearCliente(config->IP_DataNode,config->Puerto_DataNode);
+
+	//Se realiza el handshake con la memoria
+	t_struct_numero* es_worker = malloc(sizeof(t_struct_numero));
+	es_worker->numero = ES_WORKER;
+	socket_enviar(socketCliente, D_STRUCT_NUMERO, es_worker);
+	free(es_worker);
+
+	return socketCliente;
+
+}
+
 void atenderMaster(int socketMaster){
 
 	t_tipoEstructura estructura;
@@ -211,11 +211,14 @@ int doJob_transformacion(t_struct_jobT* job){
 
 	char command[500];
 	int resultado;
-	sprintf(command, "cat %s | %s > %s", job->pathOrigen, pathScriptT, job->pathTemporal);
+
+	sprintf(command, "cat %s | %s | sort >> %s", job->pathOrigen, pathScriptT, job->pathTemporal);
 
 	resultado = system(command);
 
 	if(resultado == 1){
+
+
 		return 1;
 	}else return 0;
 
@@ -226,7 +229,6 @@ int doJob_transformacion(t_struct_jobT* job){
 int doJob_reduccion(t_struct_jobR* job){
 
 	char * pathScriptR;
-		char * pathBloqueT;
 
 		pathScriptR = createScript(job->scriptReduccion);
 
@@ -260,7 +262,7 @@ char createBloque(int bloque){
 	char * bloqueData;
 		FILE * fd;
 
-		sprintf(path, "Scripts/%d", numScriptT);
+		sprintf(path, "BloquesTemp/%d", numScriptT);
 
 		fd = fopen(path, "w");
 

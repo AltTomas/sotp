@@ -41,6 +41,7 @@ typedef struct {
 	char * databinPath;
 }t_config_Worker;
 
+
 t_log* logger;
 t_config_Worker* config;
 int socketEscucha;
@@ -64,6 +65,8 @@ char obtenerBloque(int bloque);
 void initializeFolders();
 char createBloque(int bloque);
 char createScript(char script);
+int socketFS;
+int conectarAFS();
 
 
 #endif /* FUNCIONESWORKER_H_ */

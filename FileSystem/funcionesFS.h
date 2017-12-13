@@ -187,5 +187,6 @@ int buscarBloqueDeArchivo(t_info_archivo* , int);
 void recuperarArchivo();
 void recuperarDirectorio();
 void recuperarNodo();
+int rmBorrarArchivo(char*);
 
 #endif /* FUNCIONESFS_H_ */

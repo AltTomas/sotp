@@ -17,6 +17,7 @@ int main(void) {
 	//destruirConfig(config);
 
 	escucharConexiones();
+	socketFS = conectarAFS();
 
 	return 0;
 

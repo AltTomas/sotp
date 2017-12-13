@@ -61,10 +61,11 @@ t_config_nodo* config;
 
 bool verificarExistenciaDeArchivo(char*);
 t_config_nodo* levantarConfiguracionNodo(char*);
-void conectarConFS(void);
+void conectarConFS();
 char getBloque(int bloque);
 int setBloque(int bloque, char data[DATANODE_BLOCK_SIZE]);
 void calcularCantidadDeBloques(int fd);
 void mapearDataBin();
+
 
 #endif /* FUNCIONESDATANODE_H_ */
