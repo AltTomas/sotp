@@ -179,28 +179,91 @@ void trabajarSolicitudMaster(int socketMaster) {
 	void* estructuraRecibida;
 	t_tipoEstructura tipoEstructura;
 
-	int recepcion = socket_recibir(socketMaster, &tipoEstructura,
-			&estructuraRecibida);
+	int recepcion = socket_recibir(socketMaster, &tipoEstructura,&estructuraRecibida);
 
 	if (recepcion == -1) {
-		printf("Se desconecto el Master en el socket %d\n", socketMaster);
-		log_info(logger, "Se desconecto el Master en el socket %d",
-				socketMaster);
+		log_info(logger, "Se desconecto el Master en el socket %d",socketMaster);
 		close(socketMaster);
 		FD_CLR(socketMaster, &maestro);
 		FD_CLR(socketMaster, &setMasters);
 	} else {
 		switch (tipoEstructura) {
-		case D_STRUCT_STRING:
-			printf("Llego solicitud de tarea del Master en el socket %d\n",socketMaster);
-			log_info(logger,"Llego solicitud de tarea del Master en el socket %d",socketMaster);
+		case D_STRUCT_NUMERO:
+			switch (((t_struct_numero*) estructuraRecibida)->numero) {
+				case MASTER_YAMA_SOLICITAR_INFO_NODO:
+					socket_recibir(socketMaster, D_STRUCT_STRING,&estructuraRecibida);
+					log_info(logger,"Llego solicitud de tarea del Master en el socket %d",socketMaster);
+					getNodoByFile(((t_struct_string*) estructuraRecibida)->string,socketMaster);
+					FD_SET(socketMaster, &setMasters);
+				break;
 
-			printf("Archivo Objetivo: %s\n",((t_struct_string*) estructuraRecibida)->string);
-			log_info(logger, "Archivo Objetivo: %s",((t_struct_string*) estructuraRecibida)->string);
-			getNodoByFile(((t_struct_string*) estructuraRecibida)->string,socketMaster);
-			FD_SET(socketMaster, &setMasters);
+				case MASTER_YAMA_TRANSFORMACION_WORKER_OK:{
+					int nodoOk;int bloqueOk;
+					socket_recibir(socketMaster, D_STRUCT_NUMERO,&estructuraRecibida);
+					nodoOk = ((t_struct_numero*) estructuraRecibida)->numero;
+					socket_recibir(socketMaster, D_STRUCT_NUMERO,&estructuraRecibida);
+					bloqueOk = ((t_struct_numero*) estructuraRecibida)->numero;
+					updateTablaEstado(socketMaster,nodoOk,bloqueOk,ETAPA_TRANSFORMACION,ESTADO_FINALIZADO_OK);
+					free(nodoOk);free(bloqueOk);
+					/*Validar si todas las transformaciones estan hechas y mandar a reducir localmente*/
+				break;}
 
-			break;
+				case MASTER_YAMA_TRANSFORMACION_WORKER_FALLO:{
+					int nodoFallo;int bloqueFallo;
+					socket_recibir(socketMaster, D_STRUCT_NUMERO,&estructuraRecibida);
+					nodoFallo = ((t_struct_numero*) estructuraRecibida)->numero;
+					socket_recibir(socketMaster, D_STRUCT_NUMERO,&estructuraRecibida);
+					bloqueFallo = ((t_struct_numero*) estructuraRecibida)->numero;
+					updateTablaEstado(socketMaster,nodoFallo,bloqueFallo,ETAPA_TRANSFORMACION,ESTADO_ERROR);
+					free(nodoFallo);free(bloqueFallo);
+					/*Replanificar*/
+				break;}
+
+				case MASTER_YAMA_REDUCCIONL_WORKER_OK:{
+					int nodoOk;
+					socket_recibir(socketMaster, D_STRUCT_NUMERO,&estructuraRecibida);
+					nodoOk = ((t_struct_numero*) estructuraRecibida)->numero;
+					update2TablaEstado(socketMaster,nodoOk,ETAPA_REDUCCION_LOCAL,ESTADO_FINALIZADO_OK);
+					free(nodoOk);
+					/*Validar si hay que enviar a reducir globalmente*/
+				break;}
+
+				case MASTER_YAMA_REDUCCIONL_WORKER_FALLO:{
+					int nodoFallo;
+					socket_recibir(socketMaster, D_STRUCT_NUMERO,&estructuraRecibida);
+					nodoFallo = ((t_struct_numero*) estructuraRecibida)->numero;
+					update2TablaEstado(socketMaster,nodoFallo,ETAPA_REDUCCION_LOCAL,ESTADO_ERROR);
+					free(nodoFallo);
+				break;}
+
+				case MASTER_YAMA__REDUCCIONG_WORKER_OK:{
+					int nodoOk;
+					socket_recibir(socketMaster, D_STRUCT_NUMERO,&estructuraRecibida);
+					nodoOk = ((t_struct_numero*) estructuraRecibida)->numero;
+					update2TablaEstado(socketMaster,nodoOk,ETAPA_REDUCCION_GLOBAL,ESTADO_FINALIZADO_OK);
+					free(nodoOk);
+				break;}
+
+				case MASTER_YAMA__REDUCCIONG_WORKER_FALLO:{
+					int nodoFallo;
+					socket_recibir(socketMaster, D_STRUCT_NUMERO,&estructuraRecibida);
+					nodoFallo = ((t_struct_numero*) estructuraRecibida)->numero;
+					update2TablaEstado(socketMaster,nodoFallo,ETAPA_REDUCCION_GLOBAL,ESTADO_ERROR);
+					free(nodoFallo);
+				break;}
+
+				case MASTER_YAMA_ALMACENAMIENTO_FINAL_WORKER_OK:
+				break;
+
+				case MASTER_YAMA_ALMACENAMIENTO_FINAL_WORKER_FALLO:
+				break;
+
+				case MASTER_YAMA_CONEXION_WORKER_OK:
+				break;
+
+				case MASTER_YAMA_CONEXION_WORKER_FALLO:
+				break;
+			}
 		}
 	}
 }
@@ -487,6 +550,7 @@ void enviarBloqueATransformar(int workerActual,int numBloque,int socketMaster){
 	t_espacio_bloques* espacioBloque = malloc(sizeof(t_espacio_bloques));
 	t_list* infoBloque = dictionary_get(ubicacionBloques,workerActual);
 	t_dirFisica* dirFisica = malloc(sizeof(t_dirFisica));
+	t_struct_numero* enviarATransformar = malloc(sizeof(t_struct_numero));
 	char* temporal = generarNombreTemporal(socketMaster,numBloque);
 	bool tieneElBloque(t_espacio_bloques* bloque){
 		return bloque->nroBloque == numBloque;
@@ -504,6 +568,27 @@ void enviarBloqueATransformar(int workerActual,int numBloque,int socketMaster){
 	strcpy(infoNodo->nombreTemporal,temporal);
 
 	agregarEntradaTablaEstado(getNuevoJob(),socketMaster,workerActual,numBloque,infoNodo->nombreTemporal);
+	enviarATransformar->numero =YAMA_MASTER_EJECUTAR_TRANSFORMACION;
+	socket_enviar(socketMaster,D_STRUCT_NUMERO,enviarATransformar);
 	socket_enviar(socketMaster,D_STRUCT_NODO_TRANSFORMACION,infoNodo);
-	free(infoNodo);free(infoBloque);free(dirFisica);
+	free(infoNodo);free(infoBloque);free(dirFisica);free(enviarATransformar);
+}
+
+void updateTablaEstado(int master, int nodo, int bloque, int etapa,int estado){
+	bool getRow(t_tablaEstados* estadoTabla){
+		return estadoTabla->master == master  && estadoTabla->nodo == nodo && estadoTabla->bloque == bloque;
+	}
+	t_tablaEstados* row = list_find(tablaEstados,getRow);
+
+	row->etapa = etapa;
+	row->status = estado;
+}
+
+void update2TablaEstado(int master, int nodo, int etapa,int estado){
+	bool getRow(t_tablaEstados* estadoTabla){
+		return estadoTabla->master == master  && estadoTabla->nodo == nodo && estadoTabla->etapa == etapa;
+	}
+	t_tablaEstados* row = list_find(tablaEstados,getRow);
+
+	row->status = estado;
 }

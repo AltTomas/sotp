@@ -71,6 +71,8 @@ void agregarAlDiccionarioDirFisico(int idNodo,char* ip,int puerto);
 void enviarBloqueATransformar(int workerActual,int numBloque,int socketMaster);
 void agregarNodoAlDiccionario(int idWorker, int numBloque, int bytesOcupados);
 int getNuevoJob();
+void updateTablaEstado(int master, int nodo, int bloque, int etapa,int estado);
+void update2TablaEstado(int master, int nodo, int etapa,int estado);
 
 /* Variables Globales */
 
